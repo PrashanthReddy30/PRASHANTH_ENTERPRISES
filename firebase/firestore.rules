@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isHRorAdmin() {
+      return isAuthenticated() && (request.auth.token.role in ['Admin', 'HR', 'Finance']);
+    }
+
+    // 1. Helpdesk Tickets
+    match /helpdesk_tickets/{ticketId} {
+      allow read: if isAuthenticated() && (
+        resource.data.createdBy.uid == request.auth.uid || 
+        request.auth.uid in resource.data.followers || 
+        isHRorAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.createdBy.uid == request.auth.uid || 
+        isHRorAdmin()
+      );
+      allow delete: if isHRorAdmin();
+
+      match /comments/{commentId} {
+        allow read, create: if isAuthenticated();
+      }
+    }
+
+    // 2. Taxes and Finances (Strict privacy)
+    match /taxes_finances/{docId} {
+      allow read, update: if isAuthenticated() && (
+        resource.data.employeeId == request.auth.token.employeeId || 
+        isHRorAdmin()
+      );
+      allow create, delete: if isHRorAdmin();
+
+      match /monthly_payslips/{slipId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/taxes_finances/$(docId)).data.employeeId == request.auth.token.employeeId ||
+          isHRorAdmin()
+        );
+      }
+    }
+
+    // 3. Engage / Announcements & Polls
+    match /engage_announcements/{announcementId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isHRorAdmin();
+
+      match /comments/{commentId} {
+        allow read, create: if isAuthenticated();
+      }
+    }
+
+    match /engage_polls/{pollId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isHRorAdmin();
+
+      match /votes/{voterUid} {
+        allow read, write: if isOwner(voterUid);
+      }
+    }
+
+    // 4. Matrix Biometric Stream
+    match /matrix_biometric_punches/{punchId} {
+      allow read: if isAuthenticated();
+      allow write: if isHRorAdmin(); // Local server service account push
+    }
+  }
+}

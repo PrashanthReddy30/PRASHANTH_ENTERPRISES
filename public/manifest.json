@@ -1,0 +1,18 @@
+{
+  "name": "Prashanth Enterprises HRM",
+  "short_name": "PE HRM",
+  "description": "Enterprise Human Resource Management PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

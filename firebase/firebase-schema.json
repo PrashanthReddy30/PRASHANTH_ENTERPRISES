@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Prashanth Enterprises HRM - Firebase Firestore Schema",
+  "version": "1.0.0",
+  "collections": {
+    "helpdesk_tickets": {
+      "description": "Enterprise support ticketing system with SLA monitoring and role assignments",
+      "document_id_pattern": "HD-{YYYYMMDD}-{AUTO_ID}",
+      "sample_document": {
+        "ticketId": "HD-20261115-8902",
+        "title": "Matrix Biometric Fingerprint Recognition Delay at Gate 3",
+        "category": "IT Support",
+        "subcategory": "Biometric Hardware",
+        "priority": "High",
+        "status": "In Progress",
+        "createdBy": {
+          "uid": "usr_prashanth_01",
+          "employeeId": "EMP-2024-001",
+          "name": "Prashanth Reddy",
+          "email": "prashanth.reddy@prashanthenterprises.in",
+          "department": "Management"
+        },
+        "assignedTo": {
+          "uid": "usr_rajesh_it",
+          "name": "Rajesh Kannan",
+          "email": "rajesh.k@prashanthenterprises.in",
+          "team": "IT Infrastructure"
+        },
+        "followers": [
+          "usr_prashanth_01",
+          "usr_pooja_hr"
+        ],
+        "description": "Optical sensor at Gate 3 Door Controller has high latency during morning peak shift punches.",
+        "terminalInfo": {
+          "deviceName": "Matrix COSEC DOOR FMX",
+          "ipAddress": "192.168.1.240",
+          "location": "Gate 3 Security Hub"
+        },
+        "sla": {
+          "firstResponseTarget": "2026-11-15T12:00:00Z",
+          "resolutionTarget": "2026-11-15T18:00:00Z",
+          "slaBreached": false
+        },
+        "createdAt": "2026-11-15T10:15:00Z",
+        "updatedAt": "2026-11-15T11:45:00Z",
+        "resolvedAt": null
+      },
+      "subcollections": {
+        "comments": {
+          "document_id": "comment_id",
+          "sample_document": {
+            "commentId": "CMT-001",
+            "authorUid": "usr_rajesh_it",
+            "authorName": "Rajesh Kannan",
+            "isInternalNote": false,
+            "message": "IT team dispatched technician to clean optical prism and restart push agent service.",
+            "attachments": [
+              {
+                "fileName": "terminal_log.txt",
+                "storageUrl": "gs://pe-hrm.appspot.com/tickets/HD-8902/terminal_log.txt",
+                "fileSize": 14200
+              }
+            ],
+            "createdAt": "2026-11-15T11:45:00Z"
+          }
+        },
+        "audit_trail": {
+          "document_id": "audit_id",
+          "sample_document": {
+            "action": "STATUS_CHANGE",
+            "fromStatus": "Open",
+            "toStatus": "In Progress",
+            "performedBy": "usr_rajesh_it",
+            "timestamp": "2026-11-15T11:00:00Z"
+          }
+        }
+      }
+    },
+
+    "taxes_finances": {
+      "description": "User tax declarations, annual compensation structure, payslips, and statutory filings",
+      "document_id_pattern": "emp_{employeeId}_{financialYear}",
+      "sample_document": {
+        "employeeId": "EMP-2024-001",
+        "financialYear": "2026-2027",
+        "taxRegime": "115BAC_NEW",
+        "panNumber": "ABCDE1234F",
+        "statutory": {
+          "pfNumber": "MH/BAN/0012938/000/0048291",
+          "uan": "100984920194",
+          "esiEligible": false
+        },
+        "annualCompensation": {
+          "ctc": 2220000,
+          "monthlyGross": 185000,
+          "basicPayAnnual": 888000,
+          "hraAnnual": 444000,
+          "specialAllowanceAnnual": 666000,
+          "employerPfAnnual": 144000,
+          "monthlyNetTakeHome": 148200
+        },
+        "declarations": {
+          "section80C": {
+            "declaredAmount": 150000,
+            "verifiedAmount": 150000,
+            "maxLimit": 150000,
+            "proofsSubmitted": [
+              { "type": "PPF", "amount": 80000, "verified": true },
+              { "type": "ELSS_Mutual_Fund", "amount": 70000, "verified": true }
+            ]
+          },
+          "section80D_Mediclaim": {
+            "declaredAmount": 25000,
+            "verifiedAmount": 25000,
+            "maxLimit": 25000,
+            "proofsSubmitted": [
+              { "insurer": "Star Health", "amount": 25000, "verified": true }
+            ]
+          },
+          "section80CCD_NPS": {
+            "declaredAmount": 50000,
+            "verifiedAmount": 50000,
+            "maxLimit": 50000,
+            "pranNumber": "110098234812"
+          },
+          "houseRentAllowance": {
+            "applicable": false,
+            "annualRentPaid": 0,
+            "landlordPan": null,
+            "note": "Exempt under New Tax Regime (Section 115BAC)"
+          },
+          "previousEmployment": {
+            "hasPreviousIncome": false,
+            "grossEarned": 0,
+            "tdsDeducted": 0,
+            "form12BSubmitted": true
+          }
+        },
+        "status": "APPROVED",
+        "verifiedBy": "usr_sneha_finance",
+        "verifiedAt": "2026-10-25T14:30:00Z"
+      },
+      "subcollections": {
+        "monthly_payslips": {
+          "document_id": "{YYYY}_{MM}",
+          "sample_document": {
+            "month": "10",
+            "year": "2026",
+            "periodLabel": "October 2026",
+            "payDays": 31,
+            "workedDays": 26,
+            "lopDays": 0,
+            "earnings": {
+              "basic": 74000,
+              "hra": 37000,
+              "specialAllowance": 66000,
+              "bonus": 8000,
+              "totalGross": 185000
+            },
+            "deductions": {
+              "providentFund": 12000,
+              "taxDeductedAtSource": 24600,
+              "professionalTax": 200,
+              "totalDeductions": 36800
+            },
+            "netPayable": 148200,
+            "paymentReference": "NEFT-HDFC-9823481023",
+            "payoutDate": "2026-10-31",
+            "pdfStorageUrl": "gs://pe-hrm.appspot.com/payslips/EMP-2024-001/2026_10.pdf"
+          }
+        },
+        "statutory_forms": {
+          "document_id": "form_{formType}_{year}",
+          "sample_document": {
+            "formType": "FORM_16",
+            "assessmentYear": "2026-2027",
+            "partA_Url": "gs://pe-hrm.appspot.com/forms/EMP-2024-001/Form16_PartA_2026.pdf",
+            "partB_Url": "gs://pe-hrm.appspot.com/forms/EMP-2024-001/Form16_PartB_2026.pdf",
+            "digitallySigned": true,
+            "generatedAt": "2026-06-15T09:00:00Z"
+          }
+        }
+      }
+    },
+
+    "engage_announcements": {
+      "description": "Company announcements, cultural pulse broadcasts, workplace polls, and knowledge articles",
+      "document_id_pattern": "ENG-{TYPE}-{AUTO_ID}",
+      "sample_document": {
+        "id": "ENG-ANN-001",
+        "type": "ANNOUNCEMENT",
+        "title": "Diwali Bonus & Holiday Calendar 2026 Released! 🪔✨",
+        "content": "We are delighted to announce that all eligible team members will receive their Diwali festive ex-gratia along with the November payroll.",
+        "author": {
+          "uid": "usr_pooja_hr",
+          "name": "Pooja Hegde",
+          "role": "VP People Operations",
+          "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100"
+        },
+        "category": "Celebration & Benefits",
+        "tags": ["Bonus", "Holidays", "Culture"],
+        "pinned": true,
+        "likesCount": 42,
+        "commentsCount": 9,
+        "reactions": {
+          "heart": 28,
+          "party": 14,
+          "thumbsUp": 10
+        },
+        "createdAt": "2026-11-15T09:00:00Z"
+      },
+      "subcollections": {
+        "comments": {
+          "document_id": "comment_id",
+          "sample_document": {
+            "commentId": "C-101",
+            "authorUid": "usr_vikram_03",
+            "authorName": "Vikram Malhotra",
+            "text": "Thank you management! Looking forward to the long weekend celebrations.",
+            "createdAt": "2026-11-15T09:30:00Z"
+          }
+        }
+      }
+    },
+
+    "engage_polls": {
+      "description": "Interactive workplace polls with real-time aggregated voting percentages",
+      "document_id_pattern": "POL-{AUTO_ID}",
+      "sample_document": {
+        "pollId": "POL-01",
+        "question": "Which topic would you prefer for the upcoming Q4 Tech Workshop?",
+        "options": [
+          { "optionId": "opt_01", "text": "AI Workflows in Enterprise Architecture", "voteCount": 48 },
+          { "optionId": "opt_02", "text": "Microservices & Distributed Systems", "voteCount": 24 },
+          { "optionId": "opt_03", "text": "Cloud Cost Optimization & FinOps", "voteCount": 15 }
+        ],
+        "totalVotes": 87,
+        "isActive": true,
+        "expiresAt": "2026-11-25T23:59:59Z",
+        "createdBy": "usr_rajesh_it",
+        "createdAt": "2026-11-10T10:00:00Z"
+      },
+      "subcollections": {
+        "votes": {
+          "document_id": "{uid}",
+          "sample_document": {
+            "uid": "usr_prashanth_01",
+            "selectedOptionId": "opt_01",
+            "votedAt": "2026-11-11T14:20:00Z"
+          }
+        }
+      }
+    },
+
+    "matrix_biometric_punches": {
+      "description": "Intranet push stream from Matrix COSEC Door controllers to Firestore / Local SQLite",
+      "document_id_pattern": "PUNCH-{YYYYMMDD}-{DEVICE_ID}-{SEQ}",
+      "sample_document": {
+        "punchId": "PUNCH-20261115-MTX01-0912",
+        "biometricId": "MTX-9821",
+        "employeeId": "EMP-2024-001",
+        "timestamp": "2026-11-15T09:12:34+05:30",
+        "direction": "IN",
+        "verifyMode": "FINGERPRINT_OPTICAL",
+        "doorController": {
+          "deviceId": "DOOR-FMX-01",
+          "deviceName": "Main Entrance Reader 01",
+          "ipAddress": "192.168.1.240"
+        },
+        "syncStatus": "SYNCED_TO_INTRANET",
+        "regularized": false
+      }
+    }
+  }
+}
