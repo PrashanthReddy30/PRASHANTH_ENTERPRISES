@@ -33,19 +33,10 @@ import {
 import { Link } from 'react-router-dom';
 
 export function Home() {
-  const [completedOpenItems, setCompletedOpenItems] = useState([]);
   const [celebrations, setCelebrations] = useState(initialCelebrations);
   const [celebrationFilter, setCelebrationFilter] = useState('all');
   const [activeWishInput, setActiveWishInput] = useState({});
   const [wishSentNotification, setWishSentNotification] = useState(null);
-
-  const toggleItemDone = (id) => {
-    if (completedOpenItems.includes(id)) {
-      setCompletedOpenItems(completedOpenItems.filter(item => item !== id));
-    } else {
-      setCompletedOpenItems([...completedOpenItems, id]);
-    }
-  };
 
   const handleSendWish = (celebrationId, customText) => {
     const textToSend = customText || activeWishInput[celebrationId];
@@ -98,45 +89,6 @@ export function Home() {
     }));
   };
 
-  const openPlaceItems = [
-    {
-      id: "OP-1",
-      title: "Sign-off mandatory IT Policy-2025",
-      desc: "Annual compliance requirement for enterprise device & intranet security",
-      deadline: "Due by Nov 20, 2026",
-      urgent: true,
-      category: "Compliance",
-      link: "/org"
-    },
-    {
-      id: "OP-2",
-      title: "Review missing punch for Nov 14 (Matrix Door Reader 01)",
-      desc: "Attendance regularization requested by System Audit",
-      deadline: "Due today",
-      urgent: true,
-      category: "Attendance",
-      link: "/me"
-    },
-    {
-      id: "OP-3",
-      title: "Declare Tax Savings for Q3 / FY 2026-27",
-      desc: "Verify 80C, 80D and NPS proofs to avoid TDS deduction in December payroll",
-      deadline: "Due Dec 10, 2026",
-      urgent: false,
-      category: "Finances",
-      link: "/finances"
-    },
-    {
-      id: "OP-4",
-      title: "Submit Q3 Self-Performance Review",
-      desc: "Key milestones & OKR achievements feedback for H2 review",
-      deadline: "Due Nov 30, 2026",
-      urgent: false,
-      category: "Performance",
-      link: "/me"
-    }
-  ];
-
   const filteredCelebrations = celebrations.filter(item => {
     if (celebrationFilter === 'all') return true;
     if (celebrationFilter === 'new_joinee') return item.type === 'new_joinee';
@@ -185,102 +137,11 @@ export function Home() {
         <div className="absolute -right-10 -bottom-10 h-48 w-48 rounded-full bg-brand-500/20 blur-3xl pointer-events-none" />
       </div>
 
-      {/* Main Grid: Left Column (Complete Open Place + Wishes) & Right Column (Biometric Terminal) */}
+      {/* Main Grid: Left Column (Wishes & Celebrations) & Right Column (Biometric Terminal) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column (2 Cols on lg) */}
         <div className="lg:col-span-2 space-y-6">
-
-          {/* ======================================================== */}
-          {/* SECTION 1: COMPLETE OPEN PLACE                           */}
-          {/* ======================================================== */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-100 text-brand-700 font-bold text-xs">
-                  ✓
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900">
-                    Complete Open Place
-                  </h2>
-                  <p className="text-[11px] text-slate-500">
-                    Your essential action items, compliance filings, and audit regularizations
-                  </p>
-                </div>
-              </div>
-              <span className="text-xs text-slate-600 font-semibold bg-slate-100 px-2.5 py-1 rounded-full">
-                {completedOpenItems.length} of {openPlaceItems.length} done
-              </span>
-            </div>
-
-            {/* Progress bar */}
-            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-emerald-500 transition-all duration-300"
-                style={{ width: `${(completedOpenItems.length / openPlaceItems.length) * 100}%` }}
-              />
-            </div>
-
-            <div className="space-y-3">
-              {openPlaceItems.map((item) => {
-                const isDone = completedOpenItems.includes(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    className={`group flex items-start justify-between gap-3 rounded-xl border p-3.5 transition ${
-                      isDone 
-                        ? 'border-emerald-200 bg-emerald-50/40 opacity-75' 
-                        : 'border-slate-200 bg-slate-50/50 hover:border-brand-300 hover:bg-white hover:shadow-xs'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <button
-                        onClick={() => toggleItemDone(item.id)}
-                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
-                          isDone
-                            ? 'border-emerald-600 bg-emerald-600 text-white'
-                            : 'border-slate-300 bg-white hover:border-brand-500'
-                        }`}
-                        aria-label="Mark task done"
-                      >
-                        {isDone && <Check className="h-3.5 w-3.5" />}
-                      </button>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className={`text-xs sm:text-sm font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-900'}`}>
-                            {item.title}
-                          </h3>
-                          {item.urgent && !isDone && (
-                            <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600 border border-rose-200">
-                              Required
-                            </span>
-                          )}
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-                            {item.category}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-                          {item.desc}
-                        </p>
-                        <p className="mt-2 text-[11px] font-medium text-slate-400 flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{item.deadline}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    <Link
-                      to={item.link}
-                      className="shrink-0 rounded-lg p-1.5 text-slate-400 group-hover:text-brand-600 hover:bg-slate-100"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
 
           {/* ======================================================== */}
           {/* SECTION: WISHES & CELEBRATIONS (NEW JOININGS & EMPLOYEES) */}
