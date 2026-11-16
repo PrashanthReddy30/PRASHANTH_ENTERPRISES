@@ -322,3 +322,118 @@ export const engageData = {
     }
   ]
 };
+
+export const employeeCelebrations = [
+  {
+    id: "CEL-01",
+    type: "new_joinee",
+    title: "Welcome to Prashanth Enterprises!",
+    subtitle: "New Joiner",
+    employeeName: "Ananya Deshmukh",
+    role: "Senior Frontend Engineer",
+    department: "Engineering",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80",
+    badge: "Joined Yesterday",
+    date: "15 Nov 2026",
+    quickWishes: [
+      "🎉 Welcome to Prashanth Enterprises!",
+      "👋 So glad to have you on the team!",
+      "🚀 Wishing you a wonderful journey here!"
+    ],
+    wishes: [
+      {
+        id: "w-1",
+        from: "Prashanth Reddy",
+        role: "Director of Operations",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+        message: "Welcome to the team Ananya! We are excited to build amazing products together. 🙌",
+        time: "1 hour ago",
+        likes: 5
+      },
+      {
+        id: "w-2",
+        from: "Kavitha Sharma",
+        role: "Lead QA Automation",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+        message: "Warm welcome Ananya! Looking forward to collaborating on the new portal. ✨",
+        time: "3 hours ago",
+        likes: 3
+      }
+    ]
+  },
+  {
+    id: "CEL-02",
+    type: "birthday",
+    title: "Happy Birthday!",
+    subtitle: "Birthday Today 🎂",
+    employeeName: "Kavitha Sharma",
+    role: "Lead QA Automation",
+    department: "Engineering",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+    badge: "Today 🎂",
+    date: "Today, 16 Nov",
+    quickWishes: [
+      "🎂 Wishing you a very Happy Birthday!",
+      "🎉 Have a fantastic day and year ahead!",
+      "💐 May all your dreams come true!"
+    ],
+    wishes: [
+      {
+        id: "w-3",
+        from: "Pooja Hegde",
+        role: "VP People Operations",
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80",
+        message: "Happy Birthday Kavitha! Have a wonderful day filled with joy and sweet treats! 🍰🎉",
+        time: "2 hours ago",
+        likes: 8
+      }
+    ]
+  },
+  {
+    id: "CEL-03",
+    type: "anniversary",
+    title: "Celebrating Work Anniversary!",
+    subtitle: "4 Years at Prashanth Enterprises 🎖️",
+    employeeName: "Rajesh Kannan",
+    role: "Head of IT & Infrastructure",
+    department: "Information Technology",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    badge: "4 Years Milestone 🎖️",
+    date: "Today, 16 Nov",
+    quickWishes: [
+      "🎖️ Congratulations on 4 years at PE!",
+      "🌟 Thank you for your leadership & dedication!",
+      "👏 Here's to many more milestones together!"
+    ],
+    wishes: [
+      {
+        id: "w-4",
+        from: "Prashanth Reddy",
+        role: "Director of Operations",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+        message: "Hearty congratulations Rajesh on completing 4 years! Your contribution to our infrastructure and local intranet stability is immensely valued! 👏",
+        time: "4 hours ago",
+        likes: 12
+      }
+    ]
+  },
+  {
+    id: "CEL-04",
+    type: "new_joinee",
+    title: "Welcome to Prashanth Enterprises!",
+    subtitle: "New Joiner",
+    employeeName: "Siddharth Verma",
+    role: "Plant Operations Supervisor",
+    department: "Logistics",
+    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=80",
+    badge: "Joined 10 Nov",
+    date: "10 Nov 2026",
+    quickWishes: [
+      "🎉 Welcome aboard Siddharth!",
+      "🏭 Wishing you great success in operations!",
+      "👋 Hello and warm welcome!"
+    ],
+    wishes: []
+  }
+];
+
