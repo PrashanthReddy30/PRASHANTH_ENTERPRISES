@@ -1,0 +1,50 @@
+name: 🚀 Prashanth Enterprises HRM — CI/CD Auto Build & Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build & Verify HRM App
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. Install dependencies
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      # 4. Build production bundle
+      - name: 🏗️ Build Production PWA
+        run: npm run build
+
+      # 5. Upload build artifact
+      - name: 📤 Upload dist/ Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hrm-dist-build
+          path: dist/
+          retention-days: 7
+
+      # 6. Auto-commit summary
+      - name: ✅ Build Success Notification
+        run: |
+          echo "==========================================="
+          echo " Prashanth Enterprises HRM Build SUCCESS"
+          echo " Branch : main"
+          echo " Commit : ${{ github.sha }}"
+          echo " Triggered by: ${{ github.actor }}"
+          echo "==========================================="
