@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Clock, 
   Calendar, 
@@ -24,6 +24,21 @@ import {
 } from 'lucide-react';
 import { currentUser, matrixBiometricStatus, leaveBalances } from '../data/mockData';
 
+export const MONTH_NAMES = [
+  { short: 'JAN', full: 'January' },
+  { short: 'FEB', full: 'February' },
+  { short: 'MAR', full: 'March' },
+  { short: 'APR', full: 'April' },
+  { short: 'MAY', full: 'May' },
+  { short: 'JUN', full: 'June' },
+  { short: 'JUL', full: 'July' },
+  { short: 'AUG', full: 'August' },
+  { short: 'SEP', full: 'September' },
+  { short: 'OCT', full: 'October' },
+  { short: 'NOV', full: 'November' },
+  { short: 'DEC', full: 'December' },
+];
+
 export function Me() {
   const [activeTab, setActiveTab] = useState('attendance');
   const [showDutyModal, setShowDutyModal] = useState(false);
@@ -34,7 +49,8 @@ export function Me() {
   // Keka-style attendance states
   const [attendanceSubTab, setAttendanceSubTab] = useState('Attendance Log');
   const [is24Hour, setIs24Hour] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState('SEP');
+  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedMonth, setSelectedMonth] = useState(8); // 8 = September (0-indexed)
   const [viewMode, setViewMode] = useState('calendar'); // 'calendar' | 'list'
   const [selectedDay, setSelectedDay] = useState(4); // Default 4 Sept matching reference
   const [regReason, setRegReason] = useState('');
@@ -60,40 +76,115 @@ export function Me() {
     return `${h.toString().padStart(2, '0')}:${mins}:${secs}`;
   };
 
-  // Calendar days matching Keka September 2026 reference layout
-  const septDays = [
-    { day: 31, isPrev: true, isWeekend: false },
-    { day: 1, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 15m', effectiveHours: '8h 30m', location: 'Hyderabad maindoor' },
-    { day: 2, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 22m', effectiveHours: '8h 45m', location: 'Hyderabad maindoor' },
-    { day: 3, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 08m', effectiveHours: '8h 20m', location: 'Hyderabad maindoor' },
-    { day: 4, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 56m', effectiveHours: '8h 12m', location: 'Hyderabad maindoor' },
-    { day: 5, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 6, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 7, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 30m', effectiveHours: '8h 50m', location: 'Hyderabad maindoor' },
-    { day: 8, isPrev: false, isWeekend: false, hasAlert: true, label: 'NO ENTRIES LOGGED', status: 'missing', grossHours: '0h 00m', effectiveHours: '0h 00m', location: 'Hyderabad maindoor' },
-    { day: 9, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 10m', effectiveHours: '8h 15m', location: 'Hyderabad maindoor' },
-    { day: 10, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 40m', effectiveHours: '8h 35m', location: 'Hyderabad maindoor' },
-    { day: 11, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 05m', effectiveHours: '8h 05m', location: 'Hyderabad maindoor' },
-    { day: 12, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 13, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 14, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 18m', effectiveHours: '8h 25m', location: 'Hyderabad maindoor' },
-    { day: 15, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 25m', effectiveHours: '8h 40m', location: 'Hyderabad maindoor' },
-    { day: 16, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 12m', effectiveHours: '8h 10m', location: 'Hyderabad maindoor' },
-    { day: 17, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 35m', effectiveHours: '8h 55m', location: 'Hyderabad maindoor' },
-    { day: 18, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 02m', effectiveHours: '8h 00m', location: 'Hyderabad maindoor' },
-    { day: 19, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 20, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 21, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 20m', effectiveHours: '8h 30m', location: 'Hyderabad maindoor' },
-    { day: 22, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 15m', effectiveHours: '8h 22m', location: 'Hyderabad maindoor' },
-    { day: 23, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 45m', effectiveHours: '8h 50m', location: 'Hyderabad maindoor' },
-    { day: 24, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 05m', effectiveHours: '8h 12m', location: 'Hyderabad maindoor' },
-    { day: 25, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 10m', effectiveHours: '8h 18m', location: 'Hyderabad maindoor' },
-    { day: 26, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 27, isPrev: false, isWeekend: true, label: 'W-OFF', status: 'weekend', grossHours: '0h 00m', effectiveHours: '0h 00m' },
-    { day: 28, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 25m', effectiveHours: '8h 35m', location: 'Hyderabad maindoor' },
-    { day: 29, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 15m', effectiveHours: '8h 20m', location: 'Hyderabad maindoor' },
-    { day: 30, isPrev: false, isWeekend: false, status: 'present', grossHours: '9h 30m', effectiveHours: '8h 40m', location: 'Hyderabad maindoor' },
-  ];
+  // Dynamic Calendar generation for any month and year
+  const calendarDays = useMemo(() => {
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+
+    // 0 = Sun, 1 = Mon ... 6 = Sat; adjust for Monday start
+    const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
+    const prevDaysCount = (firstDay + 6) % 7;
+
+    const days = [];
+
+    // Trailing days from previous month
+    for (let i = prevDaysCount - 1; i >= 0; i--) {
+      days.push({
+        day: daysInPrevMonth - i,
+        isPrev: true,
+        isWeekend: false,
+      });
+    }
+
+    // Days in current selected month
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayOfWeek = new Date(selectedYear, selectedMonth, d).getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      // Special alert day for Sep 2026 reference
+      if (selectedYear === 2026 && selectedMonth === 8 && d === 8) {
+        days.push({
+          day: d,
+          isPrev: false,
+          isWeekend: false,
+          hasAlert: true,
+          label: 'NO ENTRIES LOGGED',
+          status: 'missing',
+          grossHours: '0h 00m',
+          effectiveHours: '0h 00m',
+          location: 'Hyderabad maindoor'
+        });
+        continue;
+      }
+
+      if (isWeekend) {
+        days.push({
+          day: d,
+          isPrev: false,
+          isWeekend: true,
+          label: 'W-OFF',
+          status: 'weekend',
+          grossHours: '0h 00m',
+          effectiveHours: '0h 00m'
+        });
+      } else {
+        const grossMins = 540 + ((d * 7 + selectedMonth * 11) % 35);
+        const effMins = 480 + ((d * 5 + selectedMonth * 7) % 30);
+        const gH = Math.floor(grossMins / 60);
+        const gM = grossMins % 60;
+        const eH = Math.floor(effMins / 60);
+        const eM = effMins % 60;
+
+        days.push({
+          day: d,
+          isPrev: false,
+          isWeekend: false,
+          status: 'present',
+          grossHours: `${gH}h ${gM < 10 ? '0' + gM : gM}m`,
+          effectiveHours: `${eH}h ${eM < 10 ? '0' + eM : eM}m`,
+          location: 'Hyderabad maindoor'
+        });
+      }
+    }
+
+    // Trailing days to fill the final week
+    const remaining = (7 - (days.length % 7)) % 7;
+    for (let n = 1; n <= remaining; n++) {
+      days.push({
+        day: n,
+        isPrev: true,
+        isWeekend: false,
+      });
+    }
+
+    return days;
+  }, [selectedYear, selectedMonth]);
+
+  // Ensure selected day is within range of the current month
+  useEffect(() => {
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    if (selectedDay > daysInMonth) {
+      setSelectedDay(1);
+    }
+  }, [selectedYear, selectedMonth]);
+
+  const handlePrevMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedYear((prev) => prev - 1);
+    } else {
+      setSelectedMonth((prev) => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedYear((prev) => prev + 1);
+    } else {
+      setSelectedMonth((prev) => prev + 1);
+    }
+  };
 
   // Detailed In/Out punch logs per day
   const dayPunchesMap = {
@@ -124,19 +215,29 @@ export function Me() {
     8: [], // NO ENTRIES LOGGED
   };
 
-  const currentDayData = septDays.find((d) => d.day === selectedDay && !d.isPrev) || septDays[4];
-  const currentPunches = dayPunchesMap[selectedDay] !== undefined 
-    ? dayPunchesMap[selectedDay] 
-    : (currentDayData.isWeekend ? [] : [
-        { in: "9:01:10 AM", out: "1:10:00 PM" },
-        { in: "1:50:20 PM", out: "6:12:30 PM" }
-      ]);
+  const currentDayData = calendarDays.find((d) => d.day === selectedDay && !d.isPrev) || 
+    calendarDays.find((d) => !d.isPrev) || {
+      day: 1,
+      grossHours: '9h 15m',
+      effectiveHours: '8h 30m',
+      status: 'present',
+      location: 'Hyderabad maindoor'
+    };
 
-  const formattedDate = (selectedDay < 10 ? '0' + selectedDay : selectedDay) + ' Sept';
+  const currentPunches = (selectedYear === 2026 && selectedMonth === 8 && dayPunchesMap[selectedDay] !== undefined)
+    ? dayPunchesMap[selectedDay] 
+    : (currentDayData.isWeekend ? [] : (currentDayData.hasAlert ? [] : [
+        { in: "08:58:10 AM", out: "01:12:30 PM" },
+        { in: "01:52:20 PM", out: "06:14:40 PM" }
+      ]));
+
+  const monthShortName = MONTH_NAMES[selectedMonth]?.short || 'SEP';
+  const monthFullName = MONTH_NAMES[selectedMonth]?.full || 'September';
+  const formattedDate = `${selectedDay < 10 ? '0' + selectedDay : selectedDay} ${monthShortName} ${selectedYear}`;
 
   const handleApplyRegularize = (e) => {
     e.preventDefault();
-    alert(`Regularization request submitted for ${formattedDate} 2026 (${regPunchType} at ${regTime}). Sent to reporting manager for approval.`);
+    alert(`Regularization request submitted for ${formattedDate} (${regPunchType} at ${regTime}). Sent to reporting manager for approval.`);
     setShowRegularizeModal(false);
     setRegReason('');
   };
@@ -300,66 +401,123 @@ export function Me() {
             {/* Subtab 1: Attendance Log */}
             {attendanceSubTab === 'Attendance Log' && (
               <>
-                {/* 2. Month Selector & View Toggle Bar */}
-                <div className="px-5 py-3.5 bg-[#0b1325] border-b border-[#1b263b] flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-sm sm:text-base font-bold text-white tracking-wide">
-                    September, 2026
+                {/* 2. Month Selector, Year Switcher & View Toggle Bar */}
+                <div className="px-5 py-4 bg-[#0b1325] border-b border-[#1b263b] flex flex-col gap-3">
+                  {/* Top Row: Title with Arrows, Year Buttons (Last Years Included), and View Toggle */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    {/* Month & Year Title with Previous/Next Arrows */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handlePrevMonth}
+                        className="p-1.5 rounded-lg border border-[#23355b] text-slate-400 hover:text-white hover:bg-[#162238] transition"
+                        title="Previous Month"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <div className="text-base sm:text-lg font-extrabold text-white tracking-wide min-w-[160px]">
+                        {monthFullName}, {selectedYear}
+                      </div>
+                      <button
+                        onClick={handleNextMonth}
+                        className="p-1.5 rounded-lg border border-[#23355b] text-slate-400 hover:text-white hover:bg-[#162238] transition"
+                        title="Next Month"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Year Selector Pills: Explicitly showing current & last years */}
+                    <div className="flex items-center gap-1 bg-[#070d1a] p-1 rounded-xl border border-[#1b263b] overflow-x-auto">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 shrink-0">Year:</span>
+                      {[
+                        { year: 2026, label: '2026' },
+                        { year: 2025, label: '2025 (Last Year)' },
+                        { year: 2024, label: '2024' },
+                        { year: 2023, label: '2023' },
+                      ].map((y) => (
+                        <button
+                          key={y.year}
+                          onClick={() => setSelectedYear(y.year)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition shrink-0 ${
+                            selectedYear === y.year
+                              ? 'bg-indigo-600 text-white shadow-xs'
+                              : 'text-slate-400 hover:text-slate-200 hover:bg-[#162238]'
+                          }`}
+                        >
+                          {y.label}
+                        </button>
+                      ))}
+
+                      {/* Dropdown for older years */}
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        className="bg-[#0b1325] text-xs font-semibold text-slate-300 border border-[#23355b] rounded-md px-1.5 py-0.5 outline-none ml-1 cursor-pointer"
+                        title="Select Other Year"
+                      >
+                        {[2026, 2025, 2024, 2023, 2022, 2021, 2020].map((yr) => (
+                          <option key={yr} value={yr} className="bg-[#0c1427] text-white">
+                            {yr}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* View Mode Switcher */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setViewMode('list')}
+                        title="List View"
+                        className={`p-1.5 rounded-lg border transition ${
+                          viewMode === 'list'
+                            ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500'
+                            : 'text-slate-400 border-[#23355b] hover:bg-[#162238]'
+                        }`}
+                      >
+                        <List className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setViewMode('calendar')}
+                        title="Calendar View"
+                        className={`p-1.5 rounded-lg border transition ${
+                          viewMode === 'calendar'
+                            ? 'bg-indigo-600 text-white border-indigo-500'
+                            : 'text-slate-400 border-[#23355b] hover:bg-[#162238]'
+                        }`}
+                      >
+                        <Calendar className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Month Pills */}
-                  <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto">
-                    {['SEP', 'AUG', 'JUL', 'JUN', 'MAY', 'APR', 'MAR'].map((m) => {
-                      const isSelected = selectedMonth === m;
+                  {/* All 12 Months Pills */}
+                  <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-[#1b263b]/60">
+                    {MONTH_NAMES.map((m, idx) => {
+                      const isSelected = selectedMonth === idx;
                       return (
                         <button
-                          key={m}
-                          onClick={() => setSelectedMonth(m)}
-                          className={`px-3 py-1 rounded-md text-xs font-bold transition ${
+                          key={m.short}
+                          onClick={() => setSelectedMonth(idx)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
                             isSelected
                               ? 'bg-[#5c54e5] text-white shadow-xs'
                               : 'text-slate-400 hover:text-slate-200 hover:bg-[#162238]'
                           }`}
                         >
-                          {m}
+                          {m.short}
                         </button>
                       );
                     })}
-                  </div>
-
-                  {/* View Mode Switcher */}
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setViewMode('list')}
-                      title="List View"
-                      className={`p-1.5 rounded-lg border transition ${
-                        viewMode === 'list'
-                          ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500'
-                          : 'text-slate-400 border-[#23355b] hover:bg-[#162238]'
-                      }`}
-                    >
-                      <List className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('calendar')}
-                      title="Calendar View"
-                      className={`p-1.5 rounded-lg border transition ${
-                        viewMode === 'calendar'
-                          ? 'bg-indigo-600 text-white border-indigo-500'
-                          : 'text-slate-400 border-[#23355b] hover:bg-[#162238]'
-                      }`}
-                    >
-                      <Calendar className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
 
                 {/* 3. Main Split View: Calendar Grid + Daily Shift / Punches */}
                 {viewMode === 'calendar' ? (
                   <div className="grid grid-cols-1 lg:grid-cols-12 bg-[#080d1a]">
-                    {/* Left / Center 8 Columns: Calendar Grid */}
-                    <div className="lg:col-span-8 border-b lg:border-b-0 lg:border-r border-[#1b263b]">
+                    {/* Left / Center 9 Columns: Calendar Grid (Increased Size & Spacious) */}
+                    <div className="lg:col-span-9 border-b lg:border-b-0 lg:border-r border-[#1b263b]">
                       {/* Day of Week Headers */}
-                      <div className="grid grid-cols-7 border-b border-[#1b263b] bg-[#0c1427] text-center text-[11px] font-bold text-slate-400 py-2.5 tracking-wider">
+                      <div className="grid grid-cols-7 border-b border-[#1b263b] bg-[#0c1427] text-center text-xs font-extrabold text-slate-300 py-3 tracking-wider">
                         <div>MON</div>
                         <div>TUE</div>
                         <div>WED</div>
@@ -369,31 +527,31 @@ export function Me() {
                         <div>SUN</div>
                       </div>
 
-                      {/* Calendar Days */}
+                      {/* Calendar Days (Increased Size & Clear Typography) */}
                       <div className="grid grid-cols-7">
-                        {septDays.map((item, idx) => {
+                        {calendarDays.map((item, idx) => {
                           const isSelected = selectedDay === item.day && !item.isPrev;
                           return (
                             <div
                               key={idx}
                               onClick={() => !item.isPrev && setSelectedDay(item.day)}
-                              className={`relative min-h-[72px] sm:min-h-[86px] p-2 border-b border-r border-[#1b263b] transition cursor-pointer select-none ${
+                              className={`relative min-h-[82px] sm:min-h-[96px] lg:min-h-[105px] p-2.5 sm:p-3 border-b border-r border-[#1b263b] transition cursor-pointer select-none ${
                                 item.isPrev
-                                  ? 'bg-[#070b16] opacity-30 cursor-not-allowed'
+                                  ? 'bg-[#070b16] opacity-25 cursor-not-allowed'
                                   : isSelected
-                                  ? 'bg-[#10293d] border-cyan-500/90 ring-1 ring-cyan-500/80 shadow-inner'
-                                  : 'bg-[#090f1d] hover:bg-[#111c33]'
+                                  ? 'bg-[#10293d] border-cyan-400 ring-2 ring-cyan-400/50 shadow-lg'
+                                  : 'bg-[#090f1d] hover:bg-[#131f38]'
                               }`}
                             >
-                              {/* Day number */}
+                              {/* Day number (Only dates mentioned, prominent font) */}
                               <div className="flex items-center justify-between">
                                 <span
-                                  className={`text-xs font-semibold ${
+                                  className={`text-sm sm:text-base font-extrabold ${
                                     item.isPrev
                                       ? 'text-slate-600'
                                       : isSelected
-                                      ? 'text-cyan-300 font-bold'
-                                      : 'text-slate-300'
+                                      ? 'text-cyan-300'
+                                      : 'text-slate-200'
                                   }`}
                                 >
                                   {item.day}
@@ -403,27 +561,21 @@ export function Me() {
                               {/* Special Alert Ribbon for Day 8 */}
                               {item.hasAlert && (
                                 <div className="absolute top-0 left-0">
-                                  <div className="w-0 h-0 border-t-[14px] border-t-indigo-600 border-r-[14px] border-r-transparent" />
+                                  <div className="w-0 h-0 border-t-[16px] border-t-indigo-600 border-r-[16px] border-r-transparent" />
                                 </div>
                               )}
 
-                              {/* Content inside cell */}
-                              <div className="mt-2 flex flex-col items-center justify-center">
+                              {/* Content inside cell: W-OFF and Alert badges, no timings */}
+                              <div className="mt-2.5 flex flex-col items-center justify-center">
                                 {item.label === 'W-OFF' && (
-                                  <span className="inline-block bg-[#3a2f20] text-[#e3b879] border border-[#52422c] text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">
+                                  <span className="inline-block bg-[#3a2f20] text-[#e3b879] border border-[#52422c] text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
                                     W-OFF
                                   </span>
                                 )}
 
                                 {item.hasAlert && (
-                                  <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-tight text-center leading-tight">
+                                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-tight text-center leading-tight">
                                     NO ENTRIES LOGGED
-                                  </span>
-                                )}
-
-                                {!item.isPrev && !item.isWeekend && !item.hasAlert && (
-                                  <span className="text-[10px] text-slate-500 font-mono hidden sm:inline-block">
-                                    {item.effectiveHours}
                                   </span>
                                 )}
                               </div>
@@ -433,18 +585,18 @@ export function Me() {
                       </div>
                     </div>
 
-                    {/* Right 4 Columns: Daily Shift & Login/Logout Punches */}
-                    <div className="lg:col-span-4 bg-[#0a1122] p-4 sm:p-5 flex flex-col justify-between">
+                    {/* Right 3 Columns: Daily Shift & Login/Logout Punches (Slightly smaller & compact) */}
+                    <div className="lg:col-span-3 bg-[#0a1122] p-3 sm:p-4 flex flex-col justify-between">
                       <div>
                         {/* Shift Title & Timings */}
-                        <div className="border-b border-[#1b263b] pb-3">
-                          <h3 className="text-sm font-bold text-white">General Shift</h3>
-                          <p className="text-xs text-slate-400">({formattedDate})</p>
-                          <p className="text-xs text-slate-400 font-mono mt-0.5">9:00 AM - 6:00 PM</p>
+                        <div className="border-b border-[#1b263b] pb-2.5">
+                          <h3 className="text-xs sm:text-sm font-bold text-white">General Shift</h3>
+                          <p className="text-[11px] text-slate-400">({formattedDate})</p>
+                          <p className="text-[11px] text-slate-400 font-mono mt-0.5">9:00 AM - 6:00 PM</p>
 
                           {/* Timeline visualization bar */}
-                          <div className="mt-3">
-                            <div className="h-2.5 w-full bg-[#131d33] rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-[#23355b]">
+                          <div className="mt-2.5">
+                            <div className="h-2 w-full bg-[#131d33] rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-[#23355b]">
                               {currentDayData.status === 'present' ? (
                                 <>
                                   <div className="h-full bg-cyan-400 rounded-xs" style={{ width: '14%' }} title="08:43 - 09:35" />
@@ -470,38 +622,38 @@ export function Me() {
                         </div>
 
                         {/* Gross & Effective Hours */}
-                        <div className="flex items-center justify-between py-3 border-b border-[#1b263b]">
+                        <div className="flex items-center justify-between py-2.5 border-b border-[#1b263b]">
                           <div>
-                            <span className="text-[10px] font-bold text-slate-400 tracking-wider block">GROSS HOURS</span>
-                            <span className="text-sm font-extrabold text-white font-mono">{currentDayData.grossHours}</span>
+                            <span className="text-[9px] font-bold text-slate-400 tracking-wider block">GROSS HOURS</span>
+                            <span className="text-xs sm:text-sm font-extrabold text-white font-mono">{currentDayData.grossHours}</span>
                           </div>
                           <div className="text-right">
-                            <span className="text-[10px] font-bold text-slate-400 tracking-wider block">EFFECTIVE HOURS</span>
-                            <span className="text-sm font-extrabold text-white font-mono">{currentDayData.effectiveHours}</span>
+                            <span className="text-[9px] font-bold text-slate-400 tracking-wider block">EFFECTIVE HOURS</span>
+                            <span className="text-xs sm:text-sm font-extrabold text-white font-mono">{currentDayData.effectiveHours}</span>
                           </div>
                         </div>
 
                         {/* Status & Regularize Button */}
-                        <div className="flex items-center justify-between py-3 border-b border-[#1b263b]">
+                        <div className="flex items-center justify-between py-2.5 border-b border-[#1b263b]">
                           {currentDayData.status === 'present' ? (
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-400">
                               <Check className="w-3.5 h-3.5 stroke-[3]" />
                               <span>On Time</span>
                             </div>
                           ) : currentDayData.hasAlert ? (
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400">
                               <AlertCircle className="w-3.5 h-3.5" />
                               <span>No Entries Logged</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-[#e3b879]">
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-[#e3b879]">
                               <span>Weekly Off</span>
                             </div>
                           )}
 
                           <button
                             onClick={() => setShowRegularizeModal(true)}
-                            className="flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                            className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
                           >
                             <Edit2 className="w-3 h-3" />
                             <span>Regularize</span>
@@ -509,48 +661,48 @@ export function Me() {
                         </div>
 
                         {/* Reader Location */}
-                        <div className="py-2.5 text-xs font-bold text-slate-200 border-b border-[#1b263b] flex items-center justify-between">
-                          <span>{currentDayData.location || 'Hyderabad maindoor'}</span>
-                          <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                        <div className="py-2 text-[11px] font-bold text-slate-200 border-b border-[#1b263b] flex items-center justify-between">
+                          <span className="truncate pr-1">{currentDayData.location || 'Hyderabad maindoor'}</span>
+                          <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1 shrink-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             Matrix Synced
                           </span>
                         </div>
 
                         {/* Punch Stream List (Login / Logout) */}
-                        <div className="mt-3">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Punch Records (In / Out)</p>
-                          <div className="space-y-1.5 max-h-[240px] overflow-y-auto pr-1">
+                        <div className="mt-2.5">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Punch Records (In / Out)</p>
+                          <div className="space-y-1 max-h-[220px] overflow-y-auto pr-1">
                             {currentPunches.length > 0 ? (
                               currentPunches.map((punch, idx) => (
                                 <div
                                   key={idx}
-                                  className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-[#070d1a] border border-[#1b263b]"
+                                  className="flex items-center justify-between text-[11px] py-1.5 px-2 rounded-lg bg-[#070d1a] border border-[#1b263b]"
                                 >
-                                  <div className="flex items-center gap-2 text-emerald-400 font-mono font-medium">
+                                  <div className="flex items-center gap-1.5 text-emerald-400 font-mono font-medium">
                                     <Check className="w-3 h-3 stroke-[2.5]" />
                                     <span>{formatPunchTime(punch.in, is24Hour)}</span>
                                   </div>
-                                  <div className="flex items-center gap-2 text-slate-200 font-mono font-medium">
+                                  <div className="flex items-center gap-1.5 text-slate-200 font-mono font-medium">
                                     <ArrowUpRight className="w-3 h-3 text-amber-400 stroke-[2.5]" />
                                     <span>{formatPunchTime(punch.out, is24Hour)}</span>
                                   </div>
                                 </div>
                               ))
                             ) : currentDayData.hasAlert ? (
-                              <div className="text-center py-5 px-3 bg-[#070d1a] rounded-xl border border-indigo-950">
-                                <AlertCircle className="w-5 h-5 text-indigo-400 mx-auto mb-1" />
+                              <div className="text-center py-4 px-2 bg-[#070d1a] rounded-xl border border-indigo-950">
+                                <AlertCircle className="w-4 h-4 text-indigo-400 mx-auto mb-1" />
                                 <p className="text-xs font-bold text-slate-300">No punches found</p>
                                 <p className="text-[10px] text-slate-400 mt-0.5">Missing biometric terminal logs.</p>
                                 <button
                                   onClick={() => setShowRegularizeModal(true)}
-                                  className="mt-2.5 rounded-lg bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700 transition"
+                                  className="mt-2 rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700 transition"
                                 >
                                   Regularize Punch
                                 </button>
                               </div>
                             ) : (
-                              <div className="text-center py-5 px-3 bg-[#070d1a] rounded-xl border border-[#1b263b]">
+                              <div className="text-center py-4 px-2 bg-[#070d1a] rounded-xl border border-[#1b263b]">
                                 <p className="text-xs font-bold text-[#e3b879]">Weekend Off (W-OFF)</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">No punches required on scheduled off days.</p>
                               </div>
@@ -577,14 +729,14 @@ export function Me() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#1b263b]">
-                        {septDays.filter((d) => !d.isPrev).map((item) => {
-                          const punches = dayPunchesMap[item.day] || [];
+                        {calendarDays.filter((d) => !d.isPrev).map((item) => {
+                          const punches = (selectedYear === 2026 && selectedMonth === 8 && dayPunchesMap[item.day]) || [];
                           const firstIn = punches[0]?.in || (item.isWeekend ? '-' : '09:00 AM');
                           const lastOut = punches[punches.length - 1]?.out || (item.isWeekend ? '-' : '06:00 PM');
                           return (
                             <tr key={item.day} className="hover:bg-[#0f1b33] transition">
                               <td className="py-2.5 px-3 font-semibold text-slate-200">
-                                {item.day < 10 ? '0' + item.day : item.day} Sep 2026
+                                {item.day < 10 ? '0' + item.day : item.day} {monthShortName} {selectedYear}
                               </td>
                               <td className="py-2.5 px-3 text-slate-400">
                                 {item.isWeekend ? 'Weekly Off' : 'General Shift (9-6)'}

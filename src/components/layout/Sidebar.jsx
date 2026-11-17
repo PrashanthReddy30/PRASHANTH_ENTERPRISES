@@ -71,21 +71,21 @@ export function Sidebar({ collapsed, setCollapsed }) {
   return (
     <aside
       className={`hidden md:flex flex-col border-r border-slate-200 bg-slate-900 text-white transition-all duration-200 ease-in-out ${
-        collapsed ? 'w-20' : 'w-64'
+        collapsed ? 'w-20' : 'w-60'
       }`}
     >
       {/* Brand Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800">
-        <div className="flex items-center gap-3 overflow-hidden">
+      <div className={`flex h-16 items-center border-b border-slate-800 px-3 ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className="flex items-center gap-2.5 overflow-hidden">
           <div className="flex h-10 w-10 min-w-10 items-center justify-center rounded-xl bg-brand-600 font-extrabold text-white text-base shadow-lg shadow-brand-500/20">
             PE
           </div>
           {!collapsed && (
             <div className="truncate">
-              <h2 className="text-sm font-bold text-white tracking-wide truncate">
+              <h2 className="text-xs font-bold text-white tracking-wide truncate">
                 PRASHANTH
               </h2>
-              <p className="text-[10px] uppercase font-semibold text-brand-400 tracking-wider">
+              <p className="text-[9px] uppercase font-semibold text-brand-400 tracking-wider">
                 Enterprises HRM
               </p>
             </div>
@@ -93,17 +93,17 @@ export function Sidebar({ collapsed, setCollapsed }) {
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={`rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition ${collapsed ? 'hidden' : ''}`}
+          title="Collapse sidebar"
         >
-          <ChevronRight className={`h-4 w-4 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
+          <ChevronRight className="h-4 w-4 rotate-180" />
         </button>
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 space-y-1.5 px-3 py-4 overflow-y-auto">
-        <div className={`px-2 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400 ${collapsed ? 'text-center' : ''}`}>
-          {collapsed ? '•••' : 'Core Modules'}
+      <nav className="flex-1 space-y-2 px-2 py-3 overflow-y-auto">
+        <div className="px-1 pb-1 text-[9px] font-bold uppercase tracking-wider text-slate-400 text-center">
+          {collapsed ? 'Modules' : 'Core Modules'}
         </div>
 
         {navigationItems.map((item) => {
@@ -113,35 +113,51 @@ export function Sidebar({ collapsed, setCollapsed }) {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `group relative flex items-center rounded-xl px-3 py-2.5 text-xs font-medium transition-all ${
-                  isActive
-                    ? 'bg-brand-600 text-white font-semibold shadow-md shadow-brand-600/30'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                } ${collapsed ? 'justify-center' : 'justify-between'}`
+                collapsed
+                  ? `group relative flex flex-col items-center justify-center rounded-xl py-2 px-1 text-center transition-all ${
+                      isActive
+                        ? 'bg-brand-600 text-white font-semibold shadow-md shadow-brand-600/30'
+                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    }`
+                  : `group relative flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-all ${
+                      isActive
+                        ? 'bg-brand-600 text-white font-semibold shadow-md shadow-brand-600/30'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    }`
               }
-              title={collapsed ? item.name : undefined}
+              title={item.name}
             >
               {({ isActive }) => (
-                <>
-                  <div className="flex items-center gap-3 truncate">
-                    <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
-                    {!collapsed && (
-                      <span className="truncate">{item.name}</span>
-                    )}
-                  </div>
-
-                  {/* Badges / indicators */}
-                  {!collapsed && item.badge && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${item.badgeColor || 'bg-brand-500 text-white'}`}>
-                      {item.badge}
+                collapsed ? (
+                  <>
+                    <div className="relative flex items-center justify-center">
+                      <Icon className={`h-5 w-5 shrink-0 transition-transform duration-150 group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-300 group-hover:text-white'}`} />
+                      {item.badge && (
+                        <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`mt-1 text-[10px] font-medium leading-tight text-center tracking-tight truncate max-w-full px-0.5 ${
+                      isActive ? 'text-white font-semibold' : 'text-slate-300 group-hover:text-white'
+                    }`}>
+                      {item.name}
                     </span>
-                  )}
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2.5 truncate">
+                      <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                      <span className="truncate">{item.name}</span>
+                    </div>
 
-                  {/* Tooltip for collapsed state */}
-                  {collapsed && item.badge && (
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-slate-900" />
-                  )}
-                </>
+                    {item.badge && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${item.badgeColor || 'bg-brand-500 text-white'}`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )
               )}
             </NavLink>
           );
@@ -150,23 +166,35 @@ export function Sidebar({ collapsed, setCollapsed }) {
 
       {/* Local Intranet & Biometric Status Footer */}
       {!collapsed ? (
-        <div className="p-3 m-3 rounded-xl bg-slate-800/90 border border-slate-700/60">
+        <div className="p-3 m-2 rounded-xl bg-slate-800/90 border border-slate-700/60">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
             <Cpu className="h-4 w-4 text-emerald-400" />
             <span>Matrix Push Agent</span>
           </div>
-          <p className="mt-1 text-[11px] text-slate-400 leading-tight">
+          <p className="mt-1 text-[10px] text-slate-400 leading-tight">
             Local Intranet Server Active.
-            Real-time biometric punch sync active.
           </p>
           <div className="mt-2 flex items-center justify-between text-[10px] text-emerald-400 font-mono">
-            <span>PORT 5173 / HTTP</span>
+            <span>PORT 5173</span>
             <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
           </div>
         </div>
       ) : (
-        <div className="p-3 text-center">
-          <div className="mx-auto h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20" title="Matrix Biometric Online" />
+        <div className="p-2 pb-3 text-center flex flex-col items-center gap-1.5">
+          <div className="relative flex items-center justify-center" title="Matrix Biometric Online">
+            <Cpu className="h-4 w-4 text-emerald-400" />
+            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+          <span className="text-[9px] font-medium text-slate-400">Matrix</span>
+
+          {/* Expand Button */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            title="Expand sidebar"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
     </aside>

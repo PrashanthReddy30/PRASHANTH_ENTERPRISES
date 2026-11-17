@@ -6,7 +6,7 @@ import { BottomNav } from './BottomNav';
 import { Wifi, WifiOff, Download, X } from 'lucide-react';
 
 export function Layout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showPwaPrompt, setShowPwaPrompt] = useState(false);
