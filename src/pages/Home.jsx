@@ -3,7 +3,6 @@ import {
   CheckCircle2, 
   Clock, 
   Users, 
-  Newspaper, 
   AlertCircle, 
   ArrowRight, 
   Calendar, 
@@ -26,7 +25,6 @@ import {
   currentUser, 
   pendingTasks, 
   newJoinees, 
-  companyNews, 
   matrixBiometricStatus, 
   employeeCelebrations as initialCelebrations 
 } from '../data/mockData';
@@ -464,50 +462,6 @@ export function Home() {
             >
               Request Duty / Partial Day
             </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid: Lower Section (Company News & Bulletins) */}
-      <div className="pt-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
-                <Newspaper className="h-4 w-4" />
-              </div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900">
-                Company News & Bulletins
-              </h2>
-            </div>
-            <Link to="/engage" className="text-xs font-medium text-brand-600 hover:underline">
-              Engage Hub →
-            </Link>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            {companyNews.map((news) => (
-              <div
-                key={news.id}
-                className="group rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 transition hover:bg-slate-50 hover:border-slate-200 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="rounded-full bg-brand-100 px-2 py-0.5 font-semibold text-brand-700">
-                      {news.badge}
-                    </span>
-                    <span className="text-slate-400">{news.date}</span>
-                  </div>
-                  <h3 className="mt-2 text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-brand-600 transition">
-                    {news.title}
-                  </h3>
-                </div>
-                <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-200/50">
-                  <span>{news.category}</span>
-                  <span className="text-brand-600 font-medium group-hover:underline">Read bulletin →</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
