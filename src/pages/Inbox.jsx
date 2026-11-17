@@ -7,207 +7,568 @@ import {
   FileCheck, 
   AlertCircle, 
   Check, 
-  X,
-  Search,
-  ShieldCheck,
-  Calendar
+  X, 
+  Search, 
+  ShieldCheck, 
+  Calendar, 
+  User, 
+  Users, 
+  Shield, 
+  FileText, 
+  DollarSign, 
+  Award, 
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
-import { pendingTasks as initialTasks } from '../data/mockData';
+import { currentUser } from '../data/mockData';
+
+// 1. Personal Tasks for normal employees (Only visible when userRole === 'Employee')
+const initialPersonalTasks = [
+  {
+    id: "TSK-EMP-01",
+    type: "IT Policy 2025 Sign-off",
+    title: "Acknowledge IT Policy-2025 (Information Security & Intranet Guidelines)",
+    details: "Mandatory annual compliance review regarding workstation encryption, local biometric terminal protocols, and acceptable intranet usage.",
+    deadline: "Due by Nov 20, 2026",
+    priority: "Urgent",
+    category: "Policy",
+    status: "Pending Action",
+    actionLabel: "Sign Policy"
+  },
+  {
+    id: "TSK-EMP-02",
+    type: "Missing Punch Regularization",
+    title: "Regularize Nov 14 Missing Punch (Door Terminal 01)",
+    details: "System audit detected a single punch at 09:12 AM without an evening punch due to local reader maintenance. Confirm exit time.",
+    deadline: "Due Today",
+    priority: "High",
+    category: "Attendance",
+    status: "Pending Action",
+    actionLabel: "Submit Details"
+  },
+  {
+    id: "TSK-EMP-03",
+    type: "Tax Savings Proof Submission",
+    title: "Upload Investment Proofs for Q3 / FY 2026-27",
+    details: "Upload eligible 80C, 80D Mediclaim, or NPS receipts to finalize TDS deductions before December payroll processing.",
+    deadline: "Due Dec 10, 2026",
+    priority: "Medium",
+    category: "Tax & Finance",
+    status: "Pending Action",
+    actionLabel: "Declare Proofs"
+  },
+  {
+    id: "TSK-EMP-04",
+    type: "Self Performance Review",
+    title: "Complete Q3 Self-Appraisal & OKR Assessment",
+    details: "Review your key quarterly milestones and submit self-ratings before the upcoming manager evaluation window.",
+    deadline: "Due Nov 30, 2026",
+    priority: "Medium",
+    category: "Performance",
+    status: "Pending Action",
+    actionLabel: "Start Review"
+  }
+];
+
+// 2. Team Approval Queue for Managers/HR/Admin (Only visible when userRole === 'HR' || userRole === 'Admin')
+const initialTeamApprovals = [
+  {
+    id: "APPR-101",
+    type: "Leave Approval",
+    requester: "Kavitha Sharma",
+    role: "Lead QA Automation",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+    details: "Sick Leave (2 Days: Nov 18 - Nov 19) • Balance remaining: 6.0 days",
+    date: "10 mins ago",
+    priority: "High",
+    category: "Leave"
+  },
+  {
+    id: "APPR-102",
+    type: "Biometric Attendance Regularization",
+    requester: "Vikram Malhotra",
+    role: "Senior Backend Developer",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    details: "Missed evening punch due to Matrix Door Controller 02 power cycling on Nov 14 (Claimed Out: 06:15 PM)",
+    date: "1 hour ago",
+    priority: "Medium",
+    category: "Attendance"
+  },
+  {
+    id: "APPR-103",
+    type: "Overtime (OT) Approval",
+    requester: "Siddharth Verma",
+    role: "Plant Operations Supervisor",
+    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=80",
+    details: "Weekend Plant Equipment Maintenance Shift • 4.5 OT Hours at Hyderabad Hub",
+    date: "2 hours ago",
+    priority: "High",
+    category: "Attendance"
+  },
+  {
+    id: "APPR-104",
+    type: "Expense Reimbursement",
+    requester: "Rohan Patel",
+    role: "DevOps & Infrastructure",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+    details: "On-site Client Visit Transport & Meals • Total Claim: ₹ 4,850.00",
+    date: "3 hours ago",
+    priority: "Low",
+    category: "Finance"
+  }
+];
 
 export function Inbox() {
-  const [tasks, setTasks] = useState(initialTasks);
-  const [filter, setFilter] = useState('All');
-  const [selectedTask, setSelectedTask] = useState(null);
+  // Role variable as requested (defaults to 'Employee', can toggle to 'HR' or 'Admin')
+  const [userRole, setUserRole] = useState('Employee');
 
-  const handleApprove = (id) => {
-    setTasks(tasks.filter(t => t.id !== id));
-    alert(`Task ${id} has been Approved.`);
-    if (selectedTask?.id === id) setSelectedTask(null);
+  const [personalTasks, setPersonalTasks] = useState(initialPersonalTasks);
+  const [teamApprovals, setTeamApprovals] = useState(initialTeamApprovals);
+  
+  const [employeeFilter, setEmployeeFilter] = useState('All');
+  const [hrFilter, setHrFilter] = useState('All');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleReject = (id) => {
-    setTasks(tasks.filter(t => t.id !== id));
-    alert(`Task ${id} has been Rejected.`);
-    if (selectedTask?.id === id) setSelectedTask(null);
+  // Actions for Normal Employee Personal Tasks
+  const handleCompletePersonalTask = (taskId, taskTitle) => {
+    setPersonalTasks(prev => prev.filter(t => t.id !== taskId));
+    if (selectedItem?.id === taskId) setSelectedItem(null);
+    showToast(`Completed: "${taskTitle}". Your compliance record has been updated.`);
   };
 
-  const filteredTasks = filter === 'All' 
-    ? tasks 
-    : tasks.filter(t => t.category.toLowerCase() === filter.toLowerCase());
+  // Actions for HR/Admin Team Approvals
+  const handleApproveTeamRequest = (apprId, requester) => {
+    setTeamApprovals(prev => prev.filter(a => a.id !== apprId));
+    if (selectedItem?.id === apprId) setSelectedItem(null);
+    showToast(`Approved request from ${requester}. Synchronized with Biometric/Payroll engine.`);
+  };
+
+  const handleRejectTeamRequest = (apprId, requester) => {
+    setTeamApprovals(prev => prev.filter(a => a.id !== apprId));
+    if (selectedItem?.id === apprId) setSelectedItem(null);
+    showToast(`Rejected request from ${requester}. Requester has been notified.`);
+  };
+
+  // Role Checks
+  const isEmployee = userRole === 'Employee';
+  const isManagerOrAdmin = userRole === 'HR' || userRole === 'Admin';
+
+  // Filtered Lists
+  const filteredPersonalTasks = employeeFilter === 'All'
+    ? personalTasks
+    : personalTasks.filter(t => t.category.toLowerCase() === employeeFilter.toLowerCase());
+
+  const filteredTeamApprovals = hrFilter === 'All'
+    ? teamApprovals
+    : teamApprovals.filter(a => a.category.toLowerCase() === hrFilter.toLowerCase());
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900">Inbox & Pending Tasks</h1>
-            <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-600 border border-rose-200">
-              {tasks.length} Action Needed
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Review and take action on employee leave requests, biometric punch regularizations, and compliance sign-offs.
-          </p>
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-slate-900 text-white px-4 py-2.5 text-xs font-semibold shadow-2xl animate-fade-in border border-slate-700">
+          <Sparkles className="h-4 w-4 text-emerald-400" />
+          <span>{toastMessage}</span>
         </div>
+      )}
 
-        {/* Filter Badges */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {['All', 'Leave', 'Attendance', 'Finance', 'Policy'].map((cat) => (
+      {/* Top Header Card with Role Switcher & Context */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900">
+                {isEmployee ? "My Action Items & Personal Tasks" : "Management Approval Queue"}
+              </h1>
+              
+              {/* Active Role Indicator Badge */}
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                isEmployee 
+                  ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                  : userRole === 'HR'
+                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              }`}>
+                {userRole} Mode
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-500 mt-1">
+              {isEmployee 
+                ? "Personal tasks, policy sign-offs, and compliance actions assigned specifically to you."
+                : `Review and decide on pending requests (Leave, OT, and Attendance) submitted by team members.`
+              }
+            </p>
+          </div>
+
+          {/* Interactive Role Switcher Toggle */}
+          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 shrink-0">
+            <span className="text-[11px] font-bold text-slate-500 px-2 uppercase tracking-wider">
+              Role:
+            </span>
             <button
-              key={cat}
-              onClick={() => setFilter(cat)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-                filter === cat
-                  ? 'bg-brand-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              onClick={() => {
+                setUserRole('Employee');
+                setSelectedItem(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition ${
+                userRole === 'Employee'
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              {cat}
+              <User className="h-3.5 w-3.5" />
+              <span>Employee</span>
             </button>
-          ))}
+
+            <button
+              onClick={() => {
+                setUserRole('HR');
+                setSelectedItem(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition ${
+                userRole === 'HR'
+                  ? 'bg-white text-purple-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="h-3.5 w-3.5" />
+              <span>HR</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setUserRole('Admin');
+                setSelectedItem(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition ${
+                userRole === 'Admin'
+                  ? 'bg-white text-emerald-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5" />
+              <span>Admin</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Category Filters Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
+            {isEmployee ? (
+              // Employee Filter Chips
+              ['All', 'Policy', 'Attendance', 'Tax & Finance', 'Performance'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setEmployeeFilter(cat)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition shrink-0 ${
+                    employeeFilter === cat
+                      ? 'bg-brand-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))
+            ) : (
+              // HR / Admin Filter Chips
+              ['All', 'Leave', 'Attendance', 'Finance'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setHrFilter(cat)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition shrink-0 ${
+                    hrFilter === cat
+                      ? 'bg-brand-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))
+            )}
+          </div>
+
+          <span className="text-xs text-slate-500 font-medium">
+            {isEmployee 
+              ? `${filteredPersonalTasks.length} personal task(s) remaining`
+              : `${filteredTeamApprovals.length} team request(s) awaiting approval`
+            }
+          </span>
         </div>
       </div>
 
-      {/* Task List and Detailed Preview (Split Screen on Desktop) */}
+      {/* Main Grid: List on Left (2 Cols) + Context/Action Preview on Right (1 Col) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left List (2 Cols on lg) */}
-        <div className="lg:col-span-2 space-y-3">
-          {filteredTasks.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-              <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
-              <h3 className="mt-3 text-sm font-bold text-slate-900">All Caught Up!</h3>
-              <p className="text-xs text-slate-500 mt-1">No pending tasks found under '{filter}'.</p>
-            </div>
-          ) : (
-            filteredTasks.map((task) => (
-              <div
-                key={task.id}
-                onClick={() => setSelectedTask(task)}
-                className={`group cursor-pointer rounded-2xl border p-4 transition ${
-                  selectedTask?.id === task.id
-                    ? 'border-brand-500 bg-brand-50/30 ring-1 ring-brand-500'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs'
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    {task.avatar ? (
-                      <img
-                        src={task.avatar}
-                        alt={task.requester}
-                        className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100 shrink-0"
-                      />
-                    ) : (
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                        <ShieldCheck className="h-5 w-5 text-brand-600" />
-                      </div>
-                    )}
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                          {task.type}
-                        </h3>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          task.priority === 'Urgent'
-                            ? 'bg-rose-100 text-rose-800'
-                            : task.priority === 'High'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {task.priority} Priority
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-medium">
-                          {task.date}
-                        </span>
-                      </div>
-                      <p className="text-xs font-semibold text-slate-700 mt-0.5">
-                        Requester: <span className="text-brand-700">{task.requester}</span>
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {task.details}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleReject(task.id);
-                      }}
-                      className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition"
-                      title="Reject"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleApprove(task.id);
-                      }}
-                      className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs transition"
-                      title="Approve"
-                    >
-                      <Check className="h-4 w-4" />
-                      <span>Approve</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Right Preview Drawer / Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs h-fit sticky top-20">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
-            Task Context & Policy Rules
-          </h3>
-
-          {selectedTask ? (
-            <div className="mt-4 space-y-3 text-xs">
-              <div>
-                <span className="text-slate-400">Selected Item:</span>
-                <p className="font-bold text-slate-900 mt-0.5">{selectedTask.type} ({selectedTask.id})</p>
-              </div>
-              <div>
-                <span className="text-slate-400">Applicant:</span>
-                <p className="font-semibold text-slate-800">{selectedTask.requester}</p>
-              </div>
-              <div>
-                <span className="text-slate-400">Details:</span>
-                <p className="text-slate-700 mt-0.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-relaxed">
-                  {selectedTask.details}
+        {/* ========================================================== */}
+        {/* VIEW 1: NORMAL EMPLOYEE INBOX (ONLY PERSONAL TASKS)        */}
+        {/* ========================================================== */}
+        {isEmployee && (
+          <div className="lg:col-span-2 space-y-3">
+            {filteredPersonalTasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
+                <h3 className="mt-3 text-sm font-bold text-slate-900">All Personal Tasks Done!</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  You have no pending policy sign-offs, missing punches, or personal action items.
                 </p>
               </div>
-              <div className="pt-2 flex gap-2">
-                <button
-                  onClick={() => handleReject(selectedTask.id)}
-                  className="flex-1 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100"
+            ) : (
+              filteredPersonalTasks.map((task) => (
+                <div
+                  key={task.id}
+                  onClick={() => setSelectedItem(task)}
+                  className={`group cursor-pointer rounded-2xl border p-4 transition ${
+                    selectedItem?.id === task.id
+                      ? 'border-brand-500 bg-brand-50/30 ring-1 ring-brand-500'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs'
+                  }`}
                 >
-                  Reject
-                </button>
-                <button
-                  onClick={() => handleApprove(selectedTask.id)}
-                  className="flex-1 rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-brand-600">
+                        {task.category === 'Policy' ? (
+                          <ShieldCheck className="h-5 w-5" />
+                        ) : task.category === 'Attendance' ? (
+                          <Clock className="h-5 w-5" />
+                        ) : task.category === 'Tax & Finance' ? (
+                          <DollarSign className="h-5 w-5" />
+                        ) : (
+                          <Award className="h-5 w-5" />
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-xs font-bold text-slate-500">{task.id}</span>
+                          <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                            {task.title}
+                          </h3>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            task.priority === 'Urgent'
+                              ? 'bg-rose-100 text-rose-800'
+                              : task.priority === 'High'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {task.priority} Priority
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                          {task.details}
+                        </p>
+
+                        <div className="mt-2.5 flex items-center gap-3 text-[11px] text-slate-400 font-medium">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{task.deadline}</span>
+                          </span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 font-semibold text-[10px]">
+                            {task.category}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Employee Action Button */}
+                    <div className="self-end sm:self-center shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompletePersonalTask(task.id, task.title);
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
+                      >
+                        <Check className="h-4 w-4" />
+                        <span>{task.actionLabel}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ========================================================== */}
+        {/* VIEW 2: HR / ADMIN MANAGEMENT APPROVAL QUEUE               */}
+        {/* ========================================================== */}
+        {isManagerOrAdmin && (
+          <div className="lg:col-span-2 space-y-3">
+            {filteredTeamApprovals.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
+                <h3 className="mt-3 text-sm font-bold text-slate-900">Approval Queue Empty!</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  All employee leave requests, biometric regularizations, and OT claims have been decided.
+                </p>
+              </div>
+            ) : (
+              filteredTeamApprovals.map((req) => (
+                <div
+                  key={req.id}
+                  onClick={() => setSelectedItem(req)}
+                  className={`group cursor-pointer rounded-2xl border p-4 transition ${
+                    selectedItem?.id === req.id
+                      ? 'border-purple-500 bg-purple-50/30 ring-1 ring-purple-500'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs'
+                  }`}
                 >
-                  Approve Now
-                </button>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={req.avatar}
+                        alt={req.requester}
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100 shrink-0 mt-0.5"
+                      />
+
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                            {req.type}
+                          </h3>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            req.priority === 'High'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {req.priority} Priority
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-medium">
+                            {req.date}
+                          </span>
+                        </div>
+
+                        <p className="text-xs font-semibold text-slate-700 mt-0.5">
+                          Applicant: <span className="text-brand-700">{req.requester}</span> ({req.role})
+                        </p>
+
+                        <p className="text-xs text-slate-500 mt-1">
+                          {req.details}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* HR/Admin Decision Actions (Approve / Reject) */}
+                    <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRejectTeamRequest(req.id, req.requester);
+                        }}
+                        className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition"
+                        title="Reject Request"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApproveTeamRequest(req.id, req.requester);
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
+                        title="Approve Request"
+                      >
+                        <Check className="h-4 w-4" />
+                        <span>Approve</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Right Preview Drawer / Policy Compliance Panel */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs h-fit sticky top-20 space-y-4">
+          <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              {isEmployee ? "Task Summary & Guidelines" : "Audit Context & Approval Rules"}
+            </h3>
+            <span className="text-[11px] text-slate-400 font-mono">
+              {selectedItem ? selectedItem.id : "No selection"}
+            </span>
+          </div>
+
+          {selectedItem ? (
+            <div className="space-y-3 text-xs">
+              <div>
+                <span className="text-slate-400">Title / Type:</span>
+                <p className="font-bold text-slate-900 mt-0.5">
+                  {isEmployee ? selectedItem.title : selectedItem.type}
+                </p>
+              </div>
+
+              {!isEmployee && (
+                <div>
+                  <span className="text-slate-400">Applicant:</span>
+                  <p className="font-semibold text-slate-800">
+                    {selectedItem.requester} ({selectedItem.role})
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <span className="text-slate-400">Description & Details:</span>
+                <p className="text-slate-700 mt-0.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-relaxed">
+                  {selectedItem.details}
+                </p>
+              </div>
+
+              {/* Action Buttons inside Drawer */}
+              <div className="pt-2">
+                {isEmployee ? (
+                  <button
+                    onClick={() => handleCompletePersonalTask(selectedItem.id, selectedItem.title)}
+                    className="w-full rounded-xl bg-brand-600 hover:bg-brand-700 py-2.5 text-xs font-bold text-white shadow-xs transition"
+                  >
+                    {selectedItem.actionLabel || "Complete Task"}
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleRejectTeamRequest(selectedItem.id, selectedItem.requester)}
+                      className="flex-1 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 py-2 text-xs font-bold text-rose-700 transition"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => handleApproveTeamRequest(selectedItem.id, selectedItem.requester)}
+                      className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2 text-xs font-bold text-white shadow-xs transition"
+                    >
+                      Approve Request
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
             <div className="py-8 text-center text-xs text-slate-400">
-              Select any pending request on the left to preview details, policy checks, and audit notes.
+              {isEmployee 
+                ? "Select any personal task on the left to review instructions, deadline, and policy notes."
+                : "Select an employee request to preview leave balances, punch records, or travel receipts."
+              }
             </div>
           )}
 
-          <div className="mt-6 border-t border-slate-100 pt-3">
-            <p className="text-[11px] font-bold text-slate-700">Audit SLA Guarantee</p>
-            <p className="text-[11px] text-slate-500 mt-1">
-              All leave & attendance regularization approvals are synced back to the Matrix Biometric database engine within 60 seconds.
+          <div className="border-t border-slate-100 pt-3">
+            <p className="text-[11px] font-bold text-slate-700">
+              {isEmployee ? "Policy Compliance Notice" : "SLA Guarantee Notice"}
+            </p>
+            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+              {isEmployee
+                ? "Personal tasks are governed by Prashanth Enterprises IT Policy-2025. Mandatory tasks must be acknowledged before quarterly audits."
+                : "All managerial approvals automatically update employee records in the Matrix biometric server within 60 seconds."
+              }
             </p>
           </div>
         </div>
