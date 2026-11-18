@@ -30,6 +30,13 @@ export const firebaseService = {
   // Employee Master operations
   addEmployee: (empData, hrId, hrName) => hrmStore.addEmployee(empData, hrId, hrName),
   updateEmployee: (id, updates, hrId, hrName) => hrmStore.updateEmployee(id, updates, hrId, hrName),
+  updatePersonal: (id, data, hrId, hrName) => hrmStore.updateEmployeePersonal(id, data, hrId, hrName),
+  updateEmployment: (id, data, hrId, hrName) => hrmStore.updateEmployeeEmployment(id, data, hrId, hrName),
+  reassignManager: (id, managerId, hrId, hrName) => hrmStore.reassignManager(id, managerId, hrId, hrName),
+  addEducation: (id, edu, hrId, hrName) => hrmStore.addEmployeeEducation(id, edu, hrId, hrName),
+  addExperience: (id, exp, hrId, hrName) => hrmStore.addEmployeeExperience(id, exp, hrId, hrName),
+  uploadDocument: (id, doc, hrId, hrName) => hrmStore.uploadEmployeeDocument(id, doc, hrId, hrName),
+  verifyDocument: (id, docId, hrId, hrName) => hrmStore.verifyEmployeeDocument(id, docId, hrId, hrName),
 
   // Payroll operations
   processPayroll: (period, year, month, hrId, hrName) => hrmStore.processPayrollRun(period, year, month, hrId, hrName),

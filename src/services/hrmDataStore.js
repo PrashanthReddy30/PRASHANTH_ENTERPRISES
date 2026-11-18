@@ -693,16 +693,235 @@ class HrmDataEngine {
     this.data = this.loadData();
   }
 
+  normalizeEmployee360(emp) {
+    if (!emp) return emp;
+    if (!emp.personal) {
+      emp.personal = {
+        fullName: emp.name,
+        dob: "1994-08-24",
+        gender: "Male",
+        personalEmail: emp.email ? emp.email.replace('@prashanthenterprises.in', '.personal@gmail.com') : 'personal@gmail.com',
+        officialEmail: emp.email,
+        mobile: emp.phone || '+91 98480 11221',
+        emergencyContact: {
+          name: "Sunita Reddy / Family",
+          relation: "Spouse / Parent",
+          phone: "+91 98480 99881"
+        },
+        currentAddress: `Flat 402, Cyber Residency, Madhapur, ${emp.branch || 'Hyderabad'}`,
+        permanentAddress: "Plot 12, Tilak Road, Rajahmundry, Andhra Pradesh 533101",
+        maritalStatus: "Married",
+        bloodGroup: "O+ve",
+        profilePhoto: emp.avatar
+      };
+    }
+    if (!emp.employment) {
+      emp.employment = {
+        employeeId: emp.employeeId,
+        joiningDate: emp.joiningDate,
+        employmentType: emp.employmentType || "Full-Time Permanent",
+        employmentStatus: emp.status || "Active",
+        designation: emp.role,
+        department: emp.department,
+        deptCode: emp.deptCode,
+        branch: emp.branch,
+        branchId: emp.branchId,
+        workLocation: `${emp.branch || 'Hyderabad'} Hub - Tech Floor Bay 4`,
+        reportingManagerName: emp.managerName || "Board of Directors",
+        reportingManagerId: emp.managerId,
+        previousDesignations: [`Associate ${emp.role.split(' ')[0]}`, `Junior Analyst`],
+        previousDepartments: ["Operations Support"],
+        transferHistory: [
+          { date: emp.joiningDate, fromBranch: "Chennai Regional Hub", toBranch: `${emp.branch || 'Hyderabad'} Hub`, reason: "Strategic Project Lead Allocation", approvedBy: "Pooja Hegde" }
+        ],
+        managerHistory: [
+          { managerId: emp.managerId, managerName: emp.managerName, effectiveDate: emp.joiningDate }
+        ],
+        confirmationDate: emp.joiningDate,
+        probationStatus: "Confirmed",
+        noticePeriod: "60 Days",
+        exitDetails: null
+      };
+    }
+    if (!emp.education || emp.education.length === 0) {
+      emp.education = [
+        {
+          id: `EDU-${emp.id}-1`,
+          qualification: "Bachelor of Technology (B.Tech)",
+          degree: "B.Tech in Computer Science & Engineering",
+          specialization: "Distributed Systems & Cloud Computing",
+          institution: "JNTU College of Engineering",
+          university: "Jawaharlal Nehru Technological University",
+          yearOfPassing: "2019",
+          percentage: "84.5%",
+          certificateName: "BTech_Degree_Certificate.pdf"
+        },
+        {
+          id: `EDU-${emp.id}-2`,
+          qualification: "Higher Secondary (10+2)",
+          degree: "Class XII Intermediate",
+          specialization: "Maths, Physics, Chemistry (MPC)",
+          institution: "Sri Chaitanya Junior College",
+          university: "Board of Intermediate Education",
+          yearOfPassing: "2015",
+          percentage: "91.8%",
+          certificateName: "Intermediate_Pass_Certificate.pdf"
+        }
+      ];
+    }
+    if (!emp.experience || emp.experience.length === 0) {
+      emp.experience = [
+        {
+          id: `EXP-${emp.id}-1`,
+          companyName: "Cognizant Technology Solutions",
+          designation: "Programmer Analyst",
+          startDate: "2019-07-01",
+          endDate: "2022-03-31",
+          totalExperience: "2 Yrs 9 Mos",
+          documentName: "CTS_Relieving_Experience_Letter.pdf"
+        },
+        {
+          id: `EXP-${emp.id}-2`,
+          companyName: "Incture Technologies",
+          designation: "Software Engineer",
+          startDate: "2022-04-01",
+          endDate: emp.joiningDate,
+          totalExperience: "2 Yrs",
+          documentName: "Incture_Service_Certificate.pdf"
+        }
+      ];
+    }
+    if (!emp.documents || emp.documents.length === 0) {
+      emp.documents = [
+        {
+          id: `DOC-${emp.id}-1`,
+          category: "Aadhaar / Identity Proof",
+          documentName: `${emp.name.replace(/\s+/g, '_')}_Aadhaar_Card.pdf`,
+          type: "PDF",
+          uploadDate: emp.joiningDate,
+          verificationStatus: "Verified",
+          verifiedBy: "Pooja Hegde",
+          verifiedAt: emp.joiningDate,
+          expiryDate: "N/A"
+        },
+        {
+          id: `DOC-${emp.id}-2`,
+          category: "PAN",
+          documentName: `PAN_${emp.panNumber || 'ABCDE1234F'}.pdf`,
+          type: "PDF",
+          uploadDate: emp.joiningDate,
+          verificationStatus: "Verified",
+          verifiedBy: "Sneha Kulkarni",
+          verifiedAt: emp.joiningDate,
+          expiryDate: "N/A"
+        },
+        {
+          id: `DOC-${emp.id}-3`,
+          category: "Offer Letter",
+          documentName: `Prashanth_Enterprises_Offer_${emp.employeeId}.pdf`,
+          type: "PDF",
+          uploadDate: emp.joiningDate,
+          verificationStatus: "Verified",
+          verifiedBy: "Pooja Hegde",
+          verifiedAt: emp.joiningDate,
+          expiryDate: "N/A"
+        },
+        {
+          id: `DOC-${emp.id}-4`,
+          category: "Employment Agreement",
+          documentName: `Signed_NDA_Employment_Contract_${emp.employeeId}.pdf`,
+          type: "PDF",
+          uploadDate: emp.joiningDate,
+          verificationStatus: "Verified",
+          verifiedBy: "Pooja Hegde",
+          verifiedAt: emp.joiningDate,
+          expiryDate: "2027-03-15"
+        }
+      ];
+    }
+    if (!emp.loginSessions || emp.loginSessions.length === 0) {
+      emp.loginSessions = [
+        {
+          id: `SESS-${emp.id}-1`,
+          date: "2026-11-18",
+          loginTime: "09:12:34 AM",
+          logoutTime: "Active Session",
+          sessionStatus: "Active",
+          device: "Windows 11 / Chrome 132 (Enterprise Desktop)",
+          ipAddress: "192.168.1.104 (Local Intranet)"
+        },
+        {
+          id: `SESS-${emp.id}-2`,
+          date: "2026-11-17",
+          loginTime: "09:05:12 AM",
+          logoutTime: "06:18:40 PM",
+          sessionStatus: "Terminated Cleanly",
+          device: "Windows 11 / Chrome 132 (Enterprise Desktop)",
+          ipAddress: "192.168.1.104 (Local Intranet)"
+        },
+        {
+          id: `SESS-${emp.id}-3`,
+          date: "2026-11-16",
+          loginTime: "08:58:30 AM",
+          logoutTime: "06:12:00 PM",
+          sessionStatus: "Terminated Cleanly",
+          device: "Android 15 / Chrome Mobile (PE VPN)",
+          ipAddress: "192.168.1.185 (Intranet Wi-Fi)"
+        }
+      ];
+    }
+    if (!emp.performance) {
+      emp.performance = {
+        currentRating: "4.8 / 5.0",
+        reviewCycle: "Q3 2026 Appraisal",
+        managerFeedback: "Consistently achieves operational milestones with high engineering precision and strict intranet security compliance.",
+        goals: [
+          { goal: "Matrix reader real-time stream integration", status: "Completed (100%)" },
+          { goal: "Enterprise IT Policy-2025 rollout and audit sign-off", status: "Compliant (100%)" }
+        ],
+        promotionHistory: [
+          { date: "2025-04-01", fromDesignation: "Software Engineer I", toDesignation: emp.role, salaryHike: "18%", approvedBy: "Prashanth Reddy" }
+        ],
+        trainingCertifications: [
+          { name: "Certified Kubernetes Administrator (CKA)", completedDate: "2025-08-10", validTill: "2028-08-10" },
+          { name: "ISO 27001 Information Security Compliance", completedDate: "2026-01-15", validTill: "2027-01-15" }
+        ]
+      };
+    }
+    if (!emp.bankDetails) {
+      emp.bankDetails = {
+        bankName: "HDFC Bank Ltd",
+        accountNumber: `50100${emp.id.replace(/\D/g, '').padEnd(9, '48291')}`,
+        ifscCode: "HDFC0001823",
+        branchName: `${emp.branch || 'Hyderabad'} Tech Hub Branch`,
+        accountType: "Corporate Salary Account"
+      };
+    }
+    if (!emp.salaryHistory) {
+      emp.salaryHistory = [
+        { effectiveDate: "2025-04-01", gross: 90000, basic: 45000, revisedBy: "Prashanth Reddy", reason: "Annual Merit Performance Revision" },
+        { effectiveDate: emp.joiningDate, gross: 75000, basic: 37500, revisedBy: "Pooja Hegde", reason: "Initial Onboarding Compensation" }
+      ];
+    }
+    return emp;
+  }
+
   loadData() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed.employees && Array.isArray(parsed.employees)) {
+          parsed.employees = parsed.employees.map(e => this.normalizeEmployee360(e));
+        }
+        return parsed;
       }
     } catch (e) {
       console.warn('Could not read from localStorage, using seed data:', e);
     }
-    return initialEnterpriseData;
+    const fresh = JSON.parse(JSON.stringify(initialEnterpriseData));
+    fresh.employees = fresh.employees.map(e => this.normalizeEmployee360(e));
+    return fresh;
   }
 
   saveData() {
@@ -1079,6 +1298,147 @@ class HrmDataEngine {
     this.logAudit('EMPLOYEE_UPDATED', 'Employee Master', hrUserName, hrUserId, `Updated profile and assignments for ${emp.name} (${emp.id})`);
     this.saveData();
     return emp;
+  }
+
+  // --- 360° Profile Operations ---
+  updateEmployeePersonal(id, personalData, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    emp.personal = { ...emp.personal, ...personalData };
+    if (personalData.fullName) emp.name = personalData.fullName;
+    if (personalData.mobile) emp.phone = personalData.mobile;
+    if (personalData.profilePhoto) emp.avatar = personalData.profilePhoto;
+    this.logAudit('EMPLOYEE_PERSONAL_UPDATED', '360 Profile', hrUserName, hrUserId, `Updated personal details for ${emp.name} (${emp.employeeId})`);
+    this.saveData();
+    return emp;
+  }
+
+  updateEmployeeEmployment(id, employmentData, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+
+    const oldBranch = emp.branch;
+    const oldDept = emp.department;
+
+    emp.employment = { ...emp.employment, ...employmentData };
+    if (employmentData.designation) emp.role = employmentData.designation;
+    if (employmentData.department) emp.department = employmentData.department;
+    if (employmentData.deptCode) emp.deptCode = employmentData.deptCode;
+    if (employmentData.branch) emp.branch = employmentData.branch;
+    if (employmentData.branchId) emp.branchId = employmentData.branchId;
+    if (employmentData.employmentStatus) emp.status = employmentData.employmentStatus;
+
+    if ((employmentData.branch && employmentData.branch !== oldBranch) || (employmentData.department && employmentData.department !== oldDept)) {
+      if (!emp.employment.transferHistory) emp.employment.transferHistory = [];
+      emp.employment.transferHistory.unshift({
+        date: new Date().toISOString().split('T')[0],
+        fromBranch: oldBranch,
+        toBranch: employmentData.branch || oldBranch,
+        fromDept: oldDept,
+        toDept: employmentData.department || oldDept,
+        reason: employmentData.transferReason || 'Inter-Branch Strategic Reallocation',
+        approvedBy: hrUserName
+      });
+    }
+
+    this.logAudit('EMPLOYEE_EMPLOYMENT_UPDATED', '360 Profile', hrUserName, hrUserId, `Updated employment parameters for ${emp.name} (${emp.employeeId})`);
+    this.saveData();
+    return emp;
+  }
+
+  reassignManager(id, newManagerId, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+
+    if (id === newManagerId || emp.employeeId === newManagerId) {
+      throw new Error('Circular reporting prohibited: Employee cannot report to themselves.');
+    }
+
+    const targetManager = this.data.employees.find(e => e.id === newManagerId || e.employeeId === newManagerId);
+    if (!targetManager) throw new Error('Target manager record not found.');
+
+    if (targetManager.managerId === emp.id || targetManager.managerId === emp.employeeId) {
+      throw new Error(`Circular reporting prohibited: ${targetManager.name} currently reports to ${emp.name}.`);
+    }
+
+    const previousManager = emp.managerName || 'None';
+    emp.managerId = targetManager.id;
+    emp.managerName = targetManager.name;
+
+    if (!emp.employment) emp.employment = {};
+    emp.employment.reportingManagerId = targetManager.id;
+    emp.employment.reportingManagerName = targetManager.name;
+
+    if (!emp.employment.managerHistory) emp.employment.managerHistory = [];
+    emp.employment.managerHistory.unshift({
+      managerId: targetManager.id,
+      managerName: targetManager.name,
+      effectiveDate: new Date().toISOString().split('T')[0],
+      assignedBy: hrUserName
+    });
+
+    this.logAudit('MANAGER_REASSIGNED', '360 Profile', hrUserName, hrUserId, `Reassigned manager for ${emp.name} from ${previousManager} to ${targetManager.name}`);
+    this.saveData();
+    return emp;
+  }
+
+  addEmployeeEducation(id, eduRecord, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    if (!emp.education) emp.education = [];
+    const newRecord = {
+      id: `EDU-${Date.now()}`,
+      ...eduRecord
+    };
+    emp.education.push(newRecord);
+    this.logAudit('EDUCATION_ADDED', '360 Profile', hrUserName, hrUserId, `Added qualification ${newRecord.qualification} for ${emp.name}`);
+    this.saveData();
+    return newRecord;
+  }
+
+  addEmployeeExperience(id, expRecord, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    if (!emp.experience) emp.experience = [];
+    const newRecord = {
+      id: `EXP-${Date.now()}`,
+      ...expRecord
+    };
+    emp.experience.push(newRecord);
+    this.logAudit('EXPERIENCE_ADDED', '360 Profile', hrUserName, hrUserId, `Added past employment at ${newRecord.companyName} for ${emp.name}`);
+    this.saveData();
+    return newRecord;
+  }
+
+  uploadEmployeeDocument(id, docRecord, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    if (!emp.documents) emp.documents = [];
+    const newDoc = {
+      id: `DOC-${Date.now()}`,
+      uploadDate: new Date().toISOString().split('T')[0],
+      verificationStatus: 'Pending Verification',
+      verifiedBy: null,
+      verifiedAt: null,
+      ...docRecord
+    };
+    emp.documents.push(newDoc);
+    this.logAudit('DOCUMENT_UPLOADED', '360 Profile', hrUserName, hrUserId, `Uploaded ${newDoc.category} (${newDoc.documentName}) for ${emp.name}`);
+    this.saveData();
+    return newDoc;
+  }
+
+  verifyEmployeeDocument(id, docId, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    const doc = emp.documents?.find(d => d.id === docId);
+    if (!doc) throw new Error('Document not found.');
+    doc.verificationStatus = 'Verified';
+    doc.verifiedBy = hrUserName;
+    doc.verifiedAt = new Date().toISOString();
+    this.logAudit('DOCUMENT_VERIFIED', '360 Profile', hrUserName, hrUserId, `Verified document ${doc.documentName} for ${emp.name}`);
+    this.saveData();
+    return doc;
   }
 
   // --- 4. Payroll Operations ---
