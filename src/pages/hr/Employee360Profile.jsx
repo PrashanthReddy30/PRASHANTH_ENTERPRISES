@@ -34,8 +34,13 @@ import {
   UserCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
 
-export function Employee360Profile({ employeeId, onBack }) {
+export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnBack }) {
+  const { employeeId: paramEmployeeId } = useParams();
+  const navigate = useNavigate();
+  const employeeId = propEmployeeId || paramEmployeeId;
+  const onBack = propOnBack || (() => navigate('/hr/employees'));
   const { storeData, hrmStore, currentUser, permissions } = useAuth();
 
   // Find employee
@@ -107,6 +112,30 @@ export function Employee360Profile({ employeeId, onBack }) {
     );
   }
 
+  // Branch isolation check: Branch HR can only access records in their authorized branch
+  const isBranchAuthorized = currentUser?.systemRole === 'Branch HR'
+    ? employee.branchId === currentUser.branchId
+    : true;
+
+  if (!isBranchAuthorized) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-12 text-center space-y-3">
+        <ShieldCheck className="h-10 w-10 text-amber-500 mx-auto" />
+        <h3 className="text-base font-bold text-slate-800">Branch Restricted Profile</h3>
+        <p className="text-xs text-slate-600 max-w-md mx-auto">
+          You are currently logged in under {currentUser.branch} Hub ({currentUser.systemRole}). You do not have permission to access employee records for {employee.branch} Hub.
+        </p>
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Employee Directory</span>
+        </button>
+      </div>
+    );
+  }
+
   // Related Records from central store
   const employeeAttendance = storeData.attendance.filter(a => a.employeeId === employee.id || a.employeeId === employee.employeeId);
   const employeeLeaves = storeData.leaveRequests.filter(r => r.employeeId === employee.id || r.employeeId === employee.employeeId);
@@ -122,21 +151,22 @@ export function Employee360Profile({ employeeId, onBack }) {
     log.details.includes(employee.id)
   );
 
-  // Tabs Definition
+  // Tabs Definition (Exact 14 Sections)
   const tabs = [
     { id: 'overview', label: '1. Overview', icon: Eye },
     { id: 'personal', label: '2. Personal Info', icon: Users },
     { id: 'employment', label: '3. Employment', icon: Building2 },
-    { id: 'attendance', label: '4. Attendance', icon: Clock },
-    { id: 'loginSessions', label: '5. Login Sessions', icon: Laptop },
-    { id: 'leave', label: '6. Leave & Ledger', icon: Calendar },
-    { id: 'finance', label: '7. Finance & Payroll', icon: DollarSign, protected: true },
-    { id: 'education', label: '8. Education', icon: GraduationCap },
-    { id: 'experience', label: '9. Experience', icon: Briefcase },
-    { id: 'manager', label: '10. Hierarchy & Manager', icon: Network },
-    { id: 'documents', label: '11. Documents', icon: FileText },
-    { id: 'performance', label: '12. Career & OKRs', icon: Award },
-    { id: 'timeline', label: '13. Activity Timeline', icon: Activity }
+    { id: 'attendance', label: '4. Attendance History', icon: Clock },
+    { id: 'loginSessions', label: '5. Login & Logout History', icon: Laptop },
+    { id: 'leaveApplications', label: '6. Leave Applications', icon: Calendar },
+    { id: 'leaveBalance', label: '7. Leave Balance', icon: CheckCircle2 },
+    { id: 'finance', label: '8. Finance & Payroll', icon: DollarSign, protected: true },
+    { id: 'education', label: '9. Education Details', icon: GraduationCap },
+    { id: 'experience', label: '10. Previous Experience', icon: Briefcase },
+    { id: 'manager', label: '11. Reporting Manager', icon: Network },
+    { id: 'documents', label: '12. Employee Documents', icon: FileText, protected: true },
+    { id: 'performance', label: '13. Performance & Career', icon: Award },
+    { id: 'timeline', label: '14. Activity Timeline', icon: Activity }
   ];
 
   // Actions
@@ -721,74 +751,123 @@ export function Employee360Profile({ employeeId, onBack }) {
         </div>
       )}
 
-      {/* TAB 6: LEAVE MANAGEMENT & LEDGER */}
-      {activeTab === 'leave' && (
+      {/* TAB 6: LEAVE APPLICATIONS */}
+      {activeTab === 'leaveApplications' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
-          <div>
-            <h3 className="text-base font-bold text-slate-900">Leave Entitlements & Atomic Ledger</h3>
-            <p className="text-xs text-slate-500">Opening balance, accrued days, approved leaves, and pending reservations.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Leave Applications & Request History</h3>
+              <p className="text-xs text-slate-500">Chronological history of leave requests, status reviews, and supervisory approvals.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-md bg-brand-50 border border-brand-200 px-2.5 py-1 text-xs font-bold text-brand-700">
+                Total Applied: {employeeLeaves.length}
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {['CL', 'SL', 'PL', 'COMP'].map(code => {
+          {/* Leave Application History Table */}
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600">
+                  <th className="py-2.5 px-3">Req ID</th>
+                  <th className="py-2.5 px-3">Leave Type</th>
+                  <th className="py-2.5 px-3">From Date</th>
+                  <th className="py-2.5 px-3">To Date</th>
+                  <th className="py-2.5 px-3">Total Days</th>
+                  <th className="py-2.5 px-3">Reason</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3">Approver</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {employeeLeaves.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-8 text-slate-400">
+                      No leave requests filed by this employee.
+                    </td>
+                  </tr>
+                ) : (
+                  employeeLeaves.map(r => (
+                    <tr key={r.id} className="hover:bg-slate-50/50">
+                      <td className="py-2.5 px-3 font-mono font-bold text-brand-600">{r.id}</td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-800">{r.leaveType}</td>
+                      <td className="py-2.5 px-3 text-slate-600 font-mono">{r.fromDate}</td>
+                      <td className="py-2.5 px-3 text-slate-600 font-mono">{r.toDate}</td>
+                      <td className="py-2.5 px-3 font-bold text-slate-900">{r.totalDays}</td>
+                      <td className="py-2.5 px-3 text-slate-500 max-w-[200px] truncate">{r.reason}</td>
+                      <td className="py-2.5 px-3">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          r.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
+                          r.status === 'Pending' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                        }`}>
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-700 font-medium">{r.approverName || '—'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 7: LEAVE BALANCE & ATOMIC LEDGER */}
+      {activeTab === 'leaveBalance' && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 className="text-base font-bold text-slate-900">Leave Balance & Atomic Ledger</h3>
+            <p className="text-xs text-slate-500">Real-time entitlement balances, annual accruals, approved deductions, and pending reservations.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { code: 'CL', name: 'Casual Leave', desc: 'Short personal commitments & emergencies' },
+              { code: 'SL', name: 'Sick Leave', desc: 'Medical recovery & health indisposition' },
+              { code: 'PL', name: 'Privilege Leave', desc: 'Annual planned vacation & earned leave' },
+              { code: 'COMP', name: 'Comp Off', desc: 'Earned for authorized holiday/weekend work' }
+            ].map(({ code, name, desc }) => {
               const b = employeeLedger[code] || { available: 0, opening: 0 };
-              const typeName = code === 'CL' ? 'Casual Leave' : code === 'SL' ? 'Sick Leave' : code === 'PL' ? 'Privilege Leave' : 'Comp Off';
               return (
-                <div key={code} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <span className="text-[10px] font-bold uppercase text-slate-500">{typeName} ({code})</span>
-                  <p className="text-2xl font-bold text-brand-600 mt-1">{b.available} Days</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Opening: {b.opening} • Approved: {b.approvedDeductions || 0}</p>
+                <div key={code} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">{name}</span>
+                    <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.2 font-mono text-[10px] font-bold text-brand-700">
+                      {code}
+                    </span>
+                  </div>
+                  <p className="text-3xl font-extrabold text-brand-600">
+                    {b.available} <span className="text-xs font-semibold text-slate-500">Days Available</span>
+                  </p>
+                  <div className="border-t border-slate-200/60 pt-2 text-[11px] text-slate-500 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Opening Balance:</span>
+                      <strong className="text-slate-700">{b.opening || 0}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Approved Deductions:</span>
+                      <strong className="text-rose-600">-{b.approvedDeductions || 0}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Pending Reservations:</span>
+                      <strong className="text-amber-600">{b.pendingReservations || 0}</strong>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 italic pt-1">{desc}</p>
                 </div>
               );
             })}
           </div>
 
-          {/* Leave Application History */}
-          <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Leave Applications History</h4>
-            <div className="rounded-xl border border-slate-200 overflow-hidden">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600">
-                    <th className="py-2.5 px-3">Req ID</th>
-                    <th className="py-2.5 px-3">Type</th>
-                    <th className="py-2.5 px-3">From</th>
-                    <th className="py-2.5 px-3">To</th>
-                    <th className="py-2.5 px-3">Days</th>
-                    <th className="py-2.5 px-3">Reason</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3">Approver</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {employeeLeaves.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="text-center py-6 text-slate-400">No leave requests found for this employee.</td>
-                    </tr>
-                  ) : (
-                    employeeLeaves.map(r => (
-                      <tr key={r.id} className="hover:bg-slate-50/50">
-                        <td className="py-2 px-3 font-mono font-bold text-brand-600">{r.id}</td>
-                        <td className="py-2 px-3 font-semibold">{r.leaveType}</td>
-                        <td className="py-2 px-3 text-slate-600">{r.fromDate}</td>
-                        <td className="py-2 px-3 text-slate-600">{r.toDate}</td>
-                        <td className="py-2 px-3 font-bold">{r.totalDays}</td>
-                        <td className="py-2 px-3 text-slate-500 max-w-[150px] truncate">{r.reason}</td>
-                        <td className="py-2 px-3">
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                            r.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
-                            r.status === 'Pending' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {r.status}
-                          </span>
-                        </td>
-                        <td className="py-2 px-3 text-slate-600">{r.approverName || '—'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+          {/* Policy Information Note */}
+          <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-xs text-blue-900 space-y-1">
+            <p className="font-bold">Enterprise Leave Policy Guidelines</p>
+            <p className="text-[11px] text-blue-700">
+              Leave transactions are atomically tracked in Firestore. Privilege Leave (PL) can carry forward up to 45 days. Sick leaves exceeding 2 consecutive days require registered medical practitioner certification in the Documents tab.
+            </p>
           </div>
         </div>
       )}
@@ -1017,82 +1096,92 @@ export function Employee360Profile({ employeeId, onBack }) {
         </div>
       )}
 
-      {/* TAB 11: DOCUMENTS MANAGEMENT */}
+      {/* TAB 12: DOCUMENTS MANAGEMENT */}
       {activeTab === 'documents' && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Personnel Dossier & Document Verification</h3>
-              <p className="text-xs text-slate-500">Official statutory proofs, contracts, and employment letters.</p>
+        <div className="space-y-6">
+          {!permissions.canManageEmployees && !permissions.isGlobalAdmin && !permissions.isHR ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-8 text-center space-y-2">
+              <Lock className="h-8 w-8 text-rose-600 mx-auto" />
+              <p className="text-xs font-bold text-rose-900">Restricted Confidential Dossier</p>
+              <p className="text-[11px] text-rose-700">Official statutory KYC proofs, legal identity documents, and employment contracts are restricted to HR and Global Administration.</p>
             </div>
-            <button
-              onClick={() => setShowUploadDocModal(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
-            >
-              <Upload className="h-4 w-4" />
-              <span>Upload Document</span>
-            </button>
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Personnel Dossier & Document Verification</h3>
+                  <p className="text-xs text-slate-500">Official statutory proofs, contracts, and employment letters.</p>
+                </div>
+                <button
+                  onClick={() => setShowUploadDocModal(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>Upload Document</span>
+                </button>
+              </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
-                  <th className="py-2.5 px-3">Category</th>
-                  <th className="py-2.5 px-3">File Name</th>
-                  <th className="py-2.5 px-3">Uploaded On</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3">Verified By</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(employee.documents || []).length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-6 text-slate-400">No documents uploaded.</td>
-                  </tr>
-                ) : (
-                  employee.documents.map(doc => (
-                    <tr key={doc.id} className="hover:bg-slate-50/50">
-                      <td className="py-2.5 px-3 font-semibold text-slate-800">{doc.category}</td>
-                      <td className="py-2.5 px-3 font-mono font-medium text-brand-600">{doc.documentName}</td>
-                      <td className="py-2.5 px-3 text-slate-500 font-mono">{doc.uploadDate}</td>
-                      <td className="py-2.5 px-3">
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          doc.verificationStatus === 'Verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {doc.verificationStatus}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-600">{doc.verifiedBy || 'Pending'}</td>
-                      <td className="py-2.5 px-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => showToast(`Previewing verified document: ${doc.documentName}`)}
-                            className="text-xs font-semibold text-brand-600 hover:underline"
-                          >
-                            Preview
-                          </button>
-                          {doc.verificationStatus !== 'Verified' && (
-                            <button
-                              onClick={() => handleVerifyDocument(doc.id)}
-                              className="rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-700"
-                            >
-                              Verify
-                            </button>
-                          )}
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
+                      <th className="py-2.5 px-3">Category</th>
+                      <th className="py-2.5 px-3">File Name</th>
+                      <th className="py-2.5 px-3">Uploaded On</th>
+                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3">Verified By</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {(employee.documents || []).length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-6 text-slate-400">No documents uploaded.</td>
+                      </tr>
+                    ) : (
+                      employee.documents.map(doc => (
+                        <tr key={doc.id} className="hover:bg-slate-50/50">
+                          <td className="py-2.5 px-3 font-semibold text-slate-800">{doc.category}</td>
+                          <td className="py-2.5 px-3 font-mono font-medium text-brand-600">{doc.documentName}</td>
+                          <td className="py-2.5 px-3 text-slate-500 font-mono">{doc.uploadDate}</td>
+                          <td className="py-2.5 px-3">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              doc.verificationStatus === 'Verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {doc.verificationStatus}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600">{doc.verifiedBy || 'Pending'}</td>
+                          <td className="py-2.5 px-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => showToast(`Previewing verified document: ${doc.documentName}`)}
+                                className="text-xs font-semibold text-brand-600 hover:underline"
+                              >
+                                Preview
+                              </button>
+                              {doc.verificationStatus !== 'Verified' && (
+                                <button
+                                  onClick={() => handleVerifyDocument(doc.id)}
+                                  className="rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-700"
+                                >
+                                  Verify
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* TAB 12: CAREER & OKRs */}
+      {/* TAB 13: PERFORMANCE & CAREER */}
       {activeTab === 'performance' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-3">
@@ -1120,7 +1209,7 @@ export function Employee360Profile({ employeeId, onBack }) {
         </div>
       )}
 
-      {/* TAB 13: ACTIVITY TIMELINE */}
+      {/* TAB 14: ACTIVITY TIMELINE */}
       {activeTab === 'timeline' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
           <div className="border-b border-slate-100 pb-3">

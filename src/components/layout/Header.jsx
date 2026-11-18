@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { HrGlobalEmployeeSearch } from '../hr/HrGlobalEmployeeSearch';
 
 export function Header({ toggleMobileSidebar }) {
   const { 
@@ -35,6 +36,8 @@ export function Header({ toggleMobileSidebar }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationsMenu, setShowNotificationsMenu] = useState(false);
   const [showUserSwitcher, setShowUserSwitcher] = useState(false);
+
+  const isHrPortal = location.pathname.startsWith('/hr') || currentPortal === 'HR';
 
   // Unread notifications
   const unreadNotifications = storeData.notifications.filter(n => !n.read);
@@ -80,90 +83,122 @@ export function Header({ toggleMobileSidebar }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-3 md:px-6 backdrop-blur">
-      {/* Left: Mobile hamburger & branding */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={toggleMobileSidebar}
-          className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
-          aria-label="Open navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-900 to-brand-600 font-bold text-white shadow-sm shadow-brand-500/30">
-            PE
-          </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-tight text-slate-900 sm:text-base leading-none">
-              Prashanth Enterprises
-            </h1>
-            <p className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5 mt-1">
-              <span>Enterprise HRMS</span>
-              <span className="hidden sm:inline-block h-1 w-1 rounded-full bg-slate-300"></span>
-              <span className="hidden sm:inline-flex items-center gap-1 text-emerald-600 font-medium">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Matrix Intranet Synced
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Middle: 3-PORTAL TOP NAVIGATION (EMPLOYEE | HR | GLOBAL ADMIN) */}
-      <div className="hidden lg:flex items-center rounded-2xl bg-slate-100/90 p-1 border border-slate-200 shadow-2xs">
-        <button
-          onClick={() => handlePortalSwitch('EMPLOYEE')}
-          className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
-            currentPortal === 'EMPLOYEE'
-              ? 'bg-white text-brand-700 shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Layers className="h-3.5 w-3.5" />
-          <span>EMPLOYEE</span>
-        </button>
-
-        <button
-          onClick={() => handlePortalSwitch('HR')}
-          className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
-            currentPortal === 'HR'
-              ? 'bg-white text-brand-700 shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <UserCheck className="h-3.5 w-3.5" />
-          <span>HR ADMIN</span>
-        </button>
-
-        <button
-          onClick={() => handlePortalSwitch('GLOBAL_ADMIN')}
-          className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
-            currentPortal === 'GLOBAL_ADMIN'
-              ? 'bg-white text-purple-700 shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <ShieldCheck className="h-3.5 w-3.5" />
-          <span>GLOBAL ADMIN</span>
-        </button>
-      </div>
-
-      {/* Right Actions */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Mobile Portal Selector */}
-        <div className="lg:hidden">
-          <select
-            value={currentPortal}
-            onChange={(e) => handlePortalSwitch(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-slate-50 py-1 px-2 text-[11px] font-bold text-slate-800"
+    <header className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/95 backdrop-blur transition-all">
+      <div className="flex h-16 w-full items-center justify-between px-3 md:px-6">
+        {/* Left: Mobile hamburger & branding */}
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={toggleMobileSidebar}
+            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
+            aria-label="Open navigation menu"
           >
-            <option value="EMPLOYEE">Employee</option>
-            <option value="HR">HR Admin</option>
-            <option value="GLOBAL_ADMIN">Global Admin</option>
-          </select>
+            <Menu className="h-5 w-5" />
+          </button>
+
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-900 to-brand-600 font-bold text-white shadow-sm shadow-brand-500/30 shrink-0">
+              PE
+            </div>
+            <div>
+              <h1 className="text-sm font-bold tracking-tight text-slate-900 sm:text-base leading-none">
+                Prashanth Enterprises
+              </h1>
+              <p className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5 mt-1">
+                <span>Enterprise HRMS</span>
+                <span className="hidden sm:inline-block h-1 w-1 rounded-full bg-slate-300"></span>
+                <span className="hidden sm:inline-flex items-center gap-1 text-emerald-600 font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Matrix Intranet Synced
+                </span>
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* HR TOP HEADER – SMART EMPLOYEE SEARCH (Prominent in HR Portal Header) */}
+        {isHrPortal ? (
+          <div className="hidden md:flex flex-1 max-w-md lg:max-w-xl mx-3 lg:mx-6">
+            <HrGlobalEmployeeSearch />
+          </div>
+        ) : (
+          /* Middle: 3-PORTAL TOP NAVIGATION (EMPLOYEE | HR | GLOBAL ADMIN) (Employee Portal) */
+          <div className="hidden lg:flex items-center rounded-2xl bg-slate-100/90 p-1 border border-slate-200 shadow-2xs">
+            <button
+              onClick={() => handlePortalSwitch('EMPLOYEE')}
+              className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+                currentPortal === 'EMPLOYEE'
+                  ? 'bg-white text-brand-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              <span>EMPLOYEE</span>
+            </button>
+
+            <button
+              onClick={() => handlePortalSwitch('HR')}
+              className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+                currentPortal === 'HR'
+                  ? 'bg-white text-brand-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <UserCheck className="h-3.5 w-3.5" />
+              <span>HR ADMIN</span>
+            </button>
+
+            <button
+              onClick={() => handlePortalSwitch('GLOBAL_ADMIN')}
+              className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+                currentPortal === 'GLOBAL_ADMIN'
+                  ? 'bg-white text-purple-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>GLOBAL ADMIN</span>
+            </button>
+          </div>
+        )}
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Quick Portal Switcher in HR Portal (Desktop) */}
+          {isHrPortal && (
+            <div className="hidden xl:flex items-center rounded-xl bg-slate-100 p-0.5 border border-slate-200">
+              <button
+                onClick={() => handlePortalSwitch('EMPLOYEE')}
+                className="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition rounded-lg"
+              >
+                Employee
+              </button>
+              <button
+                onClick={() => handlePortalSwitch('HR')}
+                className="px-2.5 py-1 text-[11px] font-bold bg-white text-brand-700 rounded-lg shadow-2xs"
+              >
+                HR Admin
+              </button>
+              <button
+                onClick={() => handlePortalSwitch('GLOBAL_ADMIN')}
+                className="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition rounded-lg"
+              >
+                Admin
+              </button>
+            </div>
+          )}
+
+          {/* Mobile Portal Selector */}
+          <div className="lg:hidden">
+            <select
+              value={currentPortal}
+              onChange={(e) => handlePortalSwitch(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-slate-50 py-1 px-2 text-[11px] font-bold text-slate-800"
+            >
+              <option value="EMPLOYEE">Employee</option>
+              <option value="HR">HR Admin</option>
+              <option value="GLOBAL_ADMIN">Global Admin</option>
+            </select>
+          </div>
 
         {/* Quick Punch Button */}
         <button
@@ -263,10 +298,12 @@ export function Header({ toggleMobileSidebar }) {
                 </p>
                 <div className="space-y-1">
                   {[
-                    { id: 'PE000', name: 'Prashanth Reddy', role: 'Global Admin' },
-                    { id: 'PE001', name: 'Ravi Kumar', role: 'Employee' },
-                    { id: 'PE002', name: 'Pooja Hegde', role: 'Central HR' },
-                    { id: 'PE010', name: 'Sneha Kulkarni', role: 'Finance' }
+                    { id: 'PE000', name: 'Prashanth Reddy', role: 'Global Admin (All Hubs)' },
+                    { id: 'PE002', name: 'Pooja Hegde', role: 'Central HR (All Hubs)' },
+                    { id: 'PE006', name: 'Rohan Patel', role: 'Branch HR (Chennai Only)' },
+                    { id: 'PE008', name: 'Siddharth Verma', role: 'Branch HR (Mumbai Only)' },
+                    { id: 'PE001', name: 'Ravi Kumar', role: 'Employee (Hyderabad)' },
+                    { id: 'PE010', name: 'Sneha Kulkarni', role: 'Finance (Mumbai)' }
                   ].map(persona => (
                     <button
                       key={persona.id}
@@ -297,7 +334,15 @@ export function Header({ toggleMobileSidebar }) {
           )}
         </div>
       </div>
-    </header>
+    </div>
+
+    {/* HR Global Employee Search: Mobile Header Bar (fits available width) */}
+    {isHrPortal && (
+      <div className="md:hidden px-3 pb-2.5 pt-1 border-t border-slate-100 bg-white/95">
+        <HrGlobalEmployeeSearch isMobile={true} />
+      </div>
+    )}
+  </header>
   );
 }
 

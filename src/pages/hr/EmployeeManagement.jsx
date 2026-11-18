@@ -21,10 +21,12 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Employee360Profile } from './Employee360Profile';
 
 export function EmployeeManagement() {
   const { storeData, hrmStore, currentUser, permissions } = useAuth();
+  const navigate = useNavigate();
   
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,7 +245,7 @@ export function EmployeeManagement() {
                       <div
                         key={emp.id}
                         onMouseDown={() => {
-                          setSelectedEmployeeId(emp.id);
+                          navigate(`/hr/employees/${emp.id}/profile`);
                           setIsSearchFocused(false);
                         }}
                         className="flex items-center justify-between p-2 rounded-lg hover:bg-brand-50 cursor-pointer transition group"
@@ -345,7 +347,7 @@ export function EmployeeManagement() {
                   {/* Employee Identity - Click opens complete 360 Profile */}
                   <td className="py-3 px-4">
                     <div 
-                      onClick={() => setSelectedEmployeeId(emp.id)}
+                      onClick={() => navigate(`/hr/employees/${emp.id}/profile`)}
                       className="flex items-center gap-3 cursor-pointer group"
                       title={`Open ${emp.name}'s complete 360° Profile`}
                     >
@@ -414,7 +416,7 @@ export function EmployeeManagement() {
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <button
-                        onClick={() => setSelectedEmployeeId(emp.id)}
+                        onClick={() => navigate(`/hr/employees/${emp.id}/profile`)}
                         className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-brand-50 text-brand-700 hover:bg-brand-100 font-semibold text-xs transition"
                         title={`Open ${emp.name}'s complete 360° Profile`}
                       >

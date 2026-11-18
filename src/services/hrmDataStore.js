@@ -695,12 +695,15 @@ class HrmDataEngine {
 
   normalizeEmployee360(emp) {
     if (!emp) return emp;
+    if (!emp.companyId) {
+      emp.companyId = 'PRASHANTH_ENTERPRISES';
+    }
     if (!emp.personal) {
       emp.personal = {
         fullName: emp.name,
         dob: "1994-08-24",
         gender: "Male",
-        personalEmail: emp.email ? emp.email.replace('@prashanthenterprises.in', '.personal@gmail.com') : 'personal@gmail.com',
+        personalEmail: emp.personalEmail || (emp.email ? emp.email.replace('@prashanthenterprises.in', '.dev@gmail.com') : 'personal@gmail.com'),
         officialEmail: emp.email,
         mobile: emp.phone || '+91 98480 11221',
         emergencyContact: {
@@ -714,6 +717,16 @@ class HrmDataEngine {
         bloodGroup: "O+ve",
         profilePhoto: emp.avatar
       };
+    } else {
+      if (!emp.personal.personalEmail) {
+        emp.personal.personalEmail = emp.personalEmail || (emp.email ? emp.email.replace('@prashanthenterprises.in', '.dev@gmail.com') : 'personal@gmail.com');
+      }
+      if (!emp.personal.officialEmail) {
+        emp.personal.officialEmail = emp.email;
+      }
+      if (!emp.personal.mobile) {
+        emp.personal.mobile = emp.phone;
+      }
     }
     if (!emp.employment) {
       emp.employment = {
@@ -908,13 +921,15 @@ class HrmDataEngine {
 
   loadData() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.employees && Array.isArray(parsed.employees)) {
-          parsed.employees = parsed.employees.map(e => this.normalizeEmployee360(e));
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.employees && Array.isArray(parsed.employees)) {
+            parsed.employees = parsed.employees.map(e => this.normalizeEmployee360(e));
+          }
+          return parsed;
         }
-        return parsed;
       }
     } catch (e) {
       console.warn('Could not read from localStorage, using seed data:', e);
@@ -926,7 +941,9 @@ class HrmDataEngine {
 
   saveData() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      }
     } catch (e) {
       console.error('Failed to persist to localStorage:', e);
     }

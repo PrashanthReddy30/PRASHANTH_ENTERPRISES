@@ -16,6 +16,7 @@ import MyFinances from './pages/MyFinances';
 // HR Admin Modules
 import HrDashboard from './pages/hr/HrDashboard';
 import EmployeeManagement from './pages/hr/EmployeeManagement';
+import EmployeeProfilePage from './pages/hr/EmployeeProfilePage';
 import AttendanceManagement from './pages/hr/AttendanceManagement';
 import LeaveManagement from './pages/hr/LeaveManagement';
 import PayrollManagement from './pages/hr/PayrollManagement';
@@ -53,6 +54,7 @@ export function App() {
               <Route index element={<Navigate to="/hr/dashboard" replace />} />
               <Route path="dashboard" element={<HrDashboard />} />
               <Route path="employees" element={<EmployeeManagement />} />
+              <Route path="employees/:employeeId/profile" element={<EmployeeProfilePage />} />
               <Route path="attendance" element={<AttendanceManagement />} />
               <Route path="leaves" element={<LeaveManagement />} />
               <Route path="payroll" element={<PayrollManagement />} />
