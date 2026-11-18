@@ -954,7 +954,7 @@ class HrmDataEngine {
     return fresh;
   }
 
-  saveData() {
+  saveDataLocallyOnly() {
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
@@ -962,7 +962,155 @@ class HrmDataEngine {
     } catch (e) {
       console.error('Failed to persist to localStorage:', e);
     }
+  }
+
+  saveData() {
+    this.saveDataLocallyOnly();
     this.notifySubscribers();
+  }
+
+  async syncDocToFirebase(collectionName, docId, data) {
+    if (!isFirebaseConfigured() || !db) return;
+    try {
+      const cleanData = JSON.parse(JSON.stringify(data));
+      await setDoc(doc(db, collectionName, String(docId)), cleanData, { merge: true });
+      this.firebaseSyncStatus.connected = true;
+      this.firebaseSyncStatus.lastSync = new Date().toISOString();
+      this.firebaseSyncStatus.error = null;
+    } catch (err) {
+      console.warn(`[Firebase Live Sync] Failed to sync ${collectionName}/${docId}:`, err);
+      this.firebaseSyncStatus.error = err.message;
+    }
+  }
+
+  initRealtimeFirebaseSync() {
+    if (typeof window === 'undefined') return;
+    if (!isFirebaseConfigured() || !db) {
+      console.info('[Firebase Live Sync] Firebase not configured; running in local storage mode.');
+      return;
+    }
+
+    try {
+      // 1. Real-time Employees Collection Listener
+      const unsubEmployees = onSnapshot(collection(db, 'employees'), async (snapshot) => {
+        try {
+          this.firebaseSyncStatus.connected = true;
+          this.firebaseSyncStatus.lastSync = new Date().toISOString();
+
+          const remoteEmployees = [];
+          snapshot.forEach((d) => {
+            const empData = d.data();
+            if (empData && (empData.id || empData.employeeId)) {
+              remoteEmployees.push(this.normalizeEmployee360(empData));
+            }
+          });
+
+          // Check if local storage has any employees not yet in Firestore (e.g. newly created members)
+          const remoteIdSet = new Set(remoteEmployees.map(e => e.id));
+          const localOnly = this.data.employees.filter(e => e && e.id && !remoteIdSet.has(e.id));
+
+          if (localOnly.length > 0) {
+            console.info(`[Firebase Live Sync] Auto-pushing ${localOnly.length} local employee(s) to live Firestore:`, localOnly.map(e => `${e.name} (${e.id})`));
+            for (const localEmp of localOnly) {
+              const clean = JSON.parse(JSON.stringify(this.normalizeEmployee360(localEmp)));
+              await setDoc(doc(db, 'employees', localEmp.id), clean, { merge: true });
+              if (this.data.leaveLedger && this.data.leaveLedger[localEmp.id]) {
+                await setDoc(doc(db, 'leave_ledger', localEmp.id), JSON.parse(JSON.stringify(this.data.leaveLedger[localEmp.id])), { merge: true });
+              }
+              remoteEmployees.push(clean);
+            }
+          }
+
+          if (remoteEmployees.length > 0) {
+            remoteEmployees.sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+            this.data.employees = remoteEmployees;
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing employees snapshot:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Employees snapshot error:', err);
+        this.firebaseSyncStatus.connected = false;
+        this.firebaseSyncStatus.error = err.message;
+      });
+      this.syncListeners.push(unsubEmployees);
+
+      // 2. Real-time Leave Requests Listener
+      const unsubLeaves = onSnapshot(collection(db, 'leave_requests'), (snapshot) => {
+        try {
+          const remoteLeaves = [];
+          snapshot.forEach(d => remoteLeaves.push(d.data()));
+          if (remoteLeaves.length > 0) {
+            this.data.leaveRequests = remoteLeaves;
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing leave requests snapshot:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Leave requests listener error:', err);
+      });
+      this.syncListeners.push(unsubLeaves);
+
+      // 3. Real-time Attendance Listener
+      const unsubAttendance = onSnapshot(collection(db, 'attendance'), (snapshot) => {
+        try {
+          const remoteAtt = [];
+          snapshot.forEach(d => remoteAtt.push(d.data()));
+          if (remoteAtt.length > 0) {
+            const attMap = new Map(this.data.attendance.map(a => [a.id, a]));
+            remoteAtt.forEach(a => attMap.set(a.id, a));
+            this.data.attendance = Array.from(attMap.values());
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing attendance snapshot:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Attendance listener error:', err);
+      });
+      this.syncListeners.push(unsubAttendance);
+
+      // 4. Real-time Leave Ledger Listener
+      const unsubLedger = onSnapshot(collection(db, 'leave_ledger'), (snapshot) => {
+        try {
+          snapshot.forEach(d => {
+            if (!this.data.leaveLedger) this.data.leaveLedger = {};
+            this.data.leaveLedger[d.id] = d.data();
+          });
+          this.saveDataLocallyOnly();
+          this.notifySubscribers();
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing leave ledger snapshot:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Leave ledger listener error:', err);
+      });
+      this.syncListeners.push(unsubLedger);
+
+      // 5. Real-time System Config Listener
+      const unsubConfig = onSnapshot(doc(db, 'system_config', 'corporate'), (snapshot) => {
+        try {
+          if (snapshot.exists()) {
+            this.data.systemConfig = { ...this.data.systemConfig, ...snapshot.data() };
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing system config snapshot:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] System config listener error:', err);
+      });
+      this.syncListeners.push(unsubConfig);
+
+    } catch (error) {
+      console.warn('[Firebase Live Sync] Initialization warning:', error);
+    }
   }
 
   subscribe(callback) {
