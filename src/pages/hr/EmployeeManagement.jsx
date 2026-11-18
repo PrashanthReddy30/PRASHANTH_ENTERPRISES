@@ -179,11 +179,15 @@ export function EmployeeManagement() {
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="rounded-md bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700 uppercase">
                 Workforce Master
               </span>
               <span className="text-xs text-slate-500">• {filteredEmployees.length} Records</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Live Firebase Synced
+              </span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 mt-1">Employee Directory & Lifecycle</h1>
             <p className="text-xs text-slate-500 mt-0.5">
