@@ -13,17 +13,64 @@ import {
   Bell, 
   FileText,
   Search,
-  Filter
+  Filter,
+  Cloud,
+  Database,
+  RefreshCw,
+  AlertTriangle,
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { seedLiveFirebase, checkFirestoreConnection } from '../../services/firebaseSeeder';
+import { firebaseConfig } from '../../services/firebaseConfig';
 
 export function HrSettings() {
   const { storeData, hrmStore, currentUser, permissions } = useAuth();
 
-  const [activeTab, setActiveTab] = useState('audit'); // 'audit' | 'roles' | 'system'
+  const [activeTab, setActiveTab] = useState('audit'); // 'audit' | 'roles' | 'system' | 'firebase'
   const [auditSearch, setAuditSearch] = useState('');
   const [configForm, setConfigForm] = useState({ ...storeData.systemConfig });
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Firebase Live Sync States
+  const [syncProgress, setSyncProgress] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
+  const [copiedRules, setCopiedRules] = useState(false);
+
+  const handleSyncToFirebase = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    setSyncProgress({ message: 'Connecting to Firebase Firestore...', percent: 5 });
+
+    try {
+      const res = await seedLiveFirebase((p) => setSyncProgress(p));
+      setSyncResult(res);
+      if (res.success) {
+        showToast(res.message);
+      }
+    } catch (err) {
+      setSyncResult({ success: false, error: err.message });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleCopyRules = () => {
+    const rulesText = `rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`;
+    navigator.clipboard.writeText(rulesText);
+    setCopiedRules(true);
+    setTimeout(() => setCopiedRules(false), 2500);
+  };
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -97,6 +144,15 @@ export function HrSettings() {
               }`}
             >
               Configuration
+            </button>
+            <button
+              onClick={() => setActiveTab('firebase')}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                activeTab === 'firebase' ? 'bg-white text-brand-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Database className="h-3.5 w-3.5" />
+              <span>Firebase Cloud Sync</span>
             </button>
           </div>
         </div>
@@ -292,6 +348,177 @@ export function HrSettings() {
             </button>
           </div>
         </form>
+      )}
+
+      {/* Tab 4: Firebase Live Cloud Synchronization & Seeder */}
+      {activeTab === 'firebase' && (
+        <div className="space-y-6">
+          {/* Status HUD Card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600">
+                  <Database className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Live Firebase Cloud Synchronization</h3>
+                  <p className="text-xs text-slate-500">
+                    Project: <span className="font-mono font-bold text-brand-600">{firebaseConfig.projectId}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/firestore`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+                >
+                  <span>Open Firebase Console</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+                </a>
+              </div>
+            </div>
+
+            {/* Sync Summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Employees Master</span>
+                <p className="text-lg font-bold text-slate-900 mt-0.5">{storeData.employees.length} Records</p>
+                <p className="text-[10px] text-slate-500">All 3 Hubs</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Branches</span>
+                <p className="text-lg font-bold text-slate-900 mt-0.5">{storeData.branches.length} Hubs</p>
+                <p className="text-[10px] text-slate-500">HYD, CHE, MUM</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Departments</span>
+                <p className="text-lg font-bold text-slate-900 mt-0.5">{storeData.departments.length} Divisions</p>
+                <p className="text-[10px] text-slate-500">IT, HR, Ops, etc.</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Attendance & Leaves</span>
+                <p className="text-lg font-bold text-slate-900 mt-0.5">{storeData.leaveRequests.length} Requests</p>
+                <p className="text-[10px] text-slate-500">Ledgers & Punches</p>
+              </div>
+            </div>
+
+            {/* Sync Progress Bar */}
+            {syncProgress && (
+              <div className="rounded-xl border border-brand-100 bg-brand-50/50 p-4 space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-brand-900">
+                  <span>{syncProgress.message}</span>
+                  <span>{syncProgress.percent}%</span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-brand-100 overflow-hidden">
+                  <div 
+                    className="h-full bg-brand-600 transition-all duration-300 rounded-full"
+                    style={{ width: `${syncProgress.percent}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+
+            {/* Result Message */}
+            {syncResult && (
+              <div className={`rounded-xl p-4 text-xs font-medium border ${
+                syncResult.success 
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-800' 
+                  : 'border-rose-200 bg-rose-50 text-rose-800'
+              }`}>
+                {syncResult.success ? (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>{syncResult.message}</span>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 font-bold text-rose-900">
+                      <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+                      <span>Firebase Database Initialization Notice</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-rose-700">{syncResult.error}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+              <p className="text-[11px] text-slate-500">
+                Syncs local enterprise employees, branches, and attendance to your cloud Firestore collections.
+              </p>
+              <button
+                type="button"
+                disabled={isSyncing}
+                onClick={handleSyncToFirebase}
+                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-sm transition ${
+                  isSyncing ? 'bg-slate-400 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700'
+                }`}
+              >
+                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'Syncing to Firebase...' : 'Push & Seed All Data to Live Firebase'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Setup Guide Card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <h4 className="text-sm font-bold text-slate-900">
+              First-Time Setup Guide: If Firestore Database is Not Created Yet
+            </h4>
+            <div className="space-y-3 text-xs text-slate-600">
+              <div className="flex items-start gap-2.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold shrink-0 text-[10px]">1</span>
+                <div>
+                  <strong className="text-slate-800">Create the Firestore Database in Firebase Console</strong>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Open <a href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/firestore`} target="_blank" rel="noreferrer" className="text-brand-600 underline font-semibold">Firebase Console &gt; Firestore Database</a>, click <strong>"Create database"</strong>, leave the database ID as <strong>(default)</strong>, choose a server location (e.g., <em>asia-south1</em> or <em>us-central1</em>), select <strong>"Start in test mode"</strong>, and click <strong>Create</strong>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold shrink-0 text-[10px]">2</span>
+                <div className="w-full">
+                  <div className="flex items-center justify-between">
+                    <strong className="text-slate-800">Set Security Rules</strong>
+                    <button
+                      type="button"
+                      onClick={handleCopyRules}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:text-brand-700"
+                    >
+                      {copiedRules ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      <span>{copiedRules ? 'Copied!' : 'Copy Rules'}</span>
+                    </button>
+                  </div>
+                  <pre className="mt-1.5 p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-[10px] overflow-x-auto">
+{`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`}
+                  </pre>
+                  <p className="text-[10px] text-slate-400 mt-1">Paste into Firebase Console &gt; Firestore Database &gt; Rules &gt; Publish.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold shrink-0 text-[10px]">3</span>
+                <div>
+                  <strong className="text-slate-800">Click "Push & Seed All Data to Live Firebase"</strong>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    All employees (Ravi Kumar, Pooja Hegde, Rohan Patel, etc.), branches, departments, and attendance records will be populated in your Firestore collections instantly.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

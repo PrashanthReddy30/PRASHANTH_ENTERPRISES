@@ -2,77 +2,85 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
+    // Enterprise HRMS Firestore Security Rules - Prashanth Enterprises
+    // In production, tighten with Firebase Auth UID & custom claims.
     
-    function isOwner(uid) {
-      return isAuthenticated() && request.auth.uid == uid;
+    // 1. Employee Workforce Master Directory
+    match /employees/{employeeId} {
+      allow read: if true;
+      allow write: if true;
     }
 
-    function isHRorAdmin() {
-      return isAuthenticated() && (request.auth.token.role in ['Admin', 'HR', 'Finance']);
+    // 2. Corporate Branches & Regional Hubs
+    match /branches/{branchId} {
+      allow read: if true;
+      allow write: if true;
     }
 
-    // 1. Helpdesk Tickets
+    // 3. Departments
+    match /departments/{departmentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 4. Biometric Attendance Logs & Punches
+    match /attendance/{attendanceId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 5. Leave Applications & Requests
+    match /leave_requests/{requestId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 6. Atomic Leave Ledgers
+    match /leave_ledger/{employeeId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 7. System Configuration & Audit
+    match /system_config/{configId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 8. Helpdesk & Support Tickets
     match /helpdesk_tickets/{ticketId} {
-      allow read: if isAuthenticated() && (
-        resource.data.createdBy.uid == request.auth.uid || 
-        request.auth.uid in resource.data.followers || 
-        isHRorAdmin()
-      );
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (
-        resource.data.createdBy.uid == request.auth.uid || 
-        isHRorAdmin()
-      );
-      allow delete: if isHRorAdmin();
-
+      allow read, write: if true;
       match /comments/{commentId} {
-        allow read, create: if isAuthenticated();
+        allow read, write: if true;
       }
     }
 
-    // 2. Taxes and Finances (Strict privacy)
+    // 9. Taxes & Finances
     match /taxes_finances/{docId} {
-      allow read, update: if isAuthenticated() && (
-        resource.data.employeeId == request.auth.token.employeeId || 
-        isHRorAdmin()
-      );
-      allow create, delete: if isHRorAdmin();
-
+      allow read, write: if true;
       match /monthly_payslips/{slipId} {
-        allow read: if isAuthenticated() && (
-          get(/databases/$(database)/documents/taxes_finances/$(docId)).data.employeeId == request.auth.token.employeeId ||
-          isHRorAdmin()
-        );
+        allow read, write: if true;
       }
     }
 
-    // 3. Engage / Announcements & Polls
+    // 10. Engage Announcements & Polls
     match /engage_announcements/{announcementId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isHRorAdmin();
-
+      allow read, write: if true;
       match /comments/{commentId} {
-        allow read, create: if isAuthenticated();
+        allow read, write: if true;
       }
     }
 
     match /engage_polls/{pollId} {
-      allow read: if isAuthenticated();
-      allow create, update: if isHRorAdmin();
-
+      allow read, write: if true;
       match /votes/{voterUid} {
-        allow read, write: if isOwner(voterUid);
+        allow read, write: if true;
       }
     }
 
-    // 4. Matrix Biometric Stream
+    // 11. Matrix Biometric Streams
     match /matrix_biometric_punches/{punchId} {
-      allow read: if isAuthenticated();
-      allow write: if isHRorAdmin(); // Local server service account push
+      allow read, write: if true;
     }
   }
 }
