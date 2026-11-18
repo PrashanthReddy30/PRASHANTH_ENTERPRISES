@@ -1262,6 +1262,8 @@ class HrmDataEngine {
     this.logAudit('LEAVE_APPROVED', 'Leave', req.approverName, req.approverId, `Approved request ${req.id} for ${req.employeeName} (${req.totalDays} days ${req.leaveType}).`);
 
     this.saveData();
+    this.syncDocToFirebase('leave_requests', req.id, req);
+    if (ledger) this.syncDocToFirebase('leave_ledger', req.employeeId, ledger);
     return req;
   }
 
@@ -1299,6 +1301,8 @@ class HrmDataEngine {
     this.logAudit('LEAVE_REJECTED', 'Leave', req.approverName, req.approverId, `Rejected request ${req.id} for ${req.employeeName}. Reason: ${req.rejectionReason}. Balance reservation released.`);
 
     this.saveData();
+    this.syncDocToFirebase('leave_requests', req.id, req);
+    if (ledger) this.syncDocToFirebase('leave_ledger', req.employeeId, ledger);
     return req;
   }
 
