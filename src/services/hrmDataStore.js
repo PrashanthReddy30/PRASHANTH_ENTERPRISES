@@ -1331,6 +1331,8 @@ class HrmDataEngine {
     this.logAudit('LEAVE_CANCELLED', 'Leave', userName, userId, `Cancelled leave ${req.id}. Restored ${req.totalDays} days to balance.`);
 
     this.saveData();
+    this.syncDocToFirebase('leave_requests', req.id, req);
+    if (ledger) this.syncDocToFirebase('leave_ledger', req.employeeId, ledger);
     return req;
   }
 
@@ -1375,6 +1377,7 @@ class HrmDataEngine {
 
     this.logAudit('ATTENDANCE_PUNCH', 'Attendance', emp.name, emp.id, `Punch ${direction} at ${timeFormatted} via ${machine || 'Biometric Terminal'}`);
     this.saveData();
+    this.syncDocToFirebase('attendance', att.id, att);
     return att;
   }
 
