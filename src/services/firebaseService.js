@@ -1,8 +1,8 @@
 // Unified Firebase Service for Prashanth Enterprises HRMS
 // Unifies Firestore real-time synchronization, atomic transactions, and offline Intranet replication.
 
-import { firebaseConfig, isFirebaseConfigured, auth, db, storage } from './firebaseConfig';
-import { hrmStore } from './hrmDataStore';
+import { firebaseConfig, isFirebaseConfigured, auth, db, storage, analytics } from './firebaseConfig.js';
+import { hrmStore } from './hrmDataStore.js';
 
 export const isOnlineIntranet = () => navigator.onLine;
 
@@ -12,6 +12,7 @@ export const firebaseService = {
   auth,
   db,
   storage,
+  analytics,
   store: hrmStore,
 
   // Collection Listeners
