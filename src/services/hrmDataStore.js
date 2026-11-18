@@ -2,6 +2,9 @@
 // Real-time synchronized store across Employee, HR Admin, and Global Admin portals.
 // Implements strict atomic leave transactions, multi-branch partitioning, audit logging, and offline persistence.
 
+import { db, isFirebaseConfigured } from './firebaseConfig.js';
+import { collection, doc, setDoc, onSnapshot } from 'firebase/firestore';
+
 const STORAGE_KEY = 'PE_HRMS_UNIFIED_FIRESTORE_DATA_V1';
 
 // Seed Initial Enterprise State
