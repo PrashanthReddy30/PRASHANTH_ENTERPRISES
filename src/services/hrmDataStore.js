@@ -1414,13 +1414,23 @@ class HrmDataEngine {
     const existing = this.data.employees.find(e => e.email.toLowerCase() === employeeData.email.toLowerCase());
     if (existing) throw new Error(`An employee with email ${employeeData.email} already exists.`);
 
-    const count = this.data.employees.length + 1;
-    const newId = `PE${String(count).padStart(3, '0')}`;
-    const newEmpId = `EMP-${new Date().getFullYear()}-${String(count).padStart(3, '0')}`;
+    // Collision-free unique ID generation based on highest existing PE number
+    let maxNum = -1;
+    for (const e of this.data.employees) {
+      const match = (e.id || '').match(/^PE(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    const nextNum = maxNum >= 0 ? maxNum + 1 : this.data.employees.length;
+    const newId = `PE${String(nextNum).padStart(3, '0')}`;
+    const newEmpId = `EMP-${new Date().getFullYear()}-${String(nextNum).padStart(3, '0')}`;
 
     const newEmployee = {
       id: newId,
       employeeId: newEmpId,
+      companyId: 'PRASHANTH_ENTERPRISES',
       name: employeeData.name,
       email: employeeData.email,
       phone: employeeData.phone || '+91 98480 00000',
@@ -1462,12 +1472,20 @@ class HrmDataEngine {
       net: (Number(employeeData.basicSalary || 40000) * 2) - 8000
     };
 
-    this.data.employees.push(newEmployee);
+    // Normalize full 14-section 360 profile
+    const normalizedEmployee = this.normalizeEmployee360(newEmployee);
 
-    this.logAudit('EMPLOYEE_ONBOARDED', 'Employee Master', hrUserName, hrUserId, `Created employee ${newEmployee.name} (${newEmployee.employeeId}) in ${newEmployee.department}, Branch: ${newEmployee.branch}`);
+    this.data.employees.push(normalizedEmployee);
+
+    this.logAudit('EMPLOYEE_ONBOARDED', 'Employee Master', hrUserName, hrUserId, `Created employee ${normalizedEmployee.name} (${normalizedEmployee.employeeId}) in ${normalizedEmployee.department}, Branch: ${normalizedEmployee.branch}`);
 
     this.saveData();
-    return newEmployee;
+
+    // Instant real-time dual write to Firebase Firestore
+    this.syncDocToFirebase('employees', normalizedEmployee.id, normalizedEmployee);
+    this.syncDocToFirebase('leave_ledger', newId, this.data.leaveLedger[newId]);
+
+    return normalizedEmployee;
   }
 
   updateEmployee(id, updates, hrUserId, hrUserName) {
@@ -1475,8 +1493,10 @@ class HrmDataEngine {
     if (!emp) throw new Error('Employee not found.');
 
     Object.assign(emp, updates);
+    this.normalizeEmployee360(emp);
     this.logAudit('EMPLOYEE_UPDATED', 'Employee Master', hrUserName, hrUserId, `Updated profile and assignments for ${emp.name} (${emp.id})`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return emp;
   }
 
@@ -1487,9 +1507,11 @@ class HrmDataEngine {
     emp.personal = { ...emp.personal, ...personalData };
     if (personalData.fullName) emp.name = personalData.fullName;
     if (personalData.mobile) emp.phone = personalData.mobile;
+    if (personalData.officialEmail) emp.email = personalData.officialEmail;
     if (personalData.profilePhoto) emp.avatar = personalData.profilePhoto;
     this.logAudit('EMPLOYEE_PERSONAL_UPDATED', '360 Profile', hrUserName, hrUserId, `Updated personal details for ${emp.name} (${emp.employeeId})`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return emp;
   }
 
@@ -1523,6 +1545,7 @@ class HrmDataEngine {
 
     this.logAudit('EMPLOYEE_EMPLOYMENT_UPDATED', '360 Profile', hrUserName, hrUserId, `Updated employment parameters for ${emp.name} (${emp.employeeId})`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return emp;
   }
 
@@ -1559,6 +1582,7 @@ class HrmDataEngine {
 
     this.logAudit('MANAGER_REASSIGNED', '360 Profile', hrUserName, hrUserId, `Reassigned manager for ${emp.name} from ${previousManager} to ${targetManager.name}`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return emp;
   }
 
@@ -1573,6 +1597,7 @@ class HrmDataEngine {
     emp.education.push(newRecord);
     this.logAudit('EDUCATION_ADDED', '360 Profile', hrUserName, hrUserId, `Added qualification ${newRecord.qualification} for ${emp.name}`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return newRecord;
   }
 
@@ -1587,6 +1612,7 @@ class HrmDataEngine {
     emp.experience.push(newRecord);
     this.logAudit('EXPERIENCE_ADDED', '360 Profile', hrUserName, hrUserId, `Added past employment at ${newRecord.companyName} for ${emp.name}`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return newRecord;
   }
 
@@ -1605,6 +1631,7 @@ class HrmDataEngine {
     emp.documents.push(newDoc);
     this.logAudit('DOCUMENT_UPLOADED', '360 Profile', hrUserName, hrUserId, `Uploaded ${newDoc.category} (${newDoc.documentName}) for ${emp.name}`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return newDoc;
   }
 
@@ -1618,6 +1645,7 @@ class HrmDataEngine {
     doc.verifiedAt = new Date().toISOString();
     this.logAudit('DOCUMENT_VERIFIED', '360 Profile', hrUserName, hrUserId, `Verified document ${doc.documentName} for ${emp.name}`);
     this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
     return doc;
   }
 
