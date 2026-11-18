@@ -1415,6 +1415,7 @@ class HrmDataEngine {
     this.logAudit('ATTENDANCE_CORRECTION', 'Attendance', hrUserName, hrUserId, `Corrected attendance for ${record.employeeName} on ${record.date}. Reason: ${reason}. Prior state: ${previousSnapshot}`);
 
     this.saveData();
+    this.syncDocToFirebase('attendance', record.id, record);
     return record;
   }
 
@@ -1777,6 +1778,7 @@ class HrmDataEngine {
     Object.assign(this.data.systemConfig, newConfig);
     this.logAudit('SETTINGS_UPDATED', 'Configuration', hrUserName, hrUserId, `System configuration parameters updated.`);
     this.saveData();
+    this.syncDocToFirebase('system_config', 'corporate', this.data.systemConfig);
     return this.data.systemConfig;
   }
 }
