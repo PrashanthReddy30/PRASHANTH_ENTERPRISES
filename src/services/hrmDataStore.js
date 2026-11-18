@@ -694,6 +694,18 @@ class HrmDataEngine {
   constructor() {
     this.subscribers = new Set();
     this.data = this.loadData();
+    this.syncListeners = [];
+    this.firebaseSyncStatus = {
+      connected: false,
+      lastSync: null,
+      error: null
+    };
+
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        this.initRealtimeFirebaseSync();
+      }, 300);
+    }
   }
 
   normalizeEmployee360(emp) {
