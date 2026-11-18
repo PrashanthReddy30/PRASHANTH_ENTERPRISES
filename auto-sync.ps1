@@ -1,5 +1,5 @@
 # ============================================================
-# PRASHANTH ENTERPRISES HRM — GitHub Auto-Sync Watcher
+# PRASHANTH ENTERPRISES HRM - GitHub Auto-Sync Watcher
 # Watches for ANY file change and auto commits + pushes
 # ============================================================
 
@@ -23,7 +23,7 @@ Write-Log " Watching: $ProjectPath"
 Write-Log " Remote  : $(git remote get-url origin)"
 Write-Log "=========================================="
 
-# File system watcher — watches src/, firebase/, public/, *.json, *.js, *.jsx, *.css, *.html
+# File system watcher - watches src/, firebase/, public/, *.json, *.js, *.jsx, *.css, *.html
 $watcher                       = New-Object System.IO.FileSystemWatcher
 $watcher.Path                  = $ProjectPath
 $watcher.IncludeSubdirectories = $true
@@ -105,13 +105,13 @@ while ($true) {
                 
                 if ($LASTEXITCODE -eq 0) {
                     Write-Log "SUCCESS pushed to GitHub (origin/$Branch)"
-                    Write-Host "  ✅ Pushed: $commitMsg" -ForegroundColor Green
+                    Write-Host "  [SUCCESS] Pushed: $commitMsg" -ForegroundColor Green
                 } else {
                     Write-Log "ERROR pushing: $pushResult"
-                    Write-Host "  ❌ Push failed: $pushResult" -ForegroundColor Red
+                    Write-Host "  [ERROR] Push failed: $pushResult" -ForegroundColor Red
                 }
             } else {
-                Write-Log "No staged changes found — nothing to commit."
+                Write-Log "No staged changes found - nothing to commit."
             }
 
             Write-Host ""
