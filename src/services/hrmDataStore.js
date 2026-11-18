@@ -1213,6 +1213,8 @@ class HrmDataEngine {
     this.logAudit('LEAVE_APPLICATION_SUBMITTED', 'Leave', emp.name, emp.id, `Submitted ${totalDays} days ${leaveType} from ${fromDate} to ${toDate}. Available balance reserved.`);
 
     this.saveData();
+    this.syncDocToFirebase('leave_requests', newRequest.id, newRequest);
+    this.syncDocToFirebase('leave_ledger', emp.id, ledger);
     return newRequest;
   }
 
