@@ -79,6 +79,7 @@ async function seedFirestore() {
     console.log(`You can view your collections live in Firebase Console at:`);
     console.log(`https://console.firebase.google.com/project/${firebaseConfig.projectId}/firestore`);
     console.log('================================================================\n');
+    process.exit(0);
 
   } catch (error) {
     console.error('\n❌ Firestore Seeding Failed:', error.message);
