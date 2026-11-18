@@ -7,32 +7,80 @@ import {
   CheckCircle2, 
   HelpCircle,
   Menu,
-  ShieldCheck,
-  ChevronDown
+  ShieldCheck, 
+  ChevronDown,
+  UserCheck,
+  Building2,
+  Lock,
+  Layers,
+  Sparkles
 } from 'lucide-react';
-import { currentUser, matrixBiometricStatus } from '../../data/mockData';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-export function Header({ toggleMobileSidebar, pendingCount = 4 }) {
-  const [clockedIn, setClockedIn] = useState(true);
-  const [clockTime, setClockTime] = useState("09:12 AM");
+export function Header({ toggleMobileSidebar }) {
+  const { 
+    currentUser, 
+    switchUser, 
+    currentPortal, 
+    setCurrentPortal, 
+    permissions, 
+    storeData, 
+    hrmStore 
+  } = useAuth();
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotificationsMenu, setShowNotificationsMenu] = useState(false);
+  const [showUserSwitcher, setShowUserSwitcher] = useState(false);
+
+  // Unread notifications
+  const unreadNotifications = storeData.notifications.filter(n => !n.read);
+
+  // Today's attendance for current user
+  const todayStr = new Date().toISOString().split('T')[0];
+  const myAtt = storeData.attendance.find(a => a.employeeId === currentUser.id && a.date === todayStr);
+  const isPunchedIn = myAtt ? myAtt.firstIn && myAtt.firstIn !== '-' && (!myAtt.lastOut || myAtt.lastOut === '-') : false;
 
   const handlePunchToggle = () => {
-    const now = new Date();
-    const formatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (clockedIn) {
-      setClockedIn(false);
-      alert(`Clocked OUT at ${formatted}. Pushed event to Matrix Biometric Reader.`);
-    } else {
-      setClockedIn(true);
-      setClockTime(formatted);
-      alert(`Clocked IN at ${formatted}. Biometric event synced via Intranet.`);
+    try {
+      if (isPunchedIn) {
+        hrmStore.markAttendancePunch({
+          employeeId: currentUser.id,
+          direction: 'OUT',
+          machine: 'Intranet Gate Reader (192.168.1.240)'
+        });
+        alert(`Clocked OUT successfully. Synchronized event with Matrix Intranet.`);
+      } else {
+        hrmStore.markAttendancePunch({
+          employeeId: currentUser.id,
+          direction: 'IN',
+          machine: 'Intranet Gate Reader (192.168.1.240)'
+        });
+        alert(`Clocked IN successfully. Synchronized event with Matrix Intranet.`);
+      }
+    } catch (e) {
+      alert(`Punch sync error: ${e.message}`);
+    }
+  };
+
+  const handlePortalSwitch = (portal) => {
+    const success = setCurrentPortal(portal);
+    if (success) {
+      if (portal === 'EMPLOYEE') {
+        navigate('/home');
+      } else if (portal === 'HR') {
+        navigate('/hr/dashboard');
+      } else if (portal === 'GLOBAL_ADMIN') {
+        navigate('/admin/dashboard');
+      }
     }
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-6">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-3 md:px-6 backdrop-blur">
       {/* Left: Mobile hamburger & branding */}
       <div className="flex items-center gap-3">
         <button
@@ -43,119 +91,207 @@ export function Header({ toggleMobileSidebar, pendingCount = 4 }) {
           <Menu className="h-5 w-5" />
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-900 to-brand-600 font-bold text-white shadow-sm shadow-brand-500/30">
             PE
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-tight text-slate-900 sm:text-base">
+            <h1 className="text-sm font-bold tracking-tight text-slate-900 sm:text-base leading-none">
               Prashanth Enterprises
             </h1>
-            <p className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5">
-              <span>HRM Intranet</span>
+            <p className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5 mt-1">
+              <span>Enterprise HRMS</span>
               <span className="hidden sm:inline-block h-1 w-1 rounded-full bg-slate-300"></span>
               <span className="hidden sm:inline-flex items-center gap-1 text-emerald-600 font-medium">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Matrix Biometric Synced
+                Matrix Intranet Synced
               </span>
             </p>
           </div>
         </div>
       </div>
 
-      {/* Middle: Intranet Search */}
-      <div className="hidden max-w-md flex-1 px-8 lg:block">
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search employees, IT policy-2025, tickets, payslips..."
-            className="w-full rounded-full border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-xs font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100"
-          />
-        </div>
+      {/* Middle: 3-PORTAL TOP NAVIGATION (EMPLOYEE | HR | GLOBAL ADMIN) */}
+      <div className="hidden lg:flex items-center rounded-2xl bg-slate-100/90 p-1 border border-slate-200 shadow-2xs">
+        <button
+          onClick={() => handlePortalSwitch('EMPLOYEE')}
+          className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            currentPortal === 'EMPLOYEE'
+              ? 'bg-white text-brand-700 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Layers className="h-3.5 w-3.5" />
+          <span>EMPLOYEE</span>
+        </button>
+
+        <button
+          onClick={() => handlePortalSwitch('HR')}
+          className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            currentPortal === 'HR'
+              ? 'bg-white text-brand-700 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <UserCheck className="h-3.5 w-3.5" />
+          <span>HR ADMIN</span>
+        </button>
+
+        <button
+          onClick={() => handlePortalSwitch('GLOBAL_ADMIN')}
+          className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+            currentPortal === 'GLOBAL_ADMIN'
+              ? 'bg-white text-purple-700 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <ShieldCheck className="h-3.5 w-3.5" />
+          <span>GLOBAL ADMIN</span>
+        </button>
       </div>
 
       {/* Right Actions */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Intranet Device Pill */}
-        <div className="hidden xl:flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/80 px-2.5 py-1 text-[11px] font-medium text-emerald-800">
-          <Wifi className="h-3 w-3 text-emerald-600" />
-          <span>Intranet Node: 192.168.1.240</span>
+        {/* Mobile Portal Selector */}
+        <div className="lg:hidden">
+          <select
+            value={currentPortal}
+            onChange={(e) => handlePortalSwitch(e.target.value)}
+            className="rounded-lg border border-slate-200 bg-slate-50 py-1 px-2 text-[11px] font-bold text-slate-800"
+          >
+            <option value="EMPLOYEE">Employee</option>
+            <option value="HR">HR Admin</option>
+            <option value="GLOBAL_ADMIN">Global Admin</option>
+          </select>
         </div>
 
         {/* Quick Punch Button */}
         <button
           onClick={handlePunchToggle}
-          className={`group flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
-            clockedIn
+          className={`group flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold shadow-xs transition ${
+            isPunchedIn
               ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
               : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
           }`}
-          title="Click to Clock IN / OUT (Syncs with Matrix Biometric)"
+          title="Clock IN / OUT (Direct Matrix Push Sync)"
         >
-          <Clock className={`h-4 w-4 ${clockedIn ? 'text-emerald-600' : 'text-slate-500'}`} />
+          <Clock className={`h-3.5 w-3.5 ${isPunchedIn ? 'text-emerald-600' : 'text-slate-500'}`} />
           <span className="hidden sm:inline">
-            {clockedIn ? `In since ${clockTime}` : 'Clock IN'}
+            {isPunchedIn ? `In (${myAtt?.firstIn})` : 'Clock IN'}
           </span>
-          <span className={`inline-block h-2 w-2 rounded-full ${clockedIn ? 'bg-emerald-500' : 'bg-amber-400'}`}></span>
+          <span className={`inline-block h-2 w-2 rounded-full ${isPunchedIn ? 'bg-emerald-500' : 'bg-amber-400'}`}></span>
         </button>
 
-        {/* Pending Tasks Bell */}
-        <Link
-          to="/inbox"
-          className="relative rounded-lg p-2 text-slate-600 transition hover:bg-slate-100"
-          title="Inbox & Pending Tasks"
-        >
-          <Bell className="h-5 w-5" />
-          {pendingCount > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white shadow-sm">
-              {pendingCount}
-            </span>
-          )}
-        </Link>
+        {/* Notifications Bell */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNotificationsMenu(!showNotificationsMenu)}
+            className="relative rounded-xl p-2 text-slate-600 transition hover:bg-slate-100"
+            title="System Notifications"
+          >
+            <Bell className="h-5 w-5" />
+            {unreadNotifications.length > 0 && (
+              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white shadow-xs">
+                {unreadNotifications.length}
+              </span>
+            )}
+          </button>
 
-        {/* User Profile */}
+          {/* Notifications Dropdown */}
+          {showNotificationsMenu && (
+            <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl ring-1 ring-black/5 z-50 animate-slide-up">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-1">
+                <p className="text-xs font-bold text-slate-900">Notifications ({unreadNotifications.length})</p>
+                <button
+                  onClick={() => hrmStore.markAllNotificationsRead()}
+                  className="text-[10px] font-semibold text-brand-600 hover:underline"
+                >
+                  Mark all read
+                </button>
+              </div>
+              <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                {storeData.notifications.slice(0, 5).map(n => (
+                  <div key={n.id} className={`p-2 rounded-xl text-xs ${n.read ? 'bg-slate-50 text-slate-600' : 'bg-brand-50/60 text-slate-900 font-semibold border border-brand-100'}`}>
+                    <p className="text-xs">{n.title}</p>
+                    <p className="text-[11px] text-slate-500 font-normal mt-0.5">{n.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Persona Switcher & User Profile Menu */}
         <div className="relative">
           <button 
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 rounded-full border border-slate-200 p-1 pr-2 transition hover:bg-slate-50 focus:outline-none"
+            className="flex items-center gap-2 rounded-full border border-slate-200 p-1 pr-2.5 transition hover:bg-slate-50 focus:outline-none"
           >
             <img
               src={currentUser.avatar}
               alt={currentUser.name}
               className="h-7 w-7 rounded-full object-cover ring-1 ring-slate-200"
             />
-            <span className="hidden text-xs font-semibold text-slate-700 sm:inline-block max-w-[100px] truncate">
-              {currentUser.name.split(' ')[0]}
-            </span>
+            <div className="hidden sm:block text-left">
+              <p className="text-xs font-bold text-slate-800 leading-none truncate max-w-[100px]">
+                {currentUser.name.split(' ')[0]}
+              </p>
+              <p className="text-[10px] font-semibold text-brand-600 leading-none mt-0.5">
+                {currentUser.systemRole}
+              </p>
+            </div>
             <ChevronDown className="h-3 w-3 text-slate-400 hidden sm:block" />
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-black/5 z-50">
-              <div className="border-b border-slate-100 px-3 py-2">
+            <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl ring-1 ring-black/5 z-50 animate-slide-up">
+              <div className="border-b border-slate-100 px-2 py-2">
                 <p className="text-xs font-bold text-slate-900">{currentUser.name}</p>
                 <p className="text-[11px] text-slate-500">{currentUser.role}</p>
-                <p className="text-[10px] text-brand-600 font-mono mt-0.5">{currentUser.biometricId}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.2 text-[10px] font-bold text-brand-700">
+                    {currentUser.systemRole}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">{currentUser.branch}</span>
+                </div>
               </div>
-              <div className="py-1 text-xs text-slate-700">
-                <Link to="/me" onClick={() => setShowProfileMenu(false)} className="block px-3 py-1.5 hover:bg-slate-50 rounded-lg">
-                  My Profile & Attendance
-                </Link>
-                <Link to="/finances" onClick={() => setShowProfileMenu(false)} className="block px-3 py-1.5 hover:bg-slate-50 rounded-lg">
-                  My Payslips & Taxes
-                </Link>
-                <Link to="/helpdesk" onClick={() => setShowProfileMenu(false)} className="block px-3 py-1.5 hover:bg-slate-50 rounded-lg">
-                  Helpdesk Support
-                </Link>
+
+              {/* Quick Persona Switcher for Testing Full Workflows */}
+              <div className="py-2 border-b border-slate-100">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1.5">
+                  Test Role Switcher
+                </p>
+                <div className="space-y-1">
+                  {[
+                    { id: 'PE000', name: 'Prashanth Reddy', role: 'Global Admin' },
+                    { id: 'PE001', name: 'Ravi Kumar', role: 'Employee' },
+                    { id: 'PE002', name: 'Pooja Hegde', role: 'Central HR' },
+                    { id: 'PE010', name: 'Sneha Kulkarni', role: 'Finance' }
+                  ].map(persona => (
+                    <button
+                      key={persona.id}
+                      onClick={() => {
+                        switchUser(persona.id);
+                        setShowProfileMenu(false);
+                      }}
+                      className={`w-full text-left px-2 py-1 rounded-lg text-xs flex items-center justify-between ${
+                        currentUser.id === persona.id ? 'bg-brand-50 text-brand-700 font-bold' : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{persona.name}</span>
+                      <span className="text-[10px] text-slate-400">({persona.role})</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="border-t border-slate-100 pt-1">
-                <button 
-                  onClick={() => { setShowProfileMenu(false); alert("Session locked for safety on Intranet terminal."); }}
-                  className="w-full text-left px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg font-medium"
-                >
-                  Lock Terminal / Logout
-                </button>
+
+              <div className="pt-2 text-xs text-slate-700 space-y-1">
+                <Link to="/me" onClick={() => setShowProfileMenu(false)} className="block px-2 py-1.5 hover:bg-slate-50 rounded-lg">
+                  My Profile & Personal Leave History
+                </Link>
+                <Link to="/finances" onClick={() => setShowProfileMenu(false)} className="block px-2 py-1.5 hover:bg-slate-50 rounded-lg">
+                  My Payslips & Form 16
+                </Link>
               </div>
             </div>
           )}
@@ -164,3 +300,5 @@ export function Header({ toggleMobileSidebar, pendingCount = 4 }) {
     </header>
   );
 }
+
+export default Header;

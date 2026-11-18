@@ -21,6 +21,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { currentUser } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 
 // 1. Personal Tasks for normal employees (Only visible when userRole === 'Employee')
 const initialPersonalTasks = [
@@ -119,11 +120,31 @@ const initialTeamApprovals = [
 ];
 
 export function Inbox() {
-  // Role variable as requested (defaults to 'Employee', can toggle to 'HR' or 'Admin')
-  const [userRole, setUserRole] = useState('Employee');
+  const { currentUser: authUser, storeData, hrmStore } = useAuth();
+  // Role variable as requested (can toggle or reflects logged in user role)
+  const [userRole, setUserRole] = useState(authUser?.systemRole === 'Employee' ? 'Employee' : 'HR');
 
   const [personalTasks, setPersonalTasks] = useState(initialPersonalTasks);
+  
+  // Real dynamic pending approvals from store
+  const storePendingApprovals = (storeData?.leaveRequests || [])
+    .filter(r => r.status === 'Pending')
+    .map(r => ({
+      id: r.id,
+      type: 'Leave Approval',
+      requester: r.employeeName,
+      role: r.department,
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+      details: `${r.totalDays} Days ${r.leaveType} (${r.fromDate} - ${r.toDate}) • Reason: "${r.reason}"`,
+      date: 'Just now',
+      priority: 'High',
+      category: 'Leave',
+      isStoreItem: true,
+      raw: r
+    }));
+
   const [teamApprovals, setTeamApprovals] = useState(initialTeamApprovals);
+  const combinedTeamApprovals = [...storePendingApprovals, ...teamApprovals.filter(a => !storePendingApprovals.some(s => s.id === a.id))];
   
   const [employeeFilter, setEmployeeFilter] = useState('All');
   const [hrFilter, setHrFilter] = useState('All');
@@ -144,15 +165,38 @@ export function Inbox() {
 
   // Actions for HR/Admin Team Approvals
   const handleApproveTeamRequest = (apprId, requester) => {
-    setTeamApprovals(prev => prev.filter(a => a.id !== apprId));
+    const isStore = storePendingApprovals.some(s => s.id === apprId);
+    if (isStore) {
+      try {
+        hrmStore.approveLeaveRequest(apprId, authUser?.id || 'PE002', authUser?.name || 'HR Admin', 'Approved from Inbox approval queue');
+        showToast(`Approved leave request for ${requester}. Synchronized across HR & Admin dashboards.`);
+      } catch (e) {
+        alert(e.message);
+      }
+    } else {
+      setTeamApprovals(prev => prev.filter(a => a.id !== apprId));
+      showToast(`Approved request from ${requester}. Synchronized with Biometric/Payroll engine.`);
+    }
     if (selectedItem?.id === apprId) setSelectedItem(null);
-    showToast(`Approved request from ${requester}. Synchronized with Biometric/Payroll engine.`);
   };
 
   const handleRejectTeamRequest = (apprId, requester) => {
-    setTeamApprovals(prev => prev.filter(a => a.id !== apprId));
+    const isStore = storePendingApprovals.some(s => s.id === apprId);
+    if (isStore) {
+      const reason = prompt(`Enter rejection reason for ${requester}'s leave:`, 'Work constraints');
+      if (reason) {
+        try {
+          hrmStore.rejectLeaveRequest(apprId, authUser?.id || 'PE002', authUser?.name || 'HR Admin', reason);
+          showToast(`Rejected request from ${requester}. Requester notified.`);
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+    } else {
+      setTeamApprovals(prev => prev.filter(a => a.id !== apprId));
+      showToast(`Rejected request from ${requester}. Requester has been notified.`);
+    }
     if (selectedItem?.id === apprId) setSelectedItem(null);
-    showToast(`Rejected request from ${requester}. Requester has been notified.`);
   };
 
   // Role Checks
@@ -165,8 +209,8 @@ export function Inbox() {
     : personalTasks.filter(t => t.category.toLowerCase() === employeeFilter.toLowerCase());
 
   const filteredTeamApprovals = hrFilter === 'All'
-    ? teamApprovals
-    : teamApprovals.filter(a => a.category.toLowerCase() === hrFilter.toLowerCase());
+    ? combinedTeamApprovals
+    : combinedTeamApprovals.filter(a => a.category.toLowerCase() === hrFilter.toLowerCase());
 
   return (
     <div className="space-y-6 animate-fade-in">

@@ -23,6 +23,7 @@ import {
   Check
 } from 'lucide-react';
 import { currentUser, matrixBiometricStatus, leaveBalances } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 
 export const MONTH_NAMES = [
   { short: 'JAN', full: 'January' },
@@ -40,6 +41,9 @@ export const MONTH_NAMES = [
 ];
 
 export function Me() {
+  const { currentUser: authUser, storeData, hrmStore } = useAuth();
+  const activeUser = authUser || currentUser;
+
   const [activeTab, setActiveTab] = useState('attendance');
   const [showDutyModal, setShowDutyModal] = useState(false);
   const [showPartialDayModal, setShowPartialDayModal] = useState(false);
@@ -60,8 +64,11 @@ export function Me() {
   // Form states
   const [dutyReason, setDutyReason] = useState('');
   const [dutyLocation, setDutyLocation] = useState('');
-  const [leaveType, setLeaveType] = useState('Privilege Leave (PL)');
-  const [leaveDays, setLeaveDays] = useState('1');
+  const [leaveType, setLeaveType] = useState('Casual Leave (CL)');
+  const [leaveDays, setLeaveDays] = useState('3');
+  const [leaveFromDate, setLeaveFromDate] = useState('2026-11-20');
+  const [leaveToDate, setLeaveToDate] = useState('2026-11-22');
+  const [leaveReason, setLeaveReason] = useState('Personal Work');
 
   // Time conversion helper for 12h / 24h
   const formatPunchTime = (timeStr, use24Hour) => {
@@ -262,10 +269,54 @@ export function Me() {
     setShowPartialDayModal(false);
   };
 
+  // Dynamic Leave Balances from Shared Store
+  const myLedger = storeData?.leaveLedger[activeUser.id] || storeData?.leaveLedger['PE001'] || {
+    PL: { available: 14.5, opening: 18 },
+    SL: { available: 6.0, opening: 8 },
+    CL: { available: 4.5, opening: 6 },
+    COMP: { available: 2.0, opening: 2 }
+  };
+
+  const dynamicBalances = [
+    { type: "Privilege Leave (PL)", code: 'PL', available: myLedger.PL?.available ?? 14.5, total: 18, color: "text-blue-600 bg-blue-50 border-blue-200" },
+    { type: "Sick Leave (SL)", code: 'SL', available: myLedger.SL?.available ?? 6.0, total: 8, color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
+    { type: "Casual Leave (CL)", code: 'CL', available: myLedger.CL?.available ?? 4.5, total: 6, color: "text-amber-600 bg-amber-50 border-amber-200" },
+    { type: "Compensatory Off", code: 'COMP', available: myLedger.COMP?.available ?? 2.0, total: 2, color: "text-purple-600 bg-purple-50 border-purple-200" }
+  ];
+
+  // My Leave applications history
+  const myLeaveHistory = (storeData?.leaveRequests || []).filter(r => 
+    r.employeeId === activeUser.id || r.employeeId === activeUser.employeeId
+  );
+
   const handleApplyLeave = (e) => {
     e.preventDefault();
-    alert(`Leave application for ${leaveDays} day(s) under ${leaveType} submitted.`);
-    setShowLeaveModal(false);
+    try {
+      let code = 'CL';
+      if (leaveType.includes('Privilege') || leaveType.includes('PL')) code = 'PL';
+      else if (leaveType.includes('Sick') || leaveType.includes('SL')) code = 'SL';
+      else if (leaveType.includes('Comp')) code = 'COMP';
+
+      const appliedDays = Number(leaveDays);
+      const req = hrmStore.submitLeaveRequest({
+        employeeId: activeUser.id,
+        employeeName: activeUser.name,
+        department: activeUser.department,
+        branch: activeUser.branch,
+        branchId: activeUser.branchId || 'HYD',
+        leaveType: leaveType.split(' - ')[0],
+        leaveTypeCode: code,
+        fromDate: leaveFromDate,
+        toDate: leaveToDate,
+        totalDays: appliedDays,
+        reason: leaveReason || 'Personal Work'
+      });
+
+      alert(`Leave application ${req.id} for ${appliedDays} day(s) submitted! Status: Pending Approval. Sent notification to HR & Manager.`);
+      setShowLeaveModal(false);
+    } catch (err) {
+      alert(`Leave Application Blocked: ${err.message}`);
+    }
   };
 
   return (
@@ -863,7 +914,7 @@ export function Me() {
         <div className="space-y-6 animate-fade-in">
           {/* Balance Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            {leaveBalances.map((leave, idx) => (
+            {dynamicBalances.map((leave, idx) => (
               <div key={idx} className={`rounded-2xl border p-4 ${leave.color} bg-white shadow-xs`}>
                 <p className="text-xs font-bold text-slate-700">{leave.type}</p>
                 <div className="mt-2 flex items-baseline gap-2">
@@ -873,7 +924,7 @@ export function Me() {
                 <div className="mt-3 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-brand-600"
-                    style={{ width: `${(leave.available / leave.total) * 100}%` }}
+                    style={{ width: `${Math.min(100, (leave.available / leave.total) * 100)}%` }}
                   />
                 </div>
               </div>
@@ -884,9 +935,9 @@ export function Me() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-900">Apply for Leave</h3>
-              <span className="text-xs text-slate-500">Leave Period: Jan 2026 - Dec 2026</span>
+              <span className="text-xs text-slate-500">Atomic Balance Ledger Active</span>
             </div>
-            <form onSubmit={handleApplyLeave} className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form onSubmit={handleApplyLeave} className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Leave Type</label>
                 <select 
@@ -894,20 +945,27 @@ export function Me() {
                   onChange={(e) => setLeaveType(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium text-slate-800 outline-none focus:border-brand-500"
                 >
-                  <option>Privilege Leave (PL)</option>
-                  <option>Sick Leave (SL)</option>
-                  <option>Casual Leave (CL)</option>
-                  <option>Compensatory Off</option>
+                  <option value="Casual Leave (CL)">Casual Leave (CL)</option>
+                  <option value="Sick Leave (SL)">Sick Leave (SL)</option>
+                  <option value="Privilege Leave (PL)">Privilege Leave (PL)</option>
+                  <option value="Compensatory Off">Compensatory Off</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Number of Days</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">From Date</label>
                 <input
-                  type="number"
-                  min="0.5"
-                  step="0.5"
-                  value={leaveDays}
-                  onChange={(e) => setLeaveDays(e.target.value)}
+                  type="date"
+                  value={leaveFromDate}
+                  onChange={(e) => setLeaveFromDate(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium text-slate-800 outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">To Date</label>
+                <input
+                  type="date"
+                  value={leaveToDate}
+                  onChange={(e) => setLeaveToDate(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium text-slate-800 outline-none focus:border-brand-500"
                 />
               </div>
@@ -915,12 +973,100 @@ export function Me() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Action</label>
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-brand-600 py-2 px-4 text-xs font-bold text-white hover:bg-brand-700 transition"
+                  className="w-full rounded-xl bg-brand-600 py-2 px-4 text-xs font-bold text-white hover:bg-brand-700 transition shadow-sm"
                 >
                   Submit Application
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* My Leave Applications History & Status */}
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+            <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3 flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                My Leave History & Real-Time Approval Status ({myLeaveHistory.length})
+              </h3>
+              <span className="text-xs text-slate-500">Synchronized with HR & Manager Queue</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
+                    <th className="py-2.5 px-4">Request ID</th>
+                    <th className="py-2.5 px-4">Leave Type</th>
+                    <th className="py-2.5 px-4">Duration</th>
+                    <th className="py-2.5 px-4">Days</th>
+                    <th className="py-2.5 px-4">Reason</th>
+                    <th className="py-2.5 px-4">Approval Status</th>
+                    <th className="py-2.5 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {myLeaveHistory.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-6 text-slate-400">
+                        No previous leave records found.
+                      </td>
+                    </tr>
+                  ) : (
+                    myLeaveHistory.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50/50">
+                        <td className="py-2.5 px-4 font-mono font-bold text-brand-600">{item.id}</td>
+                        <td className="py-2.5 px-4 font-semibold text-slate-800">{item.leaveType}</td>
+                        <td className="py-2.5 px-4 text-slate-600">{item.fromDate} to {item.toDate}</td>
+                        <td className="py-2.5 px-4 font-bold">{item.totalDays} day(s)</td>
+                        <td className="py-2.5 px-4 text-slate-500 truncate max-w-[150px]">{item.reason}</td>
+                        <td className="py-2.5 px-4">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            item.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                            item.status === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                            item.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                            'bg-slate-100 text-slate-600'
+                          }`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${
+                              item.status === 'Approved' ? 'bg-emerald-500' :
+                              item.status === 'Pending' ? 'bg-amber-500' :
+                              item.status === 'Rejected' ? 'bg-rose-500' : 'bg-slate-400'
+                            }`}></span>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-4 text-right">
+                          {item.status === 'Pending' && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Withdraw leave application ${item.id}?`)) {
+                                  hrmStore.cancelLeaveRequest(item.id, activeUser.id, activeUser.name, 'Employee withdrew request');
+                                  alert('Leave request cancelled and pending reservation released.');
+                                }
+                              }}
+                              className="text-xs text-rose-600 font-semibold hover:underline"
+                            >
+                              Withdraw
+                            </button>
+                          )}
+                          {item.status === 'Approved' && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Cancel approved leave ${item.id}? This will restore ${item.totalDays} day(s) back to your balance.`)) {
+                                  hrmStore.cancelLeaveRequest(item.id, activeUser.id, activeUser.name, 'Employee cancelled approved leave');
+                                  alert('Leave cancelled and balance restored to ledger.');
+                                }
+                              }}
+                              className="text-xs text-slate-500 hover:text-rose-600 font-semibold"
+                            >
+                              Cancel Leave
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -1151,41 +1297,71 @@ export function Me() {
                 <select 
                   value={leaveType}
                   onChange={(e) => setLeaveType(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium text-slate-800 outline-none"
+                  className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium text-slate-800 outline-none focus:border-brand-500"
                 >
-                  <option>Privilege Leave (PL) - 14.5 days available</option>
-                  <option>Sick Leave (SL) - 6.0 days available</option>
-                  <option>Casual Leave (CL) - 4.5 days available</option>
-                  <option>Compensatory Off - 2.0 days available</option>
+                  <option value="Casual Leave (CL)">Casual Leave (CL) - {myLedger.CL?.available ?? 4.5} days available</option>
+                  <option value="Sick Leave (SL)">Sick Leave (SL) - {myLedger.SL?.available ?? 6.0} days available</option>
+                  <option value="Privilege Leave (PL)">Privilege Leave (PL) - {myLedger.PL?.available ?? 14.5} days available</option>
+                  <option value="Compensatory Off">Compensatory Off - {myLedger.COMP?.available ?? 2.0} days available</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">From Date</label>
-                  <input type="date" defaultValue="2026-11-20" className="w-full rounded-xl border border-slate-300 p-2 text-xs" />
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">From Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={leaveFromDate}
+                    onChange={(e) => setLeaveFromDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium outline-none focus:border-brand-500"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">To Date</label>
-                  <input type="date" defaultValue="2026-11-20" className="w-full rounded-xl border border-slate-300 p-2 text-xs" />
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">To Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={leaveToDate}
+                    onChange={(e) => setLeaveToDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium outline-none focus:border-brand-500"
+                  />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Reason for Leave</label>
-                <textarea rows="2" placeholder="Brief reason for your manager..." className="w-full rounded-xl border border-slate-300 p-2 text-xs" />
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Total Leave Days</label>
+                <input
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  value={leaveDays}
+                  onChange={(e) => setLeaveDays(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Reason for Leave *</label>
+                <textarea
+                  required
+                  rows="2"
+                  value={leaveReason}
+                  onChange={(e) => setLeaveReason(e.target.value)}
+                  placeholder="e.g. Personal Work / Family commitment"
+                  className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium outline-none focus:border-brand-500"
+                />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowLeaveModal(false)}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700"
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700"
+                  className="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm"
                 >
-                  Confirm & Apply
+                  Submit to HR & Manager
                 </button>
               </div>
             </form>

@@ -11,66 +11,81 @@ import {
   Wallet,
   ShieldCheck,
   Cpu,
-  ChevronRight
+  ChevronRight,
+  LayoutDashboard,
+  Calendar,
+  Clock,
+  DollarSign,
+  Briefcase,
+  FileText,
+  Sliders,
+  Activity,
+  Layers,
+  MapPin,
+  CheckSquare
 } from 'lucide-react';
-
-export const navigationItems = [
-  {
-    name: 'Home',
-    path: '/home',
-    icon: Home,
-    description: 'Overview, Open place & Joinees'
-  },
-  {
-    name: 'Me',
-    path: '/me',
-    icon: UserCheck,
-    description: 'Attendance, Leaves & Claims'
-  },
-  {
-    name: 'Inbox',
-    path: '/inbox',
-    icon: Inbox,
-    badge: 4,
-    badgeColor: 'bg-rose-500 text-white',
-    description: 'Pending Tasks & Approvals'
-  },
-  {
-    name: 'My Team',
-    path: '/team',
-    icon: Users,
-    description: 'Manager view & Tracking'
-  },
-  {
-    name: 'Org',
-    path: '/org',
-    icon: Building2,
-    description: 'Directory, Policies & Hiring'
-  },
-  {
-    name: 'Engage',
-    path: '/engage',
-    icon: Megaphone,
-    description: 'Announcements & Polls'
-  },
-  {
-    name: 'Helpdesk',
-    path: '/helpdesk',
-    icon: LifeBuoy,
-    description: 'Ticketing & Support'
-  },
-  {
-    name: 'My Finances',
-    path: '/finances',
-    icon: Wallet,
-    description: 'Salary, Payslips & Taxes'
-  }
-];
+import { useAuth } from '../../context/AuthContext';
 
 export function Sidebar({ collapsed, setCollapsed }) {
+  const { currentPortal, storeData } = useAuth();
+
+  // Pending counts
+  const pendingLeaves = storeData.leaveRequests.filter(r => r.status === 'Pending').length;
+  const pendingCorrections = storeData.attendanceCorrections.filter(c => c.status === 'Pending').length;
+  const totalPending = pendingLeaves + pendingCorrections;
+
+  // 1. Employee Navigation Items (ESS)
+  const employeeNavItems = [
+    { name: 'Home', path: '/home', icon: Home, description: 'Overview & Celebrations' },
+    { name: 'Me', path: '/me', icon: UserCheck, description: 'Attendance, Leaves & Claims' },
+    { name: 'Inbox', path: '/inbox', icon: Inbox, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Pending Tasks' },
+    { name: 'My Team', path: '/team', icon: Users, description: 'Manager Tracking' },
+    { name: 'Org', path: '/org', icon: Building2, description: 'Directory & Policies' },
+    { name: 'Engage', path: '/engage', icon: Megaphone, description: 'Announcements & Polls' },
+    { name: 'Helpdesk', path: '/helpdesk', icon: LifeBuoy, description: 'Ticketing & Support' },
+    { name: 'My Finances', path: '/finances', icon: Wallet, description: 'Salary & Tax Forms' }
+  ];
+
+  // 2. HR Admin Navigation Items
+  const hrNavItems = [
+    { name: 'HR Dashboard', path: '/hr/dashboard', icon: LayoutDashboard, description: 'Command Center' },
+    { name: 'Employees', path: '/hr/employees', icon: Users, description: 'Directory & Lifecycle' },
+    { name: 'Attendance', path: '/hr/attendance', icon: Clock, description: 'Live Biometric Console' },
+    { name: 'Leave Mgmt', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals & Ledger' },
+    { name: 'Payroll', path: '/hr/payroll', icon: DollarSign, description: 'Runs & CTC Master' },
+    { name: 'Recruitment', path: '/hr/recruitment', icon: Briefcase, description: 'Pipeline & Openings' },
+    { name: 'Depts & Hubs', path: '/hr/departments', icon: Building2, description: 'Regional Branches' },
+    { name: 'Approvals', path: '/hr/approvals', icon: CheckSquare, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Queue' },
+    { name: 'Reports', path: '/hr/reports', icon: FileText, description: 'Audit & CSV Export' },
+    { name: 'Settings', path: '/hr/settings', icon: Sliders, description: 'RBAC & Audit Trail' }
+  ];
+
+  // 3. Global Admin Navigation Items
+  const adminNavItems = [
+    { name: 'Control Center', path: '/admin/dashboard', icon: LayoutDashboard, description: 'Executive HUD' },
+    { name: 'Personnel Census', path: '/hr/employees', icon: Users, description: 'All Branches' },
+    { name: 'Attendance Logs', path: '/hr/attendance', icon: Clock, description: 'Multi-Hub Biometric' },
+    { name: 'Leave Governance', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals' },
+    { name: 'Payroll Audit', path: '/hr/payroll', icon: DollarSign, description: 'Financial Overview' },
+    { name: 'Recruitment Pipeline', path: '/hr/recruitment', icon: Briefcase, description: 'Hiring Operations' },
+    { name: 'Hub Infrastructure', path: '/hr/departments', icon: MapPin, description: 'HYD / CHE / MUM' },
+    { name: 'Executive Reports', path: '/hr/reports', icon: FileText, description: '8 Regulatory Reports' },
+    { name: 'System Governance', path: '/hr/settings', icon: ShieldCheck, description: 'Compliance & Audit' }
+  ];
+
+  const currentNavItems = 
+    currentPortal === 'HR' ? hrNavItems : 
+    currentPortal === 'GLOBAL_ADMIN' ? adminNavItems : 
+    employeeNavItems;
+
+  const portalBadge = 
+    currentPortal === 'HR' ? { text: 'HR ADMIN', color: 'bg-brand-500/20 text-brand-300' } :
+    currentPortal === 'GLOBAL_ADMIN' ? { text: 'GLOBAL ADMIN', color: 'bg-purple-500/20 text-purple-300' } :
+    { text: 'EMPLOYEE PORTAL', color: 'bg-emerald-500/20 text-emerald-300' };
+
   return (
     <aside
-      className={`hidden md:flex flex-col border-r border-slate-200 bg-slate-900 text-white transition-all duration-200 ease-in-out ${
+      className={`hidden md:flex flex-col border-r border-slate-800 bg-slate-900 text-white transition-all duration-200 ease-in-out shrink-0 ${
         collapsed ? 'w-20' : 'w-60'
       }`}
     >
@@ -85,9 +100,9 @@ export function Sidebar({ collapsed, setCollapsed }) {
               <h2 className="text-xs font-bold text-white tracking-wide truncate">
                 PRASHANTH
               </h2>
-              <p className="text-[9px] uppercase font-semibold text-brand-400 tracking-wider">
-                Enterprises HRM
-              </p>
+              <span className={`inline-block mt-0.5 rounded px-1.5 py-0.2 text-[9px] uppercase font-bold tracking-wider ${portalBadge.color}`}>
+                {portalBadge.text}
+              </span>
             </div>
           )}
         </div>
@@ -100,103 +115,53 @@ export function Sidebar({ collapsed, setCollapsed }) {
         </button>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 space-y-2 px-2 py-3 overflow-y-auto">
-        <div className="px-1 pb-1 text-[9px] font-bold uppercase tracking-wider text-slate-400 text-center">
-          {collapsed ? 'Modules' : 'Core Modules'}
-        </div>
-
-        {navigationItems.map((item) => {
+      {/* Navigation List */}
+      <nav className="flex-1 space-y-1 p-2.5 overflow-y-auto">
+        {currentNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
-              key={item.path}
+              key={item.path + item.name}
               to={item.path}
               className={({ isActive }) =>
-                collapsed
-                  ? `group relative flex flex-col items-center justify-center rounded-xl py-2 px-1 text-center transition-all ${
-                      isActive
-                        ? 'bg-brand-600 text-white font-semibold shadow-md shadow-brand-600/30'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                    }`
-                  : `group relative flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-all ${
-                      isActive
-                        ? 'bg-brand-600 text-white font-semibold shadow-md shadow-brand-600/30'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    }`
+                `group relative flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                  isActive
+                    ? 'bg-brand-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+                } ${collapsed ? 'justify-center' : ''}`
               }
-              title={item.name}
+              title={collapsed ? item.name : undefined}
             >
-              {({ isActive }) => (
-                collapsed ? (
-                  <>
-                    <div className="relative flex items-center justify-center">
-                      <Icon className={`h-5 w-5 shrink-0 transition-transform duration-150 group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-300 group-hover:text-white'}`} />
-                      {item.badge && (
-                        <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs">
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
-                    <span className={`mt-1 text-[10px] font-medium leading-tight text-center tracking-tight truncate max-w-full px-0.5 ${
-                      isActive ? 'text-white font-semibold' : 'text-slate-300 group-hover:text-white'
-                    }`}>
-                      {item.name}
+              <Icon className="h-4 w-4 shrink-0" />
+              {!collapsed && (
+                <div className="flex-1 flex items-center justify-between truncate">
+                  <span className="truncate">{item.name}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className={`ml-2 rounded-full px-1.5 py-0.2 text-[10px] font-bold ${item.badgeColor}`}>
+                      {item.badge}
                     </span>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2.5 truncate">
-                      <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
-                      <span className="truncate">{item.name}</span>
-                    </div>
-
-                    {item.badge && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${item.badgeColor || 'bg-brand-500 text-white'}`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
-                )
+                  )}
+                </div>
               )}
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Local Intranet & Biometric Status Footer */}
-      {!collapsed ? (
-        <div className="p-3 m-2 rounded-xl bg-slate-800/90 border border-slate-700/60">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
-            <Cpu className="h-4 w-4 text-emerald-400" />
-            <span>Matrix Push Agent</span>
-          </div>
-          <p className="mt-1 text-[10px] text-slate-400 leading-tight">
-            Local Intranet Server Active.
-          </p>
-          <div className="mt-2 flex items-center justify-between text-[10px] text-emerald-400 font-mono">
-            <span>PORT 5173</span>
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          </div>
+      {/* Bottom Intranet Terminal Tag */}
+      <div className="border-t border-slate-800 p-3">
+        <div className={`flex items-center gap-2 rounded-xl bg-slate-800/60 p-2 text-[11px] text-slate-400 ${collapsed ? 'justify-center' : ''}`}>
+          <div className="h-2 w-2 rounded-full bg-emerald-400 shrink-0"></div>
+          {!collapsed && (
+            <div className="truncate">
+              <p className="font-semibold text-slate-300 truncate">192.168.1.240</p>
+              <p className="text-[10px] text-slate-500">Biometric Online</p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="p-2 pb-3 text-center flex flex-col items-center gap-1.5">
-          <div className="relative flex items-center justify-center" title="Matrix Biometric Online">
-            <Cpu className="h-4 w-4 text-emerald-400" />
-            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-          <span className="text-[9px] font-medium text-slate-400">Matrix</span>
-
-          {/* Expand Button */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition"
-            title="Expand sidebar"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
+      </div>
     </aside>
   );
 }
+
+export default Sidebar;
