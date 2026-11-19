@@ -1,23 +1,17 @@
 import React, { useState } from 'react';
 import { 
   Bell, 
-  Search, 
   Clock, 
-  Wifi, 
-  CheckCircle2, 
-  HelpCircle,
   Menu,
   ShieldCheck, 
   ChevronDown,
   UserCheck,
-  Building2,
-  Lock,
-  Layers,
-  Sparkles
+  Layers
 } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { HrGlobalEmployeeSearch } from '../hr/HrGlobalEmployeeSearch';
+import { ProfileDrawer } from '../profile/ProfileDrawer';
 
 export function Header({ toggleMobileSidebar }) {
   const { 
