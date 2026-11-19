@@ -249,11 +249,12 @@ export function Header({ toggleMobileSidebar }) {
           )}
         </div>
 
-        {/* Persona Switcher & User Profile Menu */}
+        {/* ── Keka-style Profile Drawer Trigger ─────────────────── */}
         <div className="relative">
           <button 
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 rounded-full border border-slate-200 p-1 pr-2.5 transition hover:bg-slate-50 focus:outline-none"
+            onClick={() => setShowProfileDrawer(true)}
+            className="flex items-center gap-2 rounded-full border border-slate-200 p-1 pr-2.5 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-300"
+            aria-label="Open profile menu"
           >
             <img
               src={currentUser.avatar}
@@ -270,72 +271,24 @@ export function Header({ toggleMobileSidebar }) {
             </div>
             <ChevronDown className="h-3 w-3 text-slate-400 hidden sm:block" />
           </button>
-
-          {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl ring-1 ring-black/5 z-50 animate-slide-up">
-              <div className="border-b border-slate-100 px-2 py-2">
-                <p className="text-xs font-bold text-slate-900">{currentUser.name}</p>
-                <p className="text-[11px] text-slate-500">{currentUser.role}</p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="rounded bg-brand-50 border border-brand-200 px-1.5 py-0.2 text-[10px] font-bold text-brand-700">
-                    {currentUser.systemRole}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">{currentUser.branch}</span>
-                </div>
-              </div>
-
-              {/* Quick Persona Switcher for Testing Full Workflows */}
-              <div className="py-2 border-b border-slate-100">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1.5">
-                  Test Role Switcher
-                </p>
-                <div className="space-y-1">
-                  {[
-                    { id: 'PE000', name: 'Prashanth Reddy', role: 'Global Admin (All Hubs)' },
-                    { id: 'PE002', name: 'Pooja Hegde', role: 'Central HR (All Hubs)' },
-                    { id: 'PE006', name: 'Rohan Patel', role: 'Branch HR (Chennai Only)' },
-                    { id: 'PE008', name: 'Siddharth Verma', role: 'Branch HR (Mumbai Only)' },
-                    { id: 'PE001', name: 'Ravi Kumar', role: 'Employee (Hyderabad)' },
-                    { id: 'PE010', name: 'Sneha Kulkarni', role: 'Finance (Mumbai)' }
-                  ].map(persona => (
-                    <button
-                      key={persona.id}
-                      onClick={() => {
-                        switchUser(persona.id);
-                        setShowProfileMenu(false);
-                      }}
-                      className={`w-full text-left px-2 py-1 rounded-lg text-xs flex items-center justify-between ${
-                        currentUser.id === persona.id ? 'bg-brand-50 text-brand-700 font-bold' : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>{persona.name}</span>
-                      <span className="text-[10px] text-slate-400">({persona.role})</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2 text-xs text-slate-700 space-y-1">
-                <Link to="/me" onClick={() => setShowProfileMenu(false)} className="block px-2 py-1.5 hover:bg-slate-50 rounded-lg">
-                  My Profile & Personal Leave History
-                </Link>
-                <Link to="/finances" onClick={() => setShowProfileMenu(false)} className="block px-2 py-1.5 hover:bg-slate-50 rounded-lg">
-                  My Payslips & Form 16
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
 
-    {/* HR Global Employee Search: Mobile Header Bar (fits available width) */}
+    {/* HR Global Employee Search: Mobile Header Bar */}
     {isHrPortal && (
       <div className="md:hidden px-3 pb-2.5 pt-1 border-t border-slate-100 bg-white/95">
         <HrGlobalEmployeeSearch isMobile={true} />
       </div>
     )}
   </header>
+
+  {/* Keka-style Profile Side Drawer (renders at root so overlay covers entire screen) */}
+  <ProfileDrawer
+    isOpen={showProfileDrawer}
+    onClose={() => setShowProfileDrawer(false)}
+  />
+  </>
   );
 }
 
