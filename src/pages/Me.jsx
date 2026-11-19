@@ -328,13 +328,6 @@ export function Me() {
     { date: "11 Nov 2026", in: "-", out: "-", hours: "0h", source: "Approved Leave", status: "Sick Leave" },
   ];
 
-  const handleApplyRegularize = (e) => {
-    e.preventDefault();
-    alert(`Regularization request submitted for ${formattedDate} (${regPunchType} at ${regTime}). Sent to reporting manager for approval.`);
-    setShowRegularizeModal(false);
-    setRegReason('');
-  };
-
   const handleApplyDuty = (e) => {
     e.preventDefault();
     alert(`On-Duty (OD) request submitted for: ${dutyLocation} (${dutyReason}). Sent to manager for approval.`);
