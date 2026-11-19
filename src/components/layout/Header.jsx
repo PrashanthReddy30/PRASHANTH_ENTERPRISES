@@ -284,7 +284,7 @@ export function Header({ toggleMobileSidebar }) {
     )}
   </header>
 
-  {/* Keka-style Profile Side Drawer (renders at root so overlay covers entire screen) */}
+  {/* Keka-style Profile Side Drawer */}
   <ProfileDrawer
     isOpen={showProfileDrawer}
     onClose={() => setShowProfileDrawer(false)}
