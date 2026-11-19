@@ -27,9 +27,8 @@ export function Header({ toggleMobileSidebar }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileDrawer, setShowProfileDrawer] = useState(false);
   const [showNotificationsMenu, setShowNotificationsMenu] = useState(false);
-  const [showUserSwitcher, setShowUserSwitcher] = useState(false);
 
   const isHrPortal = location.pathname.startsWith('/hr') || currentPortal === 'HR';
 
