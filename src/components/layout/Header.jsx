@@ -76,6 +76,7 @@ export function Header({ toggleMobileSidebar }) {
   };
 
   return (
+    <>
     <header className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/95 backdrop-blur transition-all">
       <div className="flex h-16 w-full items-center justify-between px-3 md:px-6">
         {/* Left: Mobile hamburger & branding */}
