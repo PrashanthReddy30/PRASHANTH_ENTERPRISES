@@ -475,10 +475,6 @@ export function Me() {
       alert(`Leave Application Failed: ${err.message}`);
     }
   };
-    } catch (err) {
-      alert(`Leave Application Failed: ${err.message}`);
-    }
-  };
 
   // Handle Contact Update
   const handleEditContact = (e) => {
