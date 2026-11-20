@@ -611,6 +611,109 @@ export function Home() {
           </div>
         </div>
       </div>
+
+      {/* ======================================================== */}
+      {/* FULL YEAR HOLIDAY CALENDAR MODAL (VIEW ALL POPUP)       */}
+      {/* ======================================================== */}
+      {showHolidayModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in"
+          onClick={() => setShowHolidayModal(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 bg-gradient-to-r from-amber-50/60 via-white to-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-sm shadow-amber-500/20">
+                  <PartyPopper className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>Annual Holiday Calendar</span>
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-800 border border-amber-200">
+                      2026 – 2027
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Approved Public & Festive Holidays for Prashanth Enterprises
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowHolidayModal(false)}
+                className="h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition active:scale-95"
+                title="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Modal Body: List of Holidays */}
+            <div className="overflow-y-auto p-4 sm:p-5 space-y-2.5 divide-y divide-slate-100">
+              {annualHolidayCalendar.map((h) => (
+                <div
+                  key={h.id}
+                  className={`pt-2.5 first:pt-0 flex items-center justify-between gap-3 p-2.5 rounded-xl transition ${
+                    h.upcoming
+                      ? 'bg-amber-50/70 border border-amber-200/80 shadow-2xs'
+                      : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex flex-col items-center justify-center h-12 w-14 rounded-xl border font-mono shrink-0 ${
+                      h.upcoming
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                    }`}>
+                      <span className="text-[10px] font-bold uppercase leading-none">{h.date.split(' ')[1]}</span>
+                      <span className="text-base font-black leading-tight">{h.date.split(' ')[0]}</span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs sm:text-sm font-bold text-slate-900">{h.name}</span>
+                        {h.upcoming && (
+                          <span className="rounded-full bg-amber-200/90 text-amber-900 px-2 py-0.5 text-[9px] font-extrabold border border-amber-300">
+                            Upcoming
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        {h.day} • <span className="font-medium text-slate-600">{h.type}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg shrink-0 ${
+                    h.upcoming
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {h.upcoming ? 'Mandatory Off' : 'Holiday'}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between border-t border-slate-100 p-4 bg-slate-50 text-xs">
+              <span className="text-slate-500 text-[11px]">
+                Total {annualHolidayCalendar.length} corporate holidays configured across all hubs.
+              </span>
+              <button
+                onClick={() => setShowHolidayModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition active:scale-95"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
