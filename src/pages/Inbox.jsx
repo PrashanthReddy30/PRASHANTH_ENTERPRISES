@@ -598,12 +598,29 @@ export function Inbox() {
               {/* Action Buttons inside Drawer */}
               <div className="pt-2">
                 {isEmployee ? (
-                  <button
-                    onClick={() => handleCompletePersonalTask(selectedItem.id, selectedItem.title)}
-                    className="w-full rounded-xl bg-brand-600 hover:bg-brand-700 py-2.5 text-xs font-bold text-white shadow-xs transition"
-                  >
-                    {selectedItem.actionLabel || "Complete Task"}
-                  </button>
+                  selectedItem.isMyRequest ? (
+                    <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-center text-xs space-y-1">
+                      <p className="font-bold text-slate-800">
+                        Current Status: <span className={
+                          selectedItem.status === 'Approved' ? 'text-emerald-700' :
+                          selectedItem.status === 'Pending' ? 'text-amber-700' : 'text-rose-700'
+                        }>{selectedItem.status}</span>
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        {selectedItem.status === 'Pending' 
+                          ? 'Awaiting reporting manager review.' 
+                          : 'Processed and recorded in corporate attendance & leave ledger.'
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleCompletePersonalTask(selectedItem.id, selectedItem.title)}
+                      className="w-full rounded-xl bg-brand-600 hover:bg-brand-700 py-2.5 text-xs font-bold text-white shadow-xs transition"
+                    >
+                      {selectedItem.actionLabel || "Complete Task"}
+                    </button>
+                  )
                 ) : (
                   <div className="flex gap-2">
                     <button
@@ -625,7 +642,7 @@ export function Inbox() {
           ) : (
             <div className="py-8 text-center text-xs text-slate-400">
               {isEmployee 
-                ? "Select any personal task on the left to review instructions, deadline, and policy notes."
+                ? "Select any personal task or submitted request on the left to review instructions, deadline, and policy notes."
                 : "Select an employee request to preview leave balances, punch records, or travel receipts."
               }
             </div>
