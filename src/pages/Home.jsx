@@ -19,7 +19,10 @@ import {
   Send, 
   UserPlus, 
   MessageSquare, 
-  Smile 
+  Smile,
+  Megaphone,
+  ShieldCheck,
+  FileText
 } from 'lucide-react';
 import { 
   currentUser, 
@@ -28,12 +31,70 @@ import {
   employeeCelebrations as initialCelebrations 
 } from '../data/mockData';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export function Home() {
+  const { currentUser: authUser, storeData, hrmStore } = useAuth();
+  const activeUser = authUser || currentUser;
+
   const [celebrations, setCelebrations] = useState(initialCelebrations);
   const [celebrationFilter, setCelebrationFilter] = useState('all');
   const [activeWishInput, setActiveWishInput] = useState({});
   const [wishSentNotification, setWishSentNotification] = useState(null);
+
+  // Today's attendance calculation
+  const todayStr = new Date().toISOString().split('T')[0];
+  const myAtt = storeData?.attendance?.find(a => a.employeeId === (activeUser.id || activeUser.employeeId) && a.date === todayStr);
+  const [punchOverride, setPunchOverride] = useState(null);
+  const isPunchedIn = punchOverride !== null ? punchOverride : (myAtt ? myAtt.firstIn && myAtt.firstIn !== '-' && (!myAtt.lastOut || myAtt.lastOut === '-') : true);
+
+  const handlePunchToggle = () => {
+    const nextState = !isPunchedIn;
+    setPunchOverride(nextState);
+    try {
+      if (hrmStore && hrmStore.markAttendancePunch) {
+        hrmStore.markAttendancePunch({
+          employeeId: activeUser.id || 'PE000',
+          direction: nextState ? 'IN' : 'OUT',
+          machine: 'Intranet Gate Reader (192.168.1.240)'
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const userLeaves = [
+    { code: 'CL', name: 'Casual Leave', available: '4.5', total: '6', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+    { code: 'SL', name: 'Sick Leave', available: '6.0', total: '8', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    { code: 'PL', name: 'Privilege Leave', available: '14.5', total: '18', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+    { code: 'COMP', name: 'Comp Off', available: '2.0', total: '2', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+  ];
+
+  const nextHoliday = {
+    name: "Guru Nanak Jayanti",
+    date: "25 Nov 2026",
+    day: "Wednesday",
+    type: "Public Holiday",
+    daysLeft: "In 5 days"
+  };
+
+  const announcements = [
+    {
+      id: "ANN-1",
+      badge: "Milestone",
+      badgeColor: "bg-purple-50 text-purple-700 border-purple-200",
+      title: "Prashanth Enterprises Achieves ISO 27001 Certification",
+      date: "Nov 14"
+    },
+    {
+      id: "ANN-2",
+      badge: "HR Notice",
+      badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
+      title: "Diwali Festive Bonus & 2027 Holiday Schedule Released 🪔",
+      date: "Nov 12"
+    }
+  ];
 
   const handleSendWish = (celebrationId, customText) => {
     const textToSend = customText || activeWishInput[celebrationId];
