@@ -210,8 +210,8 @@ export function Home() {
               </div>
             </div>
 
-            {/* List of Celebrations & Wish Cards */}
-            <div className="space-y-4">
+            {/* List of Celebrations & Wish Cards - aligned below '4 Active' badge on desktop */}
+            <div className="space-y-4 sm:ml-[220px]">
               {filteredCelebrations.length === 0 ? (
                 <div className="text-center py-8 text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                   No celebrations found under this category today.
