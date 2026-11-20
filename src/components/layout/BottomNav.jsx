@@ -22,7 +22,7 @@ export function BottomNav() {
     { name: 'Home', path: '/home', icon: Home },
     { name: 'Me', path: '/me', icon: UserCheck },
     { name: 'Inbox', path: '/inbox', icon: Inbox, badge: 4 },
-    { name: 'Finances', path: '/finances', icon: Wallet },
+    { name: 'Finance', path: '/finance', icon: Wallet },
   ];
 
   const moreModules = [
