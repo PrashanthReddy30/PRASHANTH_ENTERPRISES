@@ -120,11 +120,53 @@ const initialTeamApprovals = [
 ];
 
 export function Inbox() {
-  const { currentUser: authUser, storeData, hrmStore } = useAuth();
-  // Role variable as requested (can toggle or reflects logged in user role)
-  const [userRole, setUserRole] = useState(authUser?.systemRole === 'Employee' ? 'Employee' : 'HR');
+  const { currentUser: authUser, storeData, hrmStore, currentPortal } = useAuth();
+
+  // Strictly follow top-header portal mode (EMPLOYEE, HR ADMIN, GLOBAL ADMIN)
+  const isEmployee = currentPortal === 'EMPLOYEE';
+  const isManagerOrAdmin = currentPortal === 'HR' || currentPortal === 'GLOBAL_ADMIN';
 
   const [personalTasks, setPersonalTasks] = useState(initialPersonalTasks);
+
+  // Status updates of the employee's own submitted requests (Leave & Attendance Regularization)
+  const mySubmittedRequests = useMemo(() => {
+    const leaves = (storeData?.leaveRequests || [])
+      .filter(r => r.employeeId === authUser?.id || r.employeeId === authUser?.employeeId || r.employeeName === authUser?.name)
+      .map(r => ({
+        id: r.id,
+        type: `Leave Request (${r.type || r.leaveType || 'Leave'})`,
+        title: `${r.type || r.leaveType || 'Leave'} Application (${r.days || r.totalDays || 1} Days)`,
+        details: `Dates: ${r.startDate || r.fromDate} to ${r.endDate || r.toDate} • Reason: "${r.reason}" • Status: ${r.status}`,
+        deadline: r.appliedOn || 'Submitted Recently',
+        priority: r.status === 'Pending' ? 'High' : 'Normal',
+        category: 'My Requests',
+        status: r.status,
+        isMyRequest: true,
+        actionLabel: r.status === 'Pending' ? 'Pending Approval' : 'View Details'
+      }));
+
+    const corrections = (storeData?.attendanceCorrections || [])
+      .filter(c => c.employeeId === authUser?.id || c.employeeId === authUser?.employeeId)
+      .map(c => ({
+        id: c.id,
+        type: 'Attendance Regularization',
+        title: `Regularization Request (${c.type || 'Missing Punch'})`,
+        details: `Date: ${c.date} • Claimed: ${c.time || c.punchTime || '09:00 AM'} • Status: ${c.status}`,
+        deadline: c.date,
+        priority: c.status === 'Pending' ? 'High' : 'Normal',
+        category: 'My Requests',
+        status: c.status,
+        isMyRequest: true,
+        actionLabel: c.status === 'Pending' ? 'Pending Approval' : 'View Details'
+      }));
+
+    return [...leaves, ...corrections];
+  }, [storeData?.leaveRequests, storeData?.attendanceCorrections, authUser]);
+
+  // Combined personal items for employee
+  const allEmployeeInboxItems = useMemo(() => {
+    return [...personalTasks, ...mySubmittedRequests];
+  }, [personalTasks, mySubmittedRequests]);
   
   // Real dynamic pending approvals from store
   const storePendingApprovals = (storeData?.leaveRequests || [])
