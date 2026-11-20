@@ -315,19 +315,6 @@ export function Inbox() {
                 </button>
               ))
             ) : (
-                <button
-                  key={cat}
-                  onClick={() => setEmployeeFilter(cat)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition shrink-0 ${
-                    employeeFilter === cat
-                      ? 'bg-brand-600 text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))
-            ) : (
               // HR / Admin Filter Chips
               ['All', 'Leave', 'Attendance', 'Finance'].map((cat) => (
                 <button
