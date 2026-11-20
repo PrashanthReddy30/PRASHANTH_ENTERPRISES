@@ -390,6 +390,8 @@ export function Inbox() {
                           <Clock className="h-5 w-5" />
                         ) : task.category === 'Tax & Finance' ? (
                           <DollarSign className="h-5 w-5" />
+                        ) : task.category === 'My Requests' ? (
+                          <FileText className="h-5 w-5" />
                         ) : (
                           <Award className="h-5 w-5" />
                         )}
