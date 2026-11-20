@@ -11,7 +11,7 @@
 // NOTE: Finance & Payroll are strictly separated into the dedicated Employee Side -> Finance menu.
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Clock, 
   Calendar, 
