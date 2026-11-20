@@ -196,9 +196,209 @@ export function Home() {
       </div>
 
       {/* ======================================================== */}
-      {/* SECTION: WISHES & CELEBRATIONS (NEW JOININGS & EMPLOYEES) */}
+      {/* 2-COLUMN RESPONSIVE ENTERPRISE DASHBOARD GRID           */}
       {/* ======================================================== */}
-      <div className="ml-auto w-full lg:w-[62%] rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+        {/* Left Column (lg:col-span-4 — 3 Stacked Containers) */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          {/* Container 1 (Top): Today's Attendance & Shift Summary */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 shadow-2xs">
+                  <Clock className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Today's Attendance</h3>
+                  <p className="text-[11px] text-slate-500">General Shift (09:00 AM – 06:00 PM)</p>
+                </div>
+              </div>
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                isPunchedIn 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                  : 'bg-amber-50 text-amber-700 border-amber-200'
+              }`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${isPunchedIn ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                {isPunchedIn ? 'Punched In' : 'Clocked Out'}
+              </span>
+            </div>
+
+            {/* Attendance Punch Timestamps */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                <span className="block text-[10px] uppercase font-bold text-slate-400">First In</span>
+                <span className="text-xs font-bold text-slate-800">{myAtt?.firstIn && myAtt.firstIn !== '-' ? myAtt.firstIn : '09:12 AM'}</span>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                <span className="block text-[10px] uppercase font-bold text-slate-400">Last Out</span>
+                <span className="text-xs font-bold text-slate-800">{myAtt?.lastOut && myAtt.lastOut !== '-' ? myAtt.lastOut : (isPunchedIn ? '--:--' : '06:15 PM')}</span>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                <span className="block text-[10px] uppercase font-bold text-slate-400">Duration</span>
+                <span className="text-xs font-bold text-emerald-600 font-mono">8h 24m</span>
+              </div>
+            </div>
+
+            {/* Matrix Biometric Reader Status */}
+            <div className="flex items-center justify-between text-[11px] bg-slate-50/80 border border-slate-200/60 rounded-xl px-3 py-2">
+              <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Matrix COSEC Reader</span>
+              </div>
+              <span className="font-mono text-[10px] text-slate-500 font-semibold">192.168.1.240 • Online</span>
+            </div>
+
+            {/* Interactive Clock IN/OUT button */}
+            <button
+              onClick={handlePunchToggle}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs shadow-xs transition active:scale-98 ${
+                isPunchedIn
+                  ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              <span>{isPunchedIn ? 'Clock OUT (End Day)' : 'Clock IN (Start Day)'}</span>
+            </button>
+
+            {/* Link to /me attendance */}
+            <Link
+              to="/me"
+              className="flex items-center justify-between text-[11px] font-semibold text-brand-700 hover:text-brand-800 transition pt-1 border-t border-slate-100"
+            >
+              <span>View Detailed Attendance Log</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          {/* Container 2 (Middle): Leave Balance & Upcoming Holidays */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200/60 shadow-2xs">
+                  <Calendar className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Leave Balance</h3>
+                  <p className="text-[11px] text-slate-500">Available leaves & holiday schedule</p>
+                </div>
+              </div>
+              <Link
+                to="/me"
+                className="text-[11px] font-bold text-brand-700 hover:underline"
+              >
+                Apply Leave
+              </Link>
+            </div>
+
+            {/* Leave Balance Grid */}
+            <div className="grid grid-cols-2 gap-2">
+              {userLeaves.map((l) => (
+                <div
+                  key={l.code}
+                  className={`rounded-xl p-2.5 border ${l.color} shadow-2xs flex items-center justify-between`}
+                >
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-wider opacity-75">{l.code}</span>
+                    <span className="text-[11px] font-medium opacity-90 truncate block max-w-[80px]">{l.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-extrabold">{l.available}</span>
+                    <span className="text-[10px] opacity-60">/{l.total}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Upcoming Holiday Highlight */}
+            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50/90 to-orange-50/50 border border-amber-200/80 rounded-xl">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shrink-0 shadow-xs">
+                <Gift className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1">
+                  <h4 className="text-xs font-bold text-slate-900 truncate">{nextHoliday.name}</h4>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+                    {nextHoliday.daysLeft}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 mt-0.5">
+                  {nextHoliday.day}, {nextHoliday.date} • {nextHoliday.type}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Container 3 (Bottom): Company Announcements / Quick Links */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-200/60 shadow-2xs">
+                  <Megaphone className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Announcements</h3>
+                  <p className="text-[11px] text-slate-500">Corporate notices & quick tools</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Announcements List */}
+            <div className="space-y-2">
+              {announcements.map((ann) => (
+                <div
+                  key={ann.id}
+                  className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition"
+                >
+                  <div className="flex items-center justify-between text-[10px] font-bold mb-1">
+                    <span className={`px-1.5 py-0.5 rounded-md border ${ann.badgeColor}`}>{ann.badge}</span>
+                    <span className="text-slate-400 font-normal">{ann.date}</span>
+                  </div>
+                  <p className="text-xs font-bold text-slate-800 line-clamp-1">{ann.title}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Shortcuts */}
+            <div className="pt-2 border-t border-slate-100">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Quick Shortcuts</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to="/finance"
+                  className="flex items-center gap-2 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition text-xs font-semibold text-slate-700 hover:text-brand-700 shadow-2xs"
+                >
+                  <FileText className="h-3.5 w-3.5 text-brand-600" />
+                  <span>My Payslips</span>
+                </Link>
+                <Link
+                  to="/me"
+                  className="flex items-center gap-2 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition text-xs font-semibold text-slate-700 hover:text-brand-700 shadow-2xs"
+                >
+                  <Calendar className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Leave Desk</span>
+                </Link>
+                <Link
+                  to="/me"
+                  className="flex items-center gap-2 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition text-xs font-semibold text-slate-700 hover:text-brand-700 shadow-2xs"
+                >
+                  <Clock className="h-3.5 w-3.5 text-amber-600" />
+                  <span>Shift Log</span>
+                </Link>
+                <Link
+                  to="/inbox"
+                  className="flex items-center gap-2 p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition text-xs font-semibold text-slate-700 hover:text-brand-700 shadow-2xs"
+                >
+                  <AlertCircle className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>My Inbox</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column (lg:col-span-8 — Wishes & Celebrations) */}
+        <div className="lg:col-span-8">
+          <div className="w-full rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
             {/* Header with celebration category filter */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
               <div className="flex items-center gap-2.5">
