@@ -134,13 +134,10 @@ export function Home() {
         <div className="absolute -right-10 -bottom-10 h-48 w-48 rounded-full bg-brand-500/20 blur-3xl pointer-events-none" />
       </div>
 
-      {/* Centered Wishes & Celebrations Section */}
-      <div className="max-w-4xl mx-auto space-y-6">
-
-        {/* ======================================================== */}
-        {/* SECTION: WISHES & CELEBRATIONS (NEW JOININGS & EMPLOYEES) */}
-        {/* ======================================================== */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+      {/* ======================================================== */}
+      {/* SECTION: WISHES & CELEBRATIONS (NEW JOININGS & EMPLOYEES) */}
+      {/* ======================================================== */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
             {/* Header with celebration category filter */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
@@ -210,8 +207,8 @@ export function Home() {
               </div>
             </div>
 
-            {/* List of Celebrations & Wish Cards - aligned below '4 Active' badge on desktop */}
-            <div className="space-y-4 sm:ml-[220px]">
+            {/* List of Celebrations & Wish Cards */}
+            <div className="space-y-4">
               {filteredCelebrations.length === 0 ? (
                 <div className="text-center py-8 text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                   No celebrations found under this category today.
