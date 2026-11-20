@@ -539,9 +539,8 @@ export function Me() {
     setShowTravelModal(false);
   };
 
-  // THE 7 ORGANIZED CATEGORIES UNDER ME
+  // THE 6 ORGANIZED CATEGORIES UNDER ME
   const TABS = [
-    { id: 'profile', label: 'My Profile', icon: User },
     { id: 'attendance', label: 'Attendance', icon: Clock },
     { id: 'leave', label: 'Leave', icon: Calendar },
     { id: 'performance', label: 'Performance', icon: Award },
@@ -552,9 +551,9 @@ export function Me() {
 
   // Resolve active tab aliases (e.g. legacy links)
   const resolvedTab = 
-    (activeTab === 'personal' || activeTab === 'employment' || activeTab === 'manager' || activeTab === 'documents') ? 'profile' :
     (activeTab === 'leaveApplications' || activeTab === 'leaveBalance') ? 'leave' :
     (activeTab === 'expenses') ? 'travel' :
+    (activeTab === 'profile' || activeTab === 'personal' || activeTab === 'employment' || activeTab === 'manager' || activeTab === 'documents') ? 'attendance' :
     activeTab;
 
   return (
