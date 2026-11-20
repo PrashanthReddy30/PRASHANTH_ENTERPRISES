@@ -37,13 +37,13 @@ export function Sidebar({ collapsed, setCollapsed }) {
   // 1. Employee Navigation Items (ESS)
   const employeeNavItems = [
     { name: 'Home', path: '/home', icon: Home, description: 'Overview & Celebrations' },
-    { name: 'Me', path: '/me', icon: UserCheck, description: 'Attendance, Leaves & Claims' },
+    { name: 'Me', path: '/me', icon: UserCheck, description: 'Profile, Attendance & Leave' },
     { name: 'Inbox', path: '/inbox', icon: Inbox, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Pending Tasks' },
     { name: 'My Team', path: '/team', icon: Users, description: 'Manager Tracking' },
     { name: 'Org', path: '/org', icon: Building2, description: 'Directory & Policies' },
     { name: 'Engage', path: '/engage', icon: Megaphone, description: 'Announcements & Polls' },
     { name: 'Helpdesk', path: '/helpdesk', icon: LifeBuoy, description: 'Ticketing & Support' },
-    { name: 'My Finances', path: '/finances', icon: Wallet, description: 'Salary & Tax Forms' }
+    { name: 'Finance', path: '/finance', icon: Wallet, description: 'Summary, Payslips & Taxes' }
   ];
 
   // 2. HR Admin Navigation Items

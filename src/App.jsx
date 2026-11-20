@@ -11,6 +11,7 @@ import MyTeam from './pages/MyTeam';
 import Org from './pages/Org';
 import Engage from './pages/Engage';
 import Helpdesk from './pages/Helpdesk';
+import Finance from './pages/Finance';
 import MyFinances from './pages/MyFinances';
 
 // HR Admin Modules
@@ -47,7 +48,10 @@ export function App() {
             <Route path="org" element={<Org />} />
             <Route path="engage" element={<Engage />} />
             <Route path="helpdesk" element={<Helpdesk />} />
-            <Route path="finances" element={<MyFinances />} />
+            <Route path="finance" element={<Finance />} />
+            <Route path="finance/:section" element={<Finance />} />
+            <Route path="finance/:section/:subSection" element={<Finance />} />
+            <Route path="finances" element={<Navigate to="/finance" replace />} />
 
             {/* 2. HR Admin Portal */}
             <Route path="hr">
