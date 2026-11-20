@@ -22,7 +22,8 @@ import {
   Smile,
   Megaphone,
   ShieldCheck,
-  FileText
+  FileText,
+  X
 } from 'lucide-react';
 import { 
   currentUser, 
