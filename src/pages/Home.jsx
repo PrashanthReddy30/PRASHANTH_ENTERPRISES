@@ -43,27 +43,37 @@ export function Home() {
   const [activeWishInput, setActiveWishInput] = useState({});
   const [wishSentNotification, setWishSentNotification] = useState(null);
 
-  // Today's attendance calculation
-  const todayStr = new Date().toISOString().split('T')[0];
-  const myAtt = storeData?.attendance?.find(a => a.employeeId === (activeUser.id || activeUser.employeeId) && a.date === todayStr);
-  const [punchOverride, setPunchOverride] = useState(null);
-  const isPunchedIn = punchOverride !== null ? punchOverride : (myAtt ? myAtt.firstIn && myAtt.firstIn !== '-' && (!myAtt.lastOut || myAtt.lastOut === '-') : true);
+  const [showHolidayModal, setShowHolidayModal] = useState(false);
 
-  const handlePunchToggle = () => {
-    const nextState = !isPunchedIn;
-    setPunchOverride(nextState);
-    try {
-      if (hrmStore && hrmStore.markAttendancePunch) {
-        hrmStore.markAttendancePunch({
-          employeeId: activeUser.id || 'PE000',
-          direction: nextState ? 'IN' : 'OUT',
-          machine: 'Intranet Gate Reader (192.168.1.240)'
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
+  const upcomingFestival = {
+    name: "Diwali (Festival of Lights)",
+    badge: "Upcoming Major Festival 🪔",
+    date: "25 Nov 2026",
+    day: "Wednesday",
+    holidayType: "Mandatory Corporate Paid Holiday",
+    note: "Prashanth Enterprises Annual Festive Holiday",
+    daysLeft: "In 5 Days"
   };
+
+  const annualHolidayCalendar = [
+    { id: 1, date: "01 Jan 2026", day: "Thursday", name: "New Year's Day 🎉", type: "National Holiday", past: true },
+    { id: 2, date: "15 Jan 2026", day: "Thursday", name: "Makar Sankranti / Pongal 🌾", type: "Festive Holiday", past: true },
+    { id: 3, date: "26 Jan 2026", day: "Monday", name: "Republic Day 🇮🇳", type: "National Holiday", past: true },
+    { id: 4, date: "16 Feb 2026", day: "Monday", name: "Maha Shivratri 🔱", type: "Festive Holiday", past: true },
+    { id: 5, date: "04 Mar 2026", day: "Wednesday", name: "Holi (Festival of Colors) 🎨", type: "Festive Holiday", past: true },
+    { id: 6, date: "20 Mar 2026", day: "Friday", name: "Ugadi / Gudi Padwa 🌸", type: "Regional Festival", past: true },
+    { id: 7, date: "03 Apr 2026", day: "Friday", name: "Good Friday ✝️", type: "Public Holiday", past: true },
+    { id: 8, date: "21 Apr 2026", day: "Tuesday", name: "Eid-ul-Fitr (Ramzan) 🌙", type: "Public Holiday", past: true },
+    { id: 9, date: "15 Aug 2026", day: "Saturday", name: "Independence Day 🇮🇳", type: "National Holiday", past: true },
+    { id: 10, date: "14 Sep 2026", day: "Monday", name: "Ganesh Chaturthi 🐘", type: "Festive Holiday", past: true },
+    { id: 11, date: "02 Oct 2026", day: "Friday", name: "Mahatma Gandhi Jayanti 🕊️", type: "National Holiday", past: true },
+    { id: 12, date: "20 Oct 2026", day: "Tuesday", name: "Dussehra (Vijayadashami) 🏹", type: "Festive Holiday", past: true },
+    { id: 13, date: "08 Nov 2026", day: "Sunday", name: "Diwali (Deepavali) 🪔", type: "Festival of Lights", past: true },
+    { id: 14, date: "25 Nov 2026", day: "Wednesday", name: "Guru Nanak Jayanti ✨", type: "Public Holiday", upcoming: true },
+    { id: 15, date: "25 Dec 2026", day: "Friday", name: "Christmas Day 🎄", type: "Public Holiday", upcoming: true },
+    { id: 16, date: "01 Jan 2027", day: "Friday", name: "New Year's Day 2027 🎊", type: "Public Holiday", upcoming: true },
+    { id: 17, date: "14 Jan 2027", day: "Thursday", name: "Sankranti / Pongal 2027 🪁", type: "Festive Holiday", upcoming: true }
+  ];
 
   const userLeaves = [
     { code: 'CL', name: 'Casual Leave', available: '4.5', total: '6', color: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -71,14 +81,6 @@ export function Home() {
     { code: 'PL', name: 'Privilege Leave', available: '14.5', total: '18', color: 'bg-blue-50 text-blue-700 border-blue-200' },
     { code: 'COMP', name: 'Comp Off', available: '2.0', total: '2', color: 'bg-purple-50 text-purple-700 border-purple-200' },
   ];
-
-  const nextHoliday = {
-    name: "Guru Nanak Jayanti",
-    date: "25 Nov 2026",
-    day: "Wednesday",
-    type: "Public Holiday",
-    daysLeft: "In 5 days"
-  };
 
   const announcements = [
     {
@@ -94,6 +96,13 @@ export function Home() {
       badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
       title: "Diwali Festive Bonus & 2027 Holiday Schedule Released 🪔",
       date: "Nov 12"
+    },
+    {
+      id: "ANN-3",
+      badge: "Infrastructure",
+      badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      title: "New Matrix Biometric Touchless Terminals Active Across All Hubs",
+      date: "Nov 10"
     }
   ];
 
