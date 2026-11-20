@@ -78,6 +78,8 @@ export function Me() {
   const { currentUser: authUser, storeData, hrmStore } = useAuth();
   const activeUser = authUser || currentUser;
 
+  const location = useLocation();
+
   // 7 Organized Categories under ME (Defaulting to 'attendance' to preserve user's workflow)
   const [activeTab, setActiveTab] = useState('attendance');
 
@@ -91,6 +93,24 @@ export function Me() {
   const [showAddExperienceModal, setShowAddExperienceModal] = useState(false);
   const [showUploadDocModal, setShowUploadDocModal] = useState(false);
   const [showTravelModal, setShowTravelModal] = useState(false);
+
+  // Sync tab & modal from query params or navigation state (e.g. ?tab=leave&apply=true)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const tabParam = params.get('tab') || location.state?.tab;
+      const applyParam = params.get('apply') || location.state?.apply;
+
+      if (tabParam) {
+        setActiveTab(tabParam);
+      }
+      if (applyParam === 'true' || applyParam === true) {
+        setShowLeaveModal(true);
+      }
+    } catch (e) {
+      console.warn('Error reading URL navigation parameters:', e);
+    }
+  }, [location.search, location.state]);
 
   // Form states for self-service edits
   const [editPersonalForm, setEditPersonalForm] = useState({
