@@ -241,14 +241,10 @@ export function Inbox() {
     if (selectedItem?.id === apprId) setSelectedItem(null);
   };
 
-  // Role Checks
-  const isEmployee = userRole === 'Employee';
-  const isManagerOrAdmin = userRole === 'HR' || userRole === 'Admin';
-
   // Filtered Lists
   const filteredPersonalTasks = employeeFilter === 'All'
-    ? personalTasks
-    : personalTasks.filter(t => t.category.toLowerCase() === employeeFilter.toLowerCase());
+    ? allEmployeeInboxItems
+    : allEmployeeInboxItems.filter(t => t.category.toLowerCase() === employeeFilter.toLowerCase());
 
   const filteredTeamApprovals = hrFilter === 'All'
     ? combinedTeamApprovals
@@ -264,7 +260,7 @@ export function Inbox() {
         </div>
       )}
 
-      {/* Top Header Card with Role Switcher & Context */}
+      {/* Top Header Card with Context */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
@@ -277,71 +273,26 @@ export function Inbox() {
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
                 isEmployee 
                   ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                  : userRole === 'HR'
-                  ? 'bg-purple-50 text-purple-700 border-purple-200'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : currentPortal === 'GLOBAL_ADMIN'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-purple-50 text-purple-700 border-purple-200'
               }`}>
-                {userRole} Mode
+                {isEmployee ? 'Employee Mode' : currentPortal === 'GLOBAL_ADMIN' ? 'Global Admin Mode' : 'HR Admin Mode'}
               </span>
             </div>
 
             <p className="text-xs text-slate-500 mt-1">
               {isEmployee 
-                ? "Personal tasks, policy sign-offs, and compliance actions assigned specifically to you."
+                ? "Personal action items, compliance sign-offs, and status updates on your submitted requests."
                 : `Review and decide on pending requests (Leave, OT, and Attendance) submitted by team members.`
               }
             </p>
           </div>
 
-          {/* Interactive Role Switcher Toggle */}
-          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 shrink-0">
-            <span className="text-[11px] font-bold text-slate-500 px-2 uppercase tracking-wider">
-              Role:
-            </span>
-            <button
-              onClick={() => {
-                setUserRole('Employee');
-                setSelectedItem(null);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition ${
-                userRole === 'Employee'
-                  ? 'bg-white text-blue-700 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <User className="h-3.5 w-3.5" />
-              <span>Employee</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setUserRole('HR');
-                setSelectedItem(null);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition ${
-                userRole === 'HR'
-                  ? 'bg-white text-purple-700 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Users className="h-3.5 w-3.5" />
-              <span>HR</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setUserRole('Admin');
-                setSelectedItem(null);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition ${
-                userRole === 'Admin'
-                  ? 'bg-white text-emerald-700 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Shield className="h-3.5 w-3.5" />
-              <span>Admin</span>
-            </button>
+          {/* Active Portal Indicator (Strictly driven by main top-header portal) */}
+          <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 shrink-0">
+            <ShieldCheck className="h-4 w-4 text-brand-600" />
+            <span>Active Portal: <strong className="text-slate-800">{isEmployee ? 'Employee' : currentPortal === 'GLOBAL_ADMIN' ? 'Global Admin' : 'HR Admin'}</strong></span>
           </div>
         </div>
 
@@ -350,7 +301,20 @@ export function Inbox() {
           <div className="flex items-center gap-1.5 overflow-x-auto">
             {isEmployee ? (
               // Employee Filter Chips
-              ['All', 'Policy', 'Attendance', 'Tax & Finance', 'Performance'].map((cat) => (
+              ['All', 'Policy', 'Attendance', 'Tax & Finance', 'Performance', 'My Requests'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setEmployeeFilter(cat)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition shrink-0 ${
+                    employeeFilter === cat
+                      ? 'bg-brand-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))
+            ) : (
                 <button
                   key={cat}
                   onClick={() => setEmployeeFilter(cat)}
