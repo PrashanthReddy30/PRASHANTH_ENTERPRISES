@@ -390,6 +390,8 @@ export function Me() {
            };
   }, [storeData?.leaveLedger, employee.id, employee.employeeId]);
 
+  const myLedger = employeeLedger;
+
   const employeeLeaves = useMemo(() => {
     return (storeData?.leaveRequests || []).filter(r => 
       r.employeeId === employee.id || r.employeeId === employee.employeeId
@@ -445,19 +447,34 @@ export function Me() {
       if (leaveType.includes('Privilege')) code = 'PL';
       if (leaveType.includes('Compensatory')) code = 'COMP';
 
-      hrmStore.createLeaveRequest({
-        employeeId: employee.id,
-        employeeName: employee.name,
-        branchId: employee.branchId || 'HYD',
-        type: code,
-        startDate: leaveFromDate,
-        endDate: leaveToDate,
-        days: parseFloat(leaveDays) || 1,
+      const leavePayload = {
+        employeeId: employee.id || activeUser.id || 'PE001',
+        employeeName: employee.name || activeUser.name || 'Employee',
+        department: employee.department || activeUser.department || 'General',
+        branch: employee.branch || activeUser.branch || 'Hyderabad',
+        branchId: employee.branchId || activeUser.branchId || 'HYD',
+        leaveType: leaveType,
+        leaveTypeCode: code,
+        fromDate: leaveFromDate,
+        toDate: leaveToDate,
+        totalDays: parseFloat(leaveDays) || 1,
         reason: leaveReason || 'Personal Work'
-      }, activeUser.id, activeUser.name);
+      };
+
+      if (hrmStore?.submitLeaveRequest) {
+        hrmStore.submitLeaveRequest(leavePayload);
+      } else if (hrmStore?.createLeaveRequest) {
+        hrmStore.createLeaveRequest(leavePayload, activeUser.id, activeUser.name);
+      } else {
+        throw new Error('Leave submission service is unavailable.');
+      }
 
       alert(`Leave application successfully submitted for ${leaveDays} day(s) of ${leaveType}. Sent to reporting manager for approval.`);
       setShowLeaveModal(false);
+    } catch (err) {
+      alert(`Leave Application Failed: ${err.message}`);
+    }
+  };
     } catch (err) {
       alert(`Leave Application Failed: ${err.message}`);
     }
