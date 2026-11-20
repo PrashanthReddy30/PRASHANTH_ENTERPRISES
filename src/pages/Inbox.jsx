@@ -430,18 +430,37 @@ export function Inbox() {
                       </div>
                     </div>
 
-                    {/* Employee Action Button */}
+                    {/* Employee Action Button or Request Status Badge */}
                     <div className="self-end sm:self-center shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCompletePersonalTask(task.id, task.title);
-                        }}
-                        className="flex items-center gap-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
-                      >
-                        <Check className="h-4 w-4" />
-                        <span>{task.actionLabel}</span>
-                      </button>
+                      {task.isMyRequest ? (
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border ${
+                          task.status === 'Approved'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : task.status === 'Pending'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}>
+                          {task.status === 'Approved' ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                          ) : task.status === 'Pending' ? (
+                            <Clock className="h-3.5 w-3.5 text-amber-600" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5 text-rose-600" />
+                          )}
+                          <span>{task.status}</span>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCompletePersonalTask(task.id, task.title);
+                          }}
+                          className="flex items-center gap-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
+                        >
+                          <Check className="h-4 w-4" />
+                          <span>{task.actionLabel}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
