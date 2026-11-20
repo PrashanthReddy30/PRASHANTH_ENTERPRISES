@@ -2123,10 +2123,10 @@ export function Me() {
                   onChange={(e) => setLeaveType(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 p-2 text-xs font-medium text-slate-800 outline-none focus:border-brand-500"
                 >
-                  <option value="Casual Leave (CL)">Casual Leave (CL) - {myLedger.CL?.available ?? 4.5} days available</option>
-                  <option value="Sick Leave (SL)">Sick Leave (SL) - {myLedger.SL?.available ?? 6.0} days available</option>
-                  <option value="Privilege Leave (PL)">Privilege Leave (PL) - {myLedger.PL?.available ?? 14.5} days available</option>
-                  <option value="Compensatory Off">Compensatory Off - {myLedger.COMP?.available ?? 2.0} days available</option>
+                  <option value="Casual Leave (CL)">Casual Leave (CL) - {employeeLedger?.CL?.available ?? 4.5} days available</option>
+                  <option value="Sick Leave (SL)">Sick Leave (SL) - {employeeLedger?.SL?.available ?? 6.0} days available</option>
+                  <option value="Privilege Leave (PL)">Privilege Leave (PL) - {employeeLedger?.PL?.available ?? 14.5} days available</option>
+                  <option value="Compensatory Off">Compensatory Off - {employeeLedger?.COMP?.available ?? 2.0} days available</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">

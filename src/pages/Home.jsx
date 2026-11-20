@@ -297,7 +297,7 @@ export function Home() {
                 </div>
               </div>
               <Link
-                to="/me"
+                to="/me?tab=leave&apply=true"
                 className="text-[11px] font-bold text-brand-700 hover:underline"
               >
                 Apply Leave
