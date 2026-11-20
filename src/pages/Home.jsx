@@ -137,9 +137,9 @@ export function Home() {
       {/* ======================================================== */}
       {/* SECTION: WISHES & CELEBRATIONS (NEW JOININGS & EMPLOYEES) */}
       {/* ======================================================== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="ml-auto w-full lg:w-[62%] rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
             {/* Header with celebration category filter */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-pink-500 to-amber-500 text-white shadow-sm shadow-pink-500/20">
                   <PartyPopper className="h-4 w-4" />
@@ -160,7 +160,7 @@ export function Home() {
               </div>
 
               {/* Filter Pills */}
-              <div className="flex items-center gap-1 overflow-x-auto bg-slate-100 p-1 rounded-xl shrink-0">
+              <div className="flex items-center gap-1 overflow-x-auto bg-slate-100 p-1 rounded-xl shrink-0 max-w-full">
                 <button
                   onClick={() => setCelebrationFilter('all')}
                   className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition ${
