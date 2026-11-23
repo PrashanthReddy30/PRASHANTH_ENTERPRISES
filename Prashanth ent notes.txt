@@ -1,0 +1,4 @@
+Prashanth ent notes
+GitHub autosync
+powershell -NoProfile -ExecutionPolicy Bypass -File .\auto-sync.ps1
+
