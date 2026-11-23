@@ -789,12 +789,12 @@ export function Me() {
       {/* ============================================================== */}
       {activeTab === 'attendance' && (
         <div className="space-y-4 animate-fade-in">
-          {/* Main Dark Navy Card matching reference */}
-          <div className="rounded-2xl bg-[#090f1d] border border-[#1b263b] overflow-hidden shadow-2xl text-slate-100">
+          {/* Main Clean White Card matching Leave tab */}
+          <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-xs text-slate-800">
             {/* 1. Header: Logs & Requests & 24h toggle */}
-            <div className="px-5 pt-4 pb-0 border-b border-[#1b263b] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="px-5 pt-4 pb-0 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Logs & Requests</h2>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Logs & Requests</h2>
                 {/* Sub-tabs */}
                 <div className="flex items-center gap-2 sm:gap-6 mt-3 overflow-x-auto">
                   {['Attendance Log', 'Calendar', 'Attendance Requests', 'Overtime Requests'].map((tab) => {
@@ -804,12 +804,12 @@ export function Me() {
                         key={tab}
                         onClick={() => setAttendanceSubTab(tab)}
                         className={`relative pb-3 text-xs font-semibold transition whitespace-nowrap ${
-                          active ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                          active ? 'text-blue-600' : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
                         {tab}
                         {active && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
                         )}
                       </button>
                     );
@@ -822,10 +822,10 @@ export function Me() {
                 onClick={() => setIs24Hour(!is24Hour)}
                 className="flex items-center gap-2.5 cursor-pointer pb-3 sm:pb-0 select-none self-end sm:self-auto"
               >
-                <span className="text-xs text-slate-300 font-medium">24 hour format</span>
+                <span className="text-xs text-slate-600 font-medium">24 hour format</span>
                 <div
                   className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors duration-300 ${
-                    is24Hour ? 'bg-indigo-600' : 'bg-slate-700'
+                    is24Hour ? 'bg-blue-600' : 'bg-slate-200'
                   }`}
                 >
                   <div
@@ -841,24 +841,24 @@ export function Me() {
             {attendanceSubTab === 'Attendance Log' && (
               <>
                 {/* 2. Month Selector, Year Switcher & View Toggle Bar */}
-                <div className="px-5 py-4 bg-[#0b1325] border-b border-[#1b263b] flex flex-col gap-3">
+                <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-col gap-3">
                   {/* Top Row: Title with Arrows, Year Buttons (Last Years Included), and View Toggle */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     {/* Month & Year Title with Previous/Next Arrows */}
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handlePrevMonth}
-                        className="p-1.5 rounded-lg border border-[#23355b] text-slate-400 hover:text-white hover:bg-[#162238] transition"
+                        className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white bg-white transition shadow-2xs"
                         title="Previous Month"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
-                      <div className="text-base sm:text-lg font-extrabold text-white tracking-wide min-w-[160px]">
+                      <div className="text-base sm:text-lg font-extrabold text-slate-900 tracking-wide min-w-[160px]">
                         {monthFullName}, {selectedYear}
                       </div>
                       <button
                         onClick={handleNextMonth}
-                        className="p-1.5 rounded-lg border border-[#23355b] text-slate-400 hover:text-white hover:bg-[#162238] transition"
+                        className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white bg-white transition shadow-2xs"
                         title="Next Month"
                       >
                         <ChevronRight className="w-4 h-4" />
@@ -866,8 +866,8 @@ export function Me() {
                     </div>
 
                     {/* Year Selector Pills: Explicitly showing current & last years */}
-                    <div className="flex items-center gap-1 bg-[#070d1a] p-1 rounded-xl border border-[#1b263b] overflow-x-auto">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 shrink-0">Year:</span>
+                    <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 overflow-x-auto shadow-2xs">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 shrink-0">Year:</span>
                       {[
                         { year: 2026, label: '2026' },
                         { year: 2025, label: '2025 (Last Year)' },
@@ -879,8 +879,8 @@ export function Me() {
                           onClick={() => setSelectedYear(y.year)}
                           className={`px-2.5 py-1 rounded-lg text-xs font-bold transition shrink-0 ${
                             selectedYear === y.year
-                              ? 'bg-indigo-600 text-white shadow-xs'
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-[#162238]'
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                           }`}
                         >
                           {y.label}
@@ -891,11 +891,11 @@ export function Me() {
                       <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        className="bg-[#0b1325] text-xs font-semibold text-slate-300 border border-[#23355b] rounded-md px-1.5 py-0.5 outline-none ml-1 cursor-pointer"
+                        className="bg-white text-xs font-semibold text-slate-700 border border-slate-200 rounded-md px-1.5 py-0.5 outline-none ml-1 cursor-pointer"
                         title="Select Other Year"
                       >
                         {[2026, 2025, 2024, 2023, 2022, 2021, 2020].map((yr) => (
-                          <option key={yr} value={yr} className="bg-[#0c1427] text-white">
+                          <option key={yr} value={yr} className="bg-white text-slate-800">
                             {yr}
                           </option>
                         ))}
@@ -909,8 +909,8 @@ export function Me() {
                         title="List View"
                         className={`p-1.5 rounded-lg border transition ${
                           viewMode === 'list'
-                            ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500'
-                            : 'text-slate-400 border-[#23355b] hover:bg-[#162238]'
+                            ? 'bg-blue-50 text-blue-700 border-blue-300'
+                            : 'text-slate-600 border-slate-200 hover:bg-white bg-slate-50'
                         }`}
                       >
                         <List className="w-4 h-4" />
@@ -920,8 +920,8 @@ export function Me() {
                         title="Calendar View"
                         className={`p-1.5 rounded-lg border transition ${
                           viewMode === 'calendar'
-                            ? 'bg-indigo-600 text-white border-indigo-500'
-                            : 'text-slate-400 border-[#23355b] hover:bg-[#162238]'
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'text-slate-600 border-slate-200 hover:bg-white bg-slate-50'
                         }`}
                       >
                         <Calendar className="w-4 h-4" />
@@ -930,7 +930,7 @@ export function Me() {
                   </div>
 
                   {/* All 12 Months Pills */}
-                  <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-[#1b263b]/60">
+                  <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-slate-200">
                     {MONTH_NAMES.map((m, idx) => {
                       const isSelected = selectedMonth === idx;
                       return (
@@ -939,8 +939,8 @@ export function Me() {
                           onClick={() => setSelectedMonth(idx)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
                             isSelected
-                              ? 'bg-[#5c54e5] text-white shadow-xs'
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-[#162238]'
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                           }`}
                         >
                           {m.short}
@@ -952,11 +952,11 @@ export function Me() {
 
                 {/* 3. Main Split View: Calendar Grid + Daily Shift / Punches */}
                 {viewMode === 'calendar' ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-12 bg-[#080d1a]">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 bg-white">
                     {/* Left / Center 9 Columns: Calendar Grid (Increased Size & Spacious) */}
-                    <div className="lg:col-span-9 border-b lg:border-b-0 lg:border-r border-[#1b263b]">
+                    <div className="lg:col-span-9 border-b lg:border-b-0 lg:border-r border-slate-200">
                       {/* Day of Week Headers */}
-                      <div className="grid grid-cols-7 border-b border-[#1b263b] bg-[#0c1427] text-center text-xs font-extrabold text-slate-300 py-3 tracking-wider">
+                      <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-bold text-slate-500 py-3 tracking-wider">
                         <div>MON</div>
                         <div>TUE</div>
                         <div>WED</div>
@@ -974,12 +974,12 @@ export function Me() {
                             <div
                               key={idx}
                               onClick={() => !item.isPrev && setSelectedDay(item.day)}
-                              className={`relative min-h-[82px] sm:min-h-[96px] lg:min-h-[105px] p-2.5 sm:p-3 border-b border-r border-[#1b263b] transition cursor-pointer select-none ${
+                              className={`relative min-h-[82px] sm:min-h-[96px] lg:min-h-[105px] p-2.5 sm:p-3 border-b border-r border-slate-200 transition cursor-pointer select-none ${
                                 item.isPrev
-                                  ? 'bg-[#070b16] opacity-25 cursor-not-allowed'
+                                  ? 'bg-slate-50/50 opacity-40 cursor-not-allowed'
                                   : isSelected
-                                  ? 'bg-[#10293d] border-cyan-400 ring-2 ring-cyan-400/50 shadow-lg'
-                                  : 'bg-[#090f1d] hover:bg-[#131f38]'
+                                  ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-500/40 shadow-xs'
+                                  : 'bg-white hover:bg-slate-50'
                               }`}
                             >
                               {/* Day number (Only dates mentioned, prominent font) */}
@@ -987,10 +987,10 @@ export function Me() {
                                 <span
                                   className={`text-sm sm:text-base font-extrabold ${
                                     item.isPrev
-                                      ? 'text-slate-600'
+                                      ? 'text-slate-400'
                                       : isSelected
-                                      ? 'text-cyan-300'
-                                      : 'text-slate-200'
+                                      ? 'text-blue-700 font-black'
+                                      : 'text-slate-900'
                                   }`}
                                 >
                                   {item.day}
@@ -1000,20 +1000,20 @@ export function Me() {
                               {/* Special Alert Ribbon for Day 8 */}
                               {item.hasAlert && (
                                 <div className="absolute top-0 left-0">
-                                  <div className="w-0 h-0 border-t-[16px] border-t-indigo-600 border-r-[16px] border-r-transparent" />
+                                  <div className="w-0 h-0 border-t-[16px] border-t-amber-500 border-r-[16px] border-r-transparent" />
                                 </div>
                               )}
 
                               {/* Content inside cell: W-OFF and Alert badges, no timings */}
                               <div className="mt-2.5 flex flex-col items-center justify-center">
                                 {item.label === 'W-OFF' && (
-                                  <span className="inline-block bg-[#3a2f20] text-[#e3b879] border border-[#52422c] text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
+                                  <span className="inline-block bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs">
                                     W-OFF
                                   </span>
                                 )}
 
                                 {item.hasAlert && (
-                                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-tight text-center leading-tight">
+                                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-tight text-center leading-tight">
                                     NO ENTRIES LOGGED
                                   </span>
                                 )}
@@ -1025,34 +1025,34 @@ export function Me() {
                     </div>
 
                     {/* Right 3 Columns: Daily Shift & Login/Logout Punches (Slightly smaller & compact) */}
-                    <div className="lg:col-span-3 bg-[#0a1122] p-3 sm:p-4 flex flex-col justify-between">
+                    <div className="lg:col-span-3 bg-slate-50/70 p-3 sm:p-4 flex flex-col justify-between">
                       <div>
                         {/* Shift Title & Timings */}
-                        <div className="border-b border-[#1b263b] pb-2.5">
-                          <h3 className="text-xs sm:text-sm font-bold text-white">General Shift</h3>
-                          <p className="text-[11px] text-slate-400">({formattedDate})</p>
-                          <p className="text-[11px] text-slate-400 font-mono mt-0.5">9:00 AM - 6:00 PM</p>
+                        <div className="border-b border-slate-200 pb-2.5">
+                          <h3 className="text-xs sm:text-sm font-bold text-slate-900">General Shift</h3>
+                          <p className="text-[11px] text-slate-500">({formattedDate})</p>
+                          <p className="text-[11px] text-slate-500 font-mono mt-0.5">9:00 AM - 6:00 PM</p>
 
                           {/* Timeline visualization bar */}
                           <div className="mt-2.5">
-                            <div className="h-2 w-full bg-[#131d33] rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-[#23355b]">
+                            <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-slate-300">
                               {currentDayData.status === 'present' ? (
                                 <>
-                                  <div className="h-full bg-cyan-400 rounded-xs" style={{ width: '14%' }} title="08:43 - 09:35" />
+                                  <div className="h-full bg-blue-500 rounded-xs" style={{ width: '14%' }} title="08:43 - 09:35" />
                                   <div className="h-full bg-transparent" style={{ width: '2%' }} />
-                                  <div className="h-full bg-cyan-400 rounded-xs" style={{ width: '4%' }} title="09:40 - 09:50" />
-                                  <div className="h-full bg-cyan-400 rounded-xs" style={{ width: '9%' }} title="09:50 - 10:32" />
-                                  <div className="h-full bg-cyan-400 rounded-xs" style={{ width: '20%' }} title="10:38 - 12:33" />
+                                  <div className="h-full bg-blue-500 rounded-xs" style={{ width: '4%' }} title="09:40 - 09:50" />
+                                  <div className="h-full bg-blue-500 rounded-xs" style={{ width: '9%' }} title="09:50 - 10:32" />
+                                  <div className="h-full bg-blue-500 rounded-xs" style={{ width: '20%' }} title="10:38 - 12:33" />
                                   <div className="h-full bg-transparent" style={{ width: '6%' }} />
-                                  <div className="h-full bg-cyan-400 rounded-xs" style={{ width: '32%' }} title="13:15 - 16:20" />
+                                  <div className="h-full bg-blue-500 rounded-xs" style={{ width: '32%' }} title="13:15 - 16:20" />
                                   <div className="h-full bg-transparent" style={{ width: '2%' }} />
-                                  <div className="h-full bg-cyan-400 rounded-xs" style={{ width: '11%' }} title="16:35 - 18:39" />
+                                  <div className="h-full bg-blue-500 rounded-xs" style={{ width: '11%' }} title="16:35 - 18:39" />
                                 </>
                               ) : (
-                                <div className="h-full w-full bg-slate-800/50" />
+                                <div className="h-full w-full bg-slate-200" />
                               )}
                             </div>
-                            <div className="flex justify-between px-0.5 text-[9px] text-slate-500 font-mono mt-1">
+                            <div className="flex justify-between px-0.5 text-[9px] text-slate-400 font-mono mt-1">
                               <span>9:00 AM</span>
                               <span>1:00 PM</span>
                               <span>6:00 PM</span>
@@ -1061,38 +1061,38 @@ export function Me() {
                         </div>
 
                         {/* Gross & Effective Hours */}
-                        <div className="flex items-center justify-between py-2.5 border-b border-[#1b263b]">
+                        <div className="flex items-center justify-between py-2.5 border-b border-slate-200">
                           <div>
                             <span className="text-[9px] font-bold text-slate-400 tracking-wider block">GROSS HOURS</span>
-                            <span className="text-xs sm:text-sm font-extrabold text-white font-mono">{currentDayData.grossHours}</span>
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-900 font-mono">{currentDayData.grossHours}</span>
                           </div>
                           <div className="text-right">
                             <span className="text-[9px] font-bold text-slate-400 tracking-wider block">EFFECTIVE HOURS</span>
-                            <span className="text-xs sm:text-sm font-extrabold text-white font-mono">{currentDayData.effectiveHours}</span>
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-900 font-mono">{currentDayData.effectiveHours}</span>
                           </div>
                         </div>
 
                         {/* Status & Regularize Button */}
-                        <div className="flex items-center justify-between py-2.5 border-b border-[#1b263b]">
+                        <div className="flex items-center justify-between py-2.5 border-b border-slate-200">
                           {currentDayData.status === 'present' ? (
-                            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
                               <Check className="w-3.5 h-3.5 stroke-[3]" />
                               <span>On Time</span>
                             </div>
                           ) : currentDayData.hasAlert ? (
-                            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400">
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600">
                               <AlertCircle className="w-3.5 h-3.5" />
                               <span>No Entries Logged</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1 text-[11px] font-bold text-[#e3b879]">
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600">
                               <span>Weekly Off</span>
                             </div>
                           )}
 
                           <button
                             onClick={() => setShowRegularizeModal(true)}
-                            className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                            className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition"
                           >
                             <Edit2 className="w-3 h-3" />
                             <span>Regularize</span>
@@ -1100,10 +1100,10 @@ export function Me() {
                         </div>
 
                         {/* Reader Location */}
-                        <div className="py-2 text-[11px] font-bold text-slate-200 border-b border-[#1b263b] flex items-center justify-between">
+                        <div className="py-2 text-[11px] font-bold text-slate-700 border-b border-slate-200 flex items-center justify-between">
                           <span className="truncate pr-1">{currentDayData.location || 'Hyderabad maindoor'}</span>
-                          <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1 shrink-0">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                             Matrix Synced
                           </span>
                         </div>
@@ -1116,33 +1116,33 @@ export function Me() {
                               currentPunches.map((punch, idx) => (
                                 <div
                                   key={idx}
-                                  className="flex items-center justify-between text-[11px] py-1.5 px-2 rounded-lg bg-[#070d1a] border border-[#1b263b]"
+                                  className="flex items-center justify-between text-[11px] py-1.5 px-2 rounded-lg bg-white border border-slate-200 shadow-2xs"
                                 >
-                                  <div className="flex items-center gap-1.5 text-emerald-400 font-mono font-medium">
+                                  <div className="flex items-center gap-1.5 text-emerald-600 font-mono font-medium">
                                     <Check className="w-3 h-3 stroke-[2.5]" />
                                     <span>{formatPunchTime(punch.in, is24Hour)}</span>
                                   </div>
-                                  <div className="flex items-center gap-1.5 text-slate-200 font-mono font-medium">
-                                    <ArrowUpRight className="w-3 h-3 text-amber-400 stroke-[2.5]" />
+                                  <div className="flex items-center gap-1.5 text-slate-700 font-mono font-medium">
+                                    <ArrowUpRight className="w-3 h-3 text-amber-500 stroke-[2.5]" />
                                     <span>{formatPunchTime(punch.out, is24Hour)}</span>
                                   </div>
                                 </div>
                               ))
                             ) : currentDayData.hasAlert ? (
-                              <div className="text-center py-4 px-2 bg-[#070d1a] rounded-xl border border-indigo-950">
-                                <AlertCircle className="w-4 h-4 text-indigo-400 mx-auto mb-1" />
-                                <p className="text-xs font-bold text-slate-300">No punches found</p>
-                                <p className="text-[10px] text-slate-400 mt-0.5">Missing biometric terminal logs.</p>
+                              <div className="text-center py-4 px-2 bg-white rounded-xl border border-amber-200">
+                                <AlertCircle className="w-4 h-4 text-amber-500 mx-auto mb-1" />
+                                <p className="text-xs font-bold text-slate-800">No punches found</p>
+                                <p className="text-[10px] text-slate-500 mt-0.5">Missing biometric terminal logs.</p>
                                 <button
                                   onClick={() => setShowRegularizeModal(true)}
-                                  className="mt-2 rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700 transition"
+                                  className="mt-2 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700 transition"
                                 >
                                   Regularize Punch
                                 </button>
                               </div>
                             ) : (
-                              <div className="text-center py-4 px-2 bg-[#070d1a] rounded-xl border border-[#1b263b]">
-                                <p className="text-xs font-bold text-[#e3b879]">Weekend Off (W-OFF)</p>
+                              <div className="text-center py-4 px-2 bg-white rounded-xl border border-slate-200">
+                                <p className="text-xs font-bold text-slate-700">Weekend Off (W-OFF)</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">No punches required on scheduled off days.</p>
                               </div>
                             )}
@@ -1153,9 +1153,9 @@ export function Me() {
                   </div>
                 ) : (
                   /* List View */
-                  <div className="p-4 overflow-x-auto bg-[#080d1a]">
+                  <div className="p-4 overflow-x-auto bg-white">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#0c1427] text-[11px] font-bold text-slate-400 uppercase border-b border-[#1b263b]">
+                      <thead className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
                         <tr>
                           <th className="py-2.5 px-3">Date</th>
                           <th className="py-2.5 px-3">Shift</th>
@@ -1167,38 +1167,38 @@ export function Me() {
                           <th className="py-2.5 px-3 text-right">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#1b263b]">
+                      <tbody className="divide-y divide-slate-100">
                         {calendarDays.filter((d) => !d.isPrev).map((item) => {
                           const punches = (selectedYear === 2026 && selectedMonth === 8 && dayPunchesMap[item.day]) || [];
                           const firstIn = punches[0]?.in || (item.isWeekend ? '-' : '09:00 AM');
                           const lastOut = punches[punches.length - 1]?.out || (item.isWeekend ? '-' : '06:00 PM');
                           return (
-                            <tr key={item.day} className="hover:bg-[#0f1b33] transition">
-                              <td className="py-2.5 px-3 font-semibold text-slate-200">
+                            <tr key={item.day} className="hover:bg-slate-50 transition">
+                              <td className="py-2.5 px-3 font-semibold text-slate-900">
                                 {item.day < 10 ? '0' + item.day : item.day} {monthShortName} {selectedYear}
                               </td>
-                              <td className="py-2.5 px-3 text-slate-400">
+                              <td className="py-2.5 px-3 text-slate-600">
                                 {item.isWeekend ? 'Weekly Off' : 'General Shift (9-6)'}
                               </td>
-                              <td className="py-2.5 px-3 font-mono text-emerald-400 font-medium">
+                              <td className="py-2.5 px-3 font-mono text-emerald-600 font-medium">
                                 {formatPunchTime(firstIn, is24Hour)}
                               </td>
-                              <td className="py-2.5 px-3 font-mono text-slate-300">
+                              <td className="py-2.5 px-3 font-mono text-slate-700">
                                 {formatPunchTime(lastOut, is24Hour)}
                               </td>
-                              <td className="py-2.5 px-3 font-mono text-slate-200">{item.grossHours}</td>
-                              <td className="py-2.5 px-3 font-mono text-cyan-300 font-bold">{item.effectiveHours}</td>
+                              <td className="py-2.5 px-3 font-mono text-slate-700">{item.grossHours}</td>
+                              <td className="py-2.5 px-3 font-mono text-blue-600 font-bold">{item.effectiveHours}</td>
                               <td className="py-2.5 px-3">
                                 {item.status === 'present' ? (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-400 border border-emerald-800">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     ✓ Present
                                   </span>
                                 ) : item.hasAlert ? (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950/70 text-indigo-300 border border-indigo-800">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                     No Entries Logged
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#3a2f20] text-[#e3b879] border border-[#52422c]">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
                                     W-OFF
                                   </span>
                                 )}
@@ -1209,7 +1209,7 @@ export function Me() {
                                     setSelectedDay(item.day);
                                     setShowRegularizeModal(true);
                                   }}
-                                  className="text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+                                  className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                                 >
                                   Regularize
                                 </button>
@@ -1226,13 +1226,13 @@ export function Me() {
 
             {/* Subtab 2: Calendar */}
             {attendanceSubTab === 'Calendar' && (
-              <div className="p-8 text-center bg-[#080d1a]">
-                <Calendar className="w-10 h-10 text-indigo-400 mx-auto mb-2" />
-                <h3 className="text-sm font-bold text-white">Full Shift Calendar View</h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
+              <div className="p-8 text-center bg-white">
+                <Calendar className="w-10 h-10 text-blue-600 mx-auto mb-2" />
+                <h3 className="text-sm font-bold text-slate-900">Full Shift Calendar View</h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
                   Displaying full enterprise biometric schedules, assigned shift rosters, and holiday leaves for Prashanth Enterprises.
                 </p>
-                <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-950/50 border border-indigo-800/60 px-4 py-2 text-xs text-indigo-300">
+                <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-2 text-xs text-blue-700">
                   <span>Current Roster: General Office Shift (09:00 AM - 06:00 PM)</span>
                 </div>
               </div>
@@ -1240,33 +1240,33 @@ export function Me() {
 
             {/* Subtab 3: Attendance Requests */}
             {attendanceSubTab === 'Attendance Requests' && (
-              <div className="p-5 bg-[#080d1a]">
+              <div className="p-5 bg-white">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-white">Attendance Regularization Requests</h3>
+                  <h3 className="text-sm font-bold text-slate-900">Attendance Regularization Requests</h3>
                   <button
                     onClick={() => setShowRegularizeModal(true)}
-                    className="rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition shadow-sm"
+                    className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
                   >
                     + Raise Request
                   </button>
                 </div>
                 <div className="space-y-3">
-                  <div className="rounded-xl border border-[#1b263b] bg-[#0c1427] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white">08 Sept 2026</span>
-                        <span className="rounded-full bg-amber-950/60 border border-amber-800 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                        <span className="text-xs font-bold text-slate-900">08 Sept 2026</span>
+                        <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-700">
                           Pending Approval
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-slate-600 mt-1">
                         Reason: Biometric scanner did not record morning entry punch.
                       </p>
                       <p className="text-[11px] text-slate-500 mt-0.5">
                         Approver: Sunil Verma (Engineering Director)
                       </p>
                     </div>
-                    <span className="text-xs font-mono text-slate-400">Requested: 09:00 AM</span>
+                    <span className="text-xs font-mono text-slate-500">Requested: 09:00 AM</span>
                   </div>
                 </div>
               </div>
@@ -1274,22 +1274,22 @@ export function Me() {
 
             {/* Subtab 4: Overtime Requests */}
             {attendanceSubTab === 'Overtime Requests' && (
-              <div className="p-5 bg-[#080d1a]">
+              <div className="p-5 bg-white">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-white">Overtime (OT) Approvals & Requests</h3>
+                  <h3 className="text-sm font-bold text-slate-900">Overtime (OT) Approvals & Requests</h3>
                   <button
                     onClick={() => alert("Overtime request for current pay-cycle initiated.")}
-                    className="rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition shadow-sm"
+                    className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shadow-xs"
                   >
                     + Apply Overtime
                   </button>
                 </div>
-                <div className="rounded-xl border border-[#1b263b] bg-[#0c1427] p-4 flex items-center justify-between">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-bold text-white">Month Overtime Total</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Overtime rate: 1.5x standard hourly rate</p>
+                    <p className="text-xs font-bold text-slate-900">Month Overtime Total</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Overtime rate: 1.5x standard hourly rate</p>
                   </div>
-                  <span className="text-lg font-bold text-emerald-400 font-mono">4.5 hrs</span>
+                  <span className="text-lg font-bold text-emerald-600 font-mono">4.5 hrs</span>
                 </div>
               </div>
             )}
