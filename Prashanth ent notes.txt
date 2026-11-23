@@ -2,3 +2,5 @@ Prashanth ent notes
 GitHub autosync
 powershell -NoProfile -ExecutionPolicy Bypass -File .\auto-sync.ps1
 
+
+1 if the emp can apply the  leaves can  that leve auto dedaction  
