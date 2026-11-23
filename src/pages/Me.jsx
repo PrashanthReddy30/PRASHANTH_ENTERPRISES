@@ -1,13 +1,11 @@
 // Prashanth Enterprises HRMS
-// Employee Side - Reorganized ME Section (Keka-style Enterprise Structure)
-// 7 Clear Self-Service Categories:
-// 1. My Profile (Basic Personal & Employment Details, Reporting Manager, Documents)
-// 2. Attendance (100% Preserved - Live Punch Console, Calendar, Regularization, Duty OD & Partial Day)
-// 3. Leave (Leave Balance Ledger & Leave Applications with Apply Modal)
-// 4. Performance (Appraisals, Goals & Career Progress)
-// 5. Experience (Previous Employment, Education & Certifications)
-// 6. Travel (Corporate Travel Requests, Approvals & Travel Desk)
-// 7. Apps (Employee Utilities, IT Helpdesk, Policies & Tools)
+// Employee Side - ME Section
+// 5 Clean Self-Service Categories:
+// 1. Attendance (Live Punch Console, Calendar, Regularization, Duty OD & Partial Day)
+// 2. Leave (Leave Balance Ledger & Leave Applications with Apply Modal)
+// 3. Performance (Appraisals, Goals & Career Progress)
+// 4. Travel (Corporate Travel Requests, Approvals & Travel Desk)
+// 5. Apps (Employee Utilities, IT Helpdesk, Policies & Tools)
 // NOTE: Finance & Payroll are strictly separated into the dedicated Employee Side -> Finance menu.
 
 import React, { useState, useMemo, useEffect } from 'react';
