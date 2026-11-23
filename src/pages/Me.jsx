@@ -672,12 +672,11 @@ export function Me() {
     setShowTravelModal(false);
   };
 
-  // THE 6 ORGANIZED CATEGORIES UNDER ME
+  // THE 5 ORGANIZED CATEGORIES UNDER ME
   const TABS = [
     { id: 'attendance', label: 'Attendance', icon: Clock },
     { id: 'leave', label: 'Leave', icon: Calendar },
     { id: 'performance', label: 'Performance', icon: Award },
-    { id: 'experience', label: 'Experience', icon: Building2 },
     { id: 'travel', label: 'Travel', icon: Plane },
     { id: 'apps', label: 'Apps', icon: Grid },
   ];
@@ -686,7 +685,7 @@ export function Me() {
   const resolvedTab = 
     (activeTab === 'leaveApplications' || activeTab === 'leaveBalance') ? 'leave' :
     (activeTab === 'expenses') ? 'travel' :
-    (activeTab === 'profile' || activeTab === 'personal' || activeTab === 'employment' || activeTab === 'manager' || activeTab === 'documents') ? 'attendance' :
+    (activeTab === 'profile' || activeTab === 'personal' || activeTab === 'employment' || activeTab === 'manager' || activeTab === 'documents' || activeTab === 'experience') ? 'attendance' :
     activeTab;
 
   return (
