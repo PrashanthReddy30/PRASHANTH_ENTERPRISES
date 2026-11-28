@@ -40,12 +40,87 @@ export function Home() {
   const { currentUser: authUser, storeData, hrmStore } = useAuth();
   const activeUser = authUser || currentUser;
 
-  const [celebrations, setCelebrations] = useState(initialCelebrations);
+  // Reactively map celebrations from unified storeData.employeeEngagementPosts
+  const storePosts = storeData?.employeeEngagementPosts;
+  const initialData = storePosts && storePosts.length > 0
+    ? storePosts.map(p => ({
+        id: p.id,
+        type: p.type === 'welcome' ? 'new_joinee' : p.type,
+        employeeName: p.employeeName,
+        role: p.employeeRole,
+        department: p.department || 'Prashanth Enterprises',
+        avatar: p.employeeAvatar,
+        date: p.eventDate,
+        badge: p.badgeText || (p.type === 'welcome' ? 'New Joiner' : p.type === 'birthday' ? 'Birthday' : 'Anniversary'),
+        title: p.badgeTitle || (p.type === 'welcome' ? 'Welcome to Prashanth Enterprises!' : p.type === 'birthday' ? 'Happy Birthday!' : 'Happy Work Anniversary!'),
+        subtitle: p.subtitle || (p.type === 'welcome' ? 'New Joiner' : p.type === 'birthday' ? 'Birthday Celebration' : 'Work Anniversary'),
+        posterUrl: p.posterUrl,
+        message: p.message,
+        likes: p.likesCount || (p.likes ? p.likes.length : 12),
+        wishes: (p.wishes || []).map(w => ({
+          id: w.id,
+          from: w.senderName || w.from,
+          role: w.senderRole || w.role,
+          avatar: w.senderAvatar || w.avatar,
+          message: w.text || w.message,
+          time: w.createdAt ? 'Recently' : (w.time || 'Today'),
+          likes: 1
+        })),
+        quickWishes: p.quickWishes || (
+          p.type === 'welcome'
+            ? ['🎉 Welcome to Prashanth Enterprises!', '👏 So glad to have you on the team!', '🚀 Wishing you a wonderful journey here!']
+            : p.type === 'birthday'
+            ? ['🎂 Happy Birthday! Have a fantastic year ahead! 🎉', '🌟 Wishing you great health, joy, and success! 🍰', '🎊 May all your goals and dreams come true! 🎁']
+            : ['🎖️ Happy Work Anniversary! Proud to work with you! 🥂', '🌟 Thank you for your immense dedication and leadership! 👏', '🚀 Wishing you many more milestones of excellence! 🏆']
+        )
+      }))
+    : initialCelebrations;
+
+  const [celebrations, setCelebrations] = useState(initialData);
   const [celebrationFilter, setCelebrationFilter] = useState('all');
   const [activeWishInput, setActiveWishInput] = useState({});
   const [wishSentNotification, setWishSentNotification] = useState(null);
 
   const [showHolidayModal, setShowHolidayModal] = useState(false);
+  const [selectedPosterModal, setSelectedPosterModal] = useState(null);
+  const [showAllCelebrationsModal, setShowAllCelebrationsModal] = useState(false);
+
+  // Sync celebrations when store updates
+  React.useEffect(() => {
+    if (storePosts && storePosts.length > 0) {
+      setCelebrations(storePosts.map(p => ({
+        id: p.id,
+        type: p.type === 'welcome' ? 'new_joinee' : p.type,
+        employeeName: p.employeeName,
+        role: p.employeeRole,
+        department: p.department || 'Prashanth Enterprises',
+        avatar: p.employeeAvatar,
+        date: p.eventDate,
+        badge: p.badgeText || (p.type === 'welcome' ? 'New Joiner' : p.type === 'birthday' ? 'Birthday' : 'Anniversary'),
+        title: p.badgeTitle || (p.type === 'welcome' ? 'Welcome to Prashanth Enterprises!' : p.type === 'birthday' ? 'Happy Birthday!' : 'Happy Work Anniversary!'),
+        subtitle: p.subtitle || (p.type === 'welcome' ? 'New Joiner' : p.type === 'birthday' ? 'Birthday Celebration' : 'Work Anniversary'),
+        posterUrl: p.posterUrl,
+        message: p.message,
+        likes: p.likesCount || (p.likes ? p.likes.length : 12),
+        wishes: (p.wishes || []).map(w => ({
+          id: w.id,
+          from: w.senderName || w.from,
+          role: w.senderRole || w.role,
+          avatar: w.senderAvatar || w.avatar,
+          message: w.text || w.message,
+          time: w.createdAt ? 'Recently' : (w.time || 'Today'),
+          likes: 1
+        })),
+        quickWishes: p.quickWishes || (
+          p.type === 'welcome'
+            ? ['🎉 Welcome to Prashanth Enterprises!', '👏 So glad to have you on the team!', '🚀 Wishing you a wonderful journey here!']
+            : p.type === 'birthday'
+            ? ['🎂 Happy Birthday! Have a fantastic year ahead! 🎉', '🌟 Wishing you great health, joy, and success! 🍰', '🎊 May all your goals and dreams come true! 🎁']
+            : ['🎖️ Happy Work Anniversary! Proud to work with you! 🥂', '🌟 Thank you for your immense dedication and leadership! 👏', '🚀 Wishing you many more milestones of excellence! 🏆']
+        )
+      })));
+    }
+  }, [storePosts]);
 
   const upcomingFestival = {
     name: "Diwali (Festival of Lights)",
