@@ -22,7 +22,8 @@ import {
   Activity,
   Layers,
   MapPin,
-  CheckSquare
+  CheckSquare,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
