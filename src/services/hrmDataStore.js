@@ -7,6 +7,13 @@ import { collection, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { DEFAULT_CELEBRATION_TEMPLATES, generateFallbackSvgPoster } from './celebrationImageGenerator.js';
 import { initCelebrationBackgroundScheduler, runCelebrationScheduler } from './celebrationAutomationEngine.js';
 import { DEFAULT_ONBOARDING_TEMPLATES, calculateSalaryBreakup } from './onboardingService.js';
+import { 
+  DEFAULT_LEAVE_POLICIES, 
+  calculateEmployeeEligibility, 
+  calculateEmployeeLedger, 
+  reconcileGlobalLeaveLedger, 
+  getVerifiedEmployeeLedger 
+} from './leaveCalculationService.js';
 
 const STORAGE_KEY = 'PE_HRMS_UNIFIED_FIRESTORE_DATA_V1';
 
