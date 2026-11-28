@@ -603,44 +603,96 @@ export function AuthProvider({ children }) {
     return true;
   };
 
+  // Direct Persona Switcher (All 6 Tiers) — sets state directly and persists to localStorage
+  const switchPersona = (personaOrTier, options = {}) => {
+    let targetPersona = null;
+
+    if (typeof personaOrTier === 'string') {
+      // Look up by tier name or by ID
+      targetPersona = TEST_PERSONAS[personaOrTier] || Object.values(TEST_PERSONAS).find(p => p.id === personaOrTier);
+    } else if (personaOrTier && typeof personaOrTier === 'object') {
+      targetPersona = personaOrTier;
+    }
+
+    if (!targetPersona) {
+      // Check in raw store employees
+      const rawStoreEmployees = hrmStore?.data?.employees || storeData?.employees || [];
+      const foundInStore = rawStoreEmployees.find(e => e.id === personaOrTier || e.systemRole === personaOrTier);
+      if (foundInStore) {
+        targetPersona = foundInStore;
+      }
+    }
+
+    if (!targetPersona) {
+      targetPersona = TEST_PERSONAS['Employee'];
+    }
+
+    // Determine target portal and route
+    const sRole = targetPersona.id === 'PE000' ? 'Global Admin' : (targetPersona.systemRole || targetPersona.roleTier || 'Employee');
+    let targetPortal = 'EMPLOYEE';
+    let targetRoute = '/home';
+
+    if (sRole === 'Employee' || sRole === 'Manager') {
+      targetPortal = 'EMPLOYEE';
+      targetRoute = '/home';
+    } else if (sRole === 'Branch HR') {
+      targetPortal = 'HR';
+      targetRoute = '/hr/dashboard';
+    } else if (sRole === 'Central HR' || sRole === 'HR Admin') {
+      targetPortal = 'HR';
+      targetRoute = '/hr/dashboard';
+    } else if (sRole === 'Finance') {
+      targetPortal = 'HR';
+      targetRoute = '/hr/payroll';
+    } else if (sRole === 'Global Admin') {
+      targetPortal = 'GLOBAL_ADMIN';
+      targetRoute = '/admin/dashboard';
+    }
+
+    if (options.portal) targetPortal = options.portal;
+    if (options.route) targetRoute = options.route;
+
+    // 1. Immediately update activePersona state and activeUserId
+    setActivePersona(targetPersona);
+    setActiveUserId(targetPersona.id);
+    setCurrentPortal(targetPortal);
+
+    // 2. Persist synchronously to localStorage
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('activePersona', JSON.stringify(targetPersona));
+        localStorage.setItem('pe_hrm_active_user_id', targetPersona.id);
+      } catch (e) {}
+    }
+
+    return { targetPortal, targetRoute, targetEmp: targetPersona };
+  };
+
   // Quick Switcher between employee personas to verify end-to-end workflows
   const switchUser = (employeeId, options = {}) => {
+    // Check if employeeId matches a known test persona
+    const personaMatch = Object.values(TEST_PERSONAS).find(p => p.id === employeeId || p.systemRole === employeeId);
+    if (personaMatch) {
+      return switchPersona(personaMatch, options);
+    }
+
+    // Check in unfiltered store
+    const rawStoreEmployees = hrmStore?.data?.employees || storeData?.employees || [];
+    const targetEmp = rawStoreEmployees.find(e => e.id === employeeId) || storeData.employees.find(e => e.id === employeeId);
+    
+    if (targetEmp) {
+      return switchPersona(targetEmp, options);
+    }
+
     setActiveUserId(employeeId);
     if (typeof localStorage !== 'undefined') {
       try {
         localStorage.setItem('pe_hrm_active_user_id', employeeId);
       } catch (e) {}
     }
-    const targetEmp = storeData.employees.find(e => e.id === employeeId);
-    let targetPortal = 'EMPLOYEE';
-    let targetRoute = '/home';
 
-    if (targetEmp) {
-      const sRole = targetEmp.id === 'PE000' ? 'Global Admin' : (targetEmp.systemRole || 'Employee');
-      if (sRole === 'Employee') {
-        targetPortal = 'EMPLOYEE';
-        targetRoute = '/home';
-      } else if (sRole === 'Manager') {
-        targetPortal = 'EMPLOYEE';
-        targetRoute = '/home';
-      } else if (sRole === 'Branch HR') {
-        targetPortal = 'HR';
-        targetRoute = '/hr/dashboard';
-      } else if (sRole === 'Central HR' || sRole === 'HR Admin') {
-        targetPortal = 'HR';
-        targetRoute = '/hr/dashboard';
-      } else if (sRole === 'Finance') {
-        targetPortal = 'HR';
-        targetRoute = '/hr/payroll';
-      } else if (sRole === 'Global Admin') {
-        targetPortal = 'GLOBAL_ADMIN';
-        targetRoute = '/admin/dashboard';
-      }
-    }
-
-    if (options.portal) targetPortal = options.portal;
-    if (options.route) targetRoute = options.route;
-
+    let targetPortal = options.portal || 'EMPLOYEE';
+    let targetRoute = options.route || '/home';
     setCurrentPortal(targetPortal);
     return { targetPortal, targetRoute, targetEmp };
   };
