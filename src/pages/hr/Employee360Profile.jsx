@@ -1207,13 +1207,15 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
               <h3 className="text-base font-bold text-slate-900">Academic & Educational Qualifications</h3>
               <p className="text-xs text-slate-500">Verified diplomas, degrees, institutions, and CGPA scores.</p>
             </div>
-            <button
-              onClick={() => setShowAddEducationModal(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Degree</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => setShowAddEducationModal(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Degree</span>
+              </button>
+            )}
           </div>
 
           <div className="space-y-3">
