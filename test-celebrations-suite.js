@@ -146,9 +146,10 @@ runTest('8. Dynamic Placeholders & High-Fidelity SVG Poster Generation', () => {
     message: interpolated
   });
 
-  assert(svgDataUrl.startsWith('data:image/svg+xml;utf8,'), 'Poster should be formatted as SVG Data URL');
-  assert(svgDataUrl.includes('Ravi Kumar'), 'Generated SVG poster must contain employee name');
-  assert(svgDataUrl.includes('Prashanth Enterprises'), 'Generated SVG poster must contain company branding');
+  assert(svgDataUrl.startsWith('data:image/svg+xml'), 'Poster should be formatted as SVG Data URL');
+  const decodedSvg = decodeURIComponent(svgDataUrl);
+  assert(decodedSvg.includes('Ravi Kumar'), 'Generated SVG poster must contain employee name');
+  assert(decodedSvg.includes('Prashanth Enterprises'), 'Generated SVG poster must contain company branding');
 });
 
 console.log('='.repeat(70));
