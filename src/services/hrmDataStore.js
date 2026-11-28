@@ -1151,7 +1151,7 @@ export class HrmDataEngine {
       emp.personal = {
         fullName: emp.name,
         dob: emp.dob || "1994-08-24",
-        gender: "Male",
+        gender: emp.gender || "Male",
         personalEmail: emp.personalEmail || (emp.email ? emp.email.replace('@prashanthenterprises.in', '.dev@gmail.com') : 'personal@gmail.com'),
         officialEmail: emp.email,
         mobile: emp.phone || '+91 98480 11221',
