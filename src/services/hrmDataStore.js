@@ -350,6 +350,12 @@ const initialEnterpriseData = {
       SL: { opening: 4, accrued: 4, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 8 },
       PL: { opening: 10, accrued: 5, approvedRestorations: 0, approvedDeductions: 2, pendingReservations: 0, available: 13 },
       COMP: { opening: 0, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 0 }
+    },
+    PE016: {
+      CL: { opening: 12, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 12 },
+      SL: { opening: 10, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 10 },
+      PL: { opening: 18, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 18 },
+      COMP: { opening: 2, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 2.0 }
     }
   },
 
