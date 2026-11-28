@@ -31,7 +31,11 @@ import {
   ExternalLink,
   ChevronRight,
   TrendingUp,
-  UserCheck
+  UserCheck,
+  Fingerprint,
+  CreditCard,
+  UserCog,
+  LayoutDashboard
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
