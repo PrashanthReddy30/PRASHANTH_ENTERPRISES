@@ -939,6 +939,7 @@ class HrmDataEngine {
     if (typeof window !== 'undefined') {
       setTimeout(() => {
         this.initRealtimeFirebaseSync();
+        initCelebrationBackgroundScheduler(this);
       }, 300);
     }
   }
@@ -948,10 +949,13 @@ class HrmDataEngine {
     if (!emp.companyId) {
       emp.companyId = 'PRASHANTH_ENTERPRISES';
     }
+    if (!emp.dob && emp.personal?.dob) {
+      emp.dob = emp.personal.dob;
+    }
     if (!emp.personal) {
       emp.personal = {
         fullName: emp.name,
-        dob: "1994-08-24",
+        dob: emp.dob || "1994-08-24",
         gender: "Male",
         personalEmail: emp.personalEmail || (emp.email ? emp.email.replace('@prashanthenterprises.in', '.dev@gmail.com') : 'personal@gmail.com'),
         officialEmail: emp.email,
@@ -968,6 +972,12 @@ class HrmDataEngine {
         profilePhoto: emp.avatar
       };
     } else {
+      if (!emp.personal.dob && emp.dob) {
+        emp.personal.dob = emp.dob;
+      }
+      if (!emp.dob && emp.personal.dob) {
+        emp.dob = emp.personal.dob;
+      }
       if (!emp.personal.personalEmail) {
         emp.personal.personalEmail = emp.personalEmail || (emp.email ? emp.email.replace('@prashanthenterprises.in', '.dev@gmail.com') : 'personal@gmail.com');
       }
