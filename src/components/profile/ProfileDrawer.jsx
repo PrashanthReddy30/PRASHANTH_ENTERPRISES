@@ -475,17 +475,3 @@ export function ProfileDrawer({ isOpen, onClose }) {
 }
 
 export default ProfileDrawer;
-
-
-      {/* Keyframe animation injected once */}
-      <style>{`
-        @keyframes slideInFromRight {
-          from { transform: translateX(100%); }
-          to   { transform: translateX(0); }
-        }
-      `}</style>
-    </>
-  );
-}
-
-export default ProfileDrawer;
