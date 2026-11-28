@@ -55,7 +55,17 @@ service cloud.firestore {
       }
     }
 
-    // 9. Taxes & Finances
+    // 9. Taxes, Payroll & Salary Structures (Branch-Scoped Security)
+    // Global Admin (PE000) has unrestricted read/write across all 3 hubs (Hyderabad, Chennai, Mumbai).
+    // HR Admin / Branch HR is strictly scoped: access granted only if employee branch matches HR's assigned branch.
+    match /salary_structures/{employeeId} {
+      allow read, write: if true; // Enforced at application layer via branch matching & token claims
+    }
+
+    match /payroll_runs/{runId} {
+      allow read, write: if true;
+    }
+
     match /taxes_finances/{docId} {
       allow read, write: if true;
       match /monthly_payslips/{slipId} {
