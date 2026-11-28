@@ -473,6 +473,13 @@ export function Home() {
                     <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[10px] font-bold text-pink-700 border border-pink-200">
                       {celebrations.length} Active
                     </span>
+                    <button
+                      onClick={() => setShowAllCelebrationsModal(true)}
+                      className="ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-brand-700 hover:text-brand-800 bg-brand-50 hover:bg-brand-100/70 border border-brand-200/60 transition shadow-2xs active:scale-95"
+                    >
+                      <span>View All</span>
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
                   </div>
                   <p className="text-[11px] text-slate-500">
                     Welcome new joinees and share hearty birthday & work anniversary wishes with team members!
