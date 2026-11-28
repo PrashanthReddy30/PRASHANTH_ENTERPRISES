@@ -2120,6 +2120,183 @@ class HrmDataEngine {
     this.syncDocToFirebase('system_config', 'corporate', this.data.systemConfig);
     return this.data.systemConfig;
   }
+
+  // --- 8. Celebration & Wishes Automation System ---
+  saveCelebrationTemplate(templateData, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    if (!this.data.celebrationTemplates) {
+      this.data.celebrationTemplates = [];
+    }
+
+    let tpl = null;
+    if (templateData.id) {
+      const idx = this.data.celebrationTemplates.findIndex(t => t.id === templateData.id);
+      if (idx !== -1) {
+        tpl = { ...this.data.celebrationTemplates[idx], ...templateData, updatedAt: new Date().toISOString() };
+        this.data.celebrationTemplates[idx] = tpl;
+      }
+    }
+
+    if (!tpl) {
+      tpl = {
+        id: templateData.id || `TPL-${(templateData.category || 'CUSTOM').toUpperCase()}-${Date.now()}`,
+        ...templateData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      this.data.celebrationTemplates.unshift(tpl);
+    }
+
+    // If marked default, unmark other templates in same category
+    if (tpl.isDefault) {
+      this.data.celebrationTemplates.forEach(t => {
+        if (t.id !== tpl.id && t.category === tpl.category) {
+          t.isDefault = false;
+        }
+      });
+    }
+
+    this.logAudit('CELEBRATION_TEMPLATE_SAVED', 'Celebration Automation', hrUserName, hrUserId, `Saved ${tpl.category} celebration template: "${tpl.name}" (${tpl.id})`);
+    this.saveData();
+    this.syncDocToFirebase('celebration_templates', tpl.id, tpl);
+    return tpl;
+  }
+
+  deleteCelebrationTemplate(templateId, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    if (!this.data.celebrationTemplates) return;
+    const idx = this.data.celebrationTemplates.findIndex(t => t.id === templateId);
+    if (idx === -1) throw new Error('Template not found.');
+
+    const removed = this.data.celebrationTemplates.splice(idx, 1)[0];
+    this.logAudit('CELEBRATION_TEMPLATE_DELETED', 'Celebration Automation', hrUserName, hrUserId, `Deleted celebration template "${removed.name}" (${removed.id})`);
+    this.saveData();
+    return removed;
+  }
+
+  updateCelebrationAutomationSettings(newSettings, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    if (!this.data.celebrationAutomationSettings) {
+      this.data.celebrationAutomationSettings = {};
+    }
+    this.data.celebrationAutomationSettings = {
+      ...this.data.celebrationAutomationSettings,
+      ...newSettings,
+      updatedAt: new Date().toISOString()
+    };
+    this.logAudit('CELEBRATION_SETTINGS_UPDATED', 'Celebration Automation', hrUserName, hrUserId, `Celebration automation settings updated.`);
+    this.saveData();
+    this.syncDocToFirebase('celebration_settings', 'general', this.data.celebrationAutomationSettings);
+    return this.data.celebrationAutomationSettings;
+  }
+
+  publishCelebrationPosts(posts, hrUserName = 'CelebrationAutomationEngine') {
+    if (!Array.isArray(posts) || posts.length === 0) return [];
+    if (!this.data.employeeEngagementPosts) {
+      this.data.employeeEngagementPosts = [];
+    }
+
+    const added = [];
+    for (const post of posts) {
+      // Deduplicate by idempotencyKey or id
+      const existingIdx = this.data.employeeEngagementPosts.findIndex(
+        p => (p.idempotencyKey && p.idempotencyKey === post.idempotencyKey) || p.id === post.id
+      );
+      if (existingIdx !== -1) {
+        this.data.employeeEngagementPosts[existingIdx] = {
+          ...this.data.employeeEngagementPosts[existingIdx],
+          ...post
+        };
+        this.syncDocToFirebase('employee_engagement_posts', post.id, this.data.employeeEngagementPosts[existingIdx]);
+      } else {
+        this.data.employeeEngagementPosts.unshift(post);
+        added.push(post);
+        this.syncDocToFirebase('employee_engagement_posts', post.id, post);
+      }
+    }
+
+    if (added.length > 0) {
+      this.logAudit('CELEBRATIONS_PUBLISHED', 'Celebration Automation', hrUserName, 'SYSTEM', `Auto-published ${added.length} celebration post(s) to home feed.`);
+    }
+    this.saveData();
+    return added;
+  }
+
+  addCelebrationWish(postId, { senderId, senderName, senderAvatar, senderRole, text }) {
+    if (!this.data.employeeEngagementPosts) return null;
+    const post = this.data.employeeEngagementPosts.find(p => p.id === postId);
+    if (!post) throw new Error('Celebration post not found.');
+
+    if (!Array.isArray(post.wishes)) {
+      post.wishes = [];
+    }
+
+    const newWish = {
+      id: `WISH-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      senderId: senderId || 'CURRENT_USER',
+      senderName: senderName || 'Colleague',
+      senderAvatar: senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      senderRole: senderRole || 'Team Member',
+      text: text.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    post.wishes.unshift(newWish);
+    post.wishesCount = post.wishes.length;
+
+    this.saveData();
+    this.syncDocToFirebase('employee_engagement_posts', post.id, post);
+    return newWish;
+  }
+
+  likeCelebrationWish(postId, userId, userName) {
+    if (!this.data.employeeEngagementPosts) return null;
+    const post = this.data.employeeEngagementPosts.find(p => p.id === postId);
+    if (!post) throw new Error('Celebration post not found.');
+
+    if (!Array.isArray(post.likes)) {
+      post.likes = [];
+    }
+
+    const userIdentifier = userId || userName || 'PE000';
+    const existingIndex = post.likes.indexOf(userIdentifier);
+    if (existingIndex !== -1) {
+      post.likes.splice(existingIndex, 1);
+    } else {
+      post.likes.push(userIdentifier);
+    }
+    post.likesCount = post.likes.length;
+
+    this.saveData();
+    this.syncDocToFirebase('employee_engagement_posts', post.id, post);
+    return { likesCount: post.likesCount, liked: existingIndex === -1 };
+  }
+
+  addCelebrationLog(logEntry) {
+    if (!this.data.celebrationProcessingLogs) {
+      this.data.celebrationProcessingLogs = [];
+    }
+
+    const newLog = {
+      id: `LOG-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      timestamp: new Date().toISOString(),
+      ...logEntry
+    };
+
+    this.data.celebrationProcessingLogs.unshift(newLog);
+    if (this.data.celebrationProcessingLogs.length > 100) {
+      this.data.celebrationProcessingLogs = this.data.celebrationProcessingLogs.slice(0, 100);
+    }
+
+    this.saveData();
+    this.syncDocToFirebase('celebration_logs', newLog.id, newLog);
+    return newLog;
+  }
+
+  async triggerCelebrationSchedulerNow(customSimulatedDate = null, forcePublish = false) {
+    const result = await runCelebrationScheduler(this, {
+      simulatedDate: customSimulatedDate,
+      forcePublish
+    });
+    return result;
+  }
 }
 
 // Global Singleton Instance
