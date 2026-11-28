@@ -56,6 +56,7 @@ import {
 } from 'lucide-react';
 import { currentUser } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
+import { getVerifiedEmployeeLedger } from '../services/leaveCalculationService.js';
 
 export const MONTH_NAMES = [
   { short: 'JAN', full: 'January' },
@@ -378,7 +379,8 @@ export function Me() {
   }, [storeData?.employees, activeUser]);
 
   const employeeLedger = useMemo(() => {
-    return storeData?.leaveLedger?.[employee.id] || 
+    return getVerifiedEmployeeLedger(employee.id, storeData) || 
+           storeData?.leaveLedger?.[employee.id] || 
            storeData?.leaveLedger?.[employee.employeeId] || 
            {
              CL: { opening: 12, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 12 },
@@ -386,7 +388,7 @@ export function Me() {
              PL: { opening: 18, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 18 },
              COMP: { opening: 0, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 0 }
            };
-  }, [storeData?.leaveLedger, employee.id, employee.employeeId]);
+  }, [storeData, employee.id, employee.employeeId]);
 
   const myLedger = employeeLedger;
 
