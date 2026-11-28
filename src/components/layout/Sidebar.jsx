@@ -129,13 +129,14 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
       <NavLink
         key={item.path + item.name}
         to={item.path}
-        className={({ isActive }) =>
-          `group relative flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition ${
-            isActive
+        className={({ isActive }) => {
+          const isItemActive = isActive || (item.path === '/admin/dashboard' && (location.pathname === '/admin' || location.pathname === '/admin/dashboard'));
+          return `group relative flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition ${
+            isItemActive
               ? 'bg-brand-600 text-white shadow-sm'
               : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-          } ${collapsed ? 'justify-center' : ''}`
-        }
+          } ${collapsed ? 'justify-center' : ''}`;
+        }}
         title={collapsed ? item.name : undefined}
       >
         <Icon className="h-4 w-4 shrink-0" />
