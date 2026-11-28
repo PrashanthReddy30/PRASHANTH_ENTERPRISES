@@ -923,7 +923,170 @@ const initialEnterpriseData = {
       details: "Published New Joiner welcome for Ananya Deshmukh; Birthday wish for Kavitha Sharma; 4-Year Anniversary for Rajesh Kannan.",
       triggeredBy: "Server Cloud Scheduler (Asia/Kolkata 01:00 AM)"
     }
-  ]
+  ],
+
+  // 18. New Employee Onboarding Cases
+  onboardingCases: [
+    {
+      id: "ONB-202611-001",
+      token: "onb-tok-tanvi-joshi-8921",
+      candidateId: "CAN-802",
+      status: "Invitation Sent",
+      candidateInfo: {
+        name: "Tanvi Joshi",
+        email: "tanvi.j@outlook.com",
+        phone: "+91 98765 43210",
+        jobTitle: "Senior Full-Stack Engineer",
+        experience: "6.0 Years",
+        department: "Information Technology",
+        branch: "Hyderabad"
+      },
+      personal: {
+        fullName: "Tanvi Joshi",
+        dob: "1997-04-18",
+        gender: "Female",
+        personalEmail: "tanvi.j@outlook.com",
+        mobile: "+91 98765 43210",
+        alternatePhone: "+91 98765 43219",
+        bloodGroup: "B+ve",
+        maritalStatus: "Single",
+        photograph: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200"
+      },
+      address: {
+        currentAddress: "Flat 302, Cyber Heights, Madhapur",
+        permanentAddress: "House 45, Shivaji Nagar, Pune, Maharashtra 411005",
+        city: "Hyderabad",
+        state: "Telangana",
+        country: "India",
+        pinCode: "500081"
+      },
+      employment: {
+        employeeId: "EMP-2026-011",
+        dateOfJoining: "2026-12-01",
+        designation: "Senior Full-Stack Engineer",
+        department: "Information Technology",
+        deptCode: "IT",
+        employmentType: "Full-Time Permanent",
+        workLocation: "Hyderabad Hub - Tech Floor Bay 4",
+        branch: "Hyderabad",
+        branchId: "HYD",
+        reportingManager: "Rajesh Kannan",
+        reportingManagerId: "PE003",
+        employmentCategory: "Core Engineering",
+        probationPeriod: "6 Months",
+        noticePeriod: "60 Days",
+        workEmail: "tanvi.joshi@prashanthenterprises.in"
+      },
+      salary: {
+        annualCtc: 1800000,
+        monthlyGross: 150000,
+        basicSalary: 60000,
+        hra: 30000,
+        conveyanceAllowance: 1600,
+        specialAllowance: 58400,
+        otherAllowances: 0,
+        employeePf: 1800,
+        employerPf: 1800,
+        esiApplicable: false,
+        esiEmployee: 0,
+        esiEmployer: 0,
+        professionalTax: 200,
+        totalDeductions: 2000,
+        netSalary: 148000,
+        paymentFrequency: "Monthly"
+      },
+      bank: {
+        accountHolderName: "Tanvi Joshi",
+        bankName: "HDFC Bank Ltd",
+        accountNumber: "5010048291048",
+        ifscCode: "HDFC0001823",
+        branchName: "Madhapur Tech Hub Branch"
+      },
+      emergencyContact: {
+        name: "Suresh Joshi",
+        relationship: "Father",
+        phone: "+91 98220 11223",
+        address: "House 45, Shivaji Nagar, Pune, Maharashtra 411005"
+      },
+      education: [
+        {
+          id: "EDU-01",
+          qualification: "B.Tech in Computer Science",
+          institution: "Pune Institute of Computer Technology (PICT)",
+          yearOfPassing: "2018",
+          percentage: "88.4%",
+          certificateFile: "PICT_Degree_Certificate.pdf"
+        }
+      ],
+      previousEmployment: [
+        {
+          id: "EXP-01",
+          companyName: "Persistent Systems Ltd",
+          designation: "Software Engineer",
+          duration: "3.5 Years (2021-2024)",
+          ctc: 1200000,
+          relievingLetter: "Persistent_Relieving_Letter.pdf",
+          experienceCert: "Persistent_Experience_Cert.pdf"
+        }
+      ],
+      documents: {
+        aadhaar: { name: "Aadhaar Card", uploaded: true, fileName: "Aadhaar_Tanvi_Joshi.pdf", verified: false, remarks: "" },
+        pan: { name: "PAN Card", uploaded: true, fileName: "PAN_Tanvi_Joshi.pdf", verified: false, remarks: "" },
+        photo: { name: "Passport Size Photograph", uploaded: true, fileName: "Photo_Tanvi.jpg", verified: false, remarks: "" },
+        education: { name: "Educational Certificates", uploaded: true, fileName: "Degree_Certificates_Consolidated.pdf", verified: false, remarks: "" },
+        previousEmployment: { name: "Previous Employment Documents", uploaded: true, fileName: "Relieving_Letters.pdf", verified: false, remarks: "" },
+        bankProof: { name: "Bank Proof (Cancelled Cheque / Passbook)", uploaded: true, fileName: "Cancelled_Cheque.pdf", verified: false, remarks: "" },
+        addressProof: { name: "Address Proof", uploaded: true, fileName: "Electricity_Bill.pdf", verified: false, remarks: "" }
+      },
+      lettersConfig: {
+        appointmentLetter: { enabled: true, status: "Ready", signed: false },
+        nda: { enabled: true, status: "Ready", signed: false },
+        codeOfConduct: { enabled: true, status: "Ready", signed: false },
+        assetAllocation: {
+          enabled: true,
+          laptopDetails: "MacBook Pro M3 / 16GB / 512GB SSD",
+          laptopSerial: "C02XYZ12345M",
+          charger: "70W USB-C Power Adapter",
+          idCard: "PE-ID-2026-011",
+          accessCard: "HID-RFID-8921",
+          companyPhone: "N/A",
+          issueDate: "2026-12-01",
+          signed: false
+        },
+        joiningReport: { enabled: true, signed: false },
+        serviceBond: { enabled: false, bondPeriod: "2 Years", bondAmount: 200000, signed: false },
+        ipAssignment: { enabled: true, signed: false }
+      },
+      statutoryForms: {
+        pfForm11: { enabled: true, prevUan: "100984920194", prevPfNumber: "MH/BAN/0012938/000/0048291", signed: false },
+        pfForm2: { enabled: true, nomineeName: "Suresh Joshi", nomineeRelation: "Father", nomineeShare: "100%", signed: false },
+        esicForm: { enabled: false, eligible: false, reason: "Monthly gross wages exceed ₹21,000 threshold", signed: false },
+        bgvConsent: { enabled: true, signed: false }
+      },
+      emailTracking: {
+        sentAt: "2026-11-28T10:30:00+05:30",
+        sentTo: "tanvi.j@outlook.com",
+        emailSubject: "Welcome to Prashanth Enterprises – Complete Your Onboarding",
+        status: "Sent"
+      },
+      signatures: {
+        employeeSignature: null,
+        signedAt: null,
+        ipAddress: null,
+        hrSignature: "Prashanth Reddy (Director of Operations)",
+        hrSignedAt: "2026-11-28T10:00:00+05:30"
+      },
+      timeline: [
+        { action: "CASE_CREATED", by: "Pooja Hegde (Central HR)", timestamp: "2026-11-28T10:00:00+05:30", note: "Candidate qualified Technical Round 2 & HR Discussion. Onboarding case initiated." },
+        { action: "INVITATION_SENT", by: "Pooja Hegde (Central HR)", timestamp: "2026-11-28T10:30:00+05:30", note: "Branded onboarding email dispatched to tanvi.j@outlook.com with secure link." }
+      ],
+      createdAt: "2026-11-28T10:00:00+05:30",
+      updatedAt: "2026-11-28T10:30:00+05:30"
+    }
+  ],
+
+  // 19. Onboarding Document & Statutory Form Templates
+  onboardingTemplates: DEFAULT_ONBOARDING_TEMPLATES
 };
 
 class HrmDataEngine {
