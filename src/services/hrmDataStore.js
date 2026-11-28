@@ -1471,6 +1471,9 @@ export class HrmDataEngine {
           if (!parsed.onboardingTemplates || parsed.onboardingTemplates.length === 0) {
             parsed.onboardingTemplates = JSON.parse(JSON.stringify(initialEnterpriseData.onboardingTemplates));
           }
+          if (!parsed.rolePermissions || parsed.rolePermissions.length === 0) {
+            parsed.rolePermissions = JSON.parse(JSON.stringify(initialEnterpriseData.rolePermissions));
+          }
           return parsed;
         }
       }
