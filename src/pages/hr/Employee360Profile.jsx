@@ -1218,6 +1218,33 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
                   </table>
                 </div>
               </div>
+
+              {/* Published Monthly Payslips */}
+              <div className="space-y-3 border-t border-slate-100 pt-4">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Published Monthly Payslips
+                </h4>
+                <div className="space-y-2">
+                  {['October 2026', 'September 2026', 'August 2026'].map((period) => (
+                    <div key={period} className="flex items-center justify-between rounded-xl border border-slate-200 p-3 bg-slate-50/50">
+                      <div className="flex items-center gap-2.5">
+                        <FileText className="h-4 w-4 text-brand-600" />
+                        <div>
+                          <p className="text-xs font-bold text-slate-900">{employee.name} — Payslip {period}</p>
+                          <p className="text-[11px] text-slate-500 font-mono">Gross: ₹{employeeSalary.gross?.toLocaleString()} • Net: ₹{employeeSalary.net?.toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => showToast(`Downloaded payslip for ${period}`)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs"
+                      >
+                        <Download className="h-3 w-3 text-slate-500" />
+                        <span>Download</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
