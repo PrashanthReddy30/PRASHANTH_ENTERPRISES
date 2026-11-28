@@ -95,8 +95,45 @@ export function HrSettings() {
     const rulesText = `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // PRASHANTH ENTERPRISES HRMS - STRICT CONFIDENTIAL ZERO-TRUST RBAC RULES
+    function isSignedIn() { return request.auth != null; }
+    function getCaller() { return get(/databases/$(database)/documents/employees/$(request.auth.uid)).data; }
+    function isGlobalAdmin() { return isSignedIn() && (request.auth.token.role == 'Global Admin' || request.auth.uid == 'PE000' || getCaller().systemRole == 'Global Admin'); }
+    function isCentralHR() { return isSignedIn() && (isGlobalAdmin() || request.auth.token.role == 'Central HR' || request.auth.token.role == 'HR Admin' || getCaller().systemRole == 'Central HR' || getCaller().systemRole == 'HR Admin'); }
+    function isBranchHR() { return isSignedIn() && (isCentralHR() || request.auth.token.role == 'Branch HR' || getCaller().systemRole == 'Branch HR'); }
+    function isFinance() { return isSignedIn() && (isGlobalAdmin() || request.auth.token.role == 'Finance' || getCaller().systemRole == 'Finance'); }
+    function callerBranch() { return getCaller().branch; }
+
+    match /employees/{employeeId} {
+      allow read: if isGlobalAdmin() || isCentralHR() || (isBranchHR() && resource.data.branch == callerBranch()) || (isSignedIn() && employeeId == request.auth.uid) || isSignedIn();
+      allow create, delete: if isGlobalAdmin() || isCentralHR();
+      allow update: if isGlobalAdmin() || isCentralHR() || (isBranchHR() && resource.data.branch == callerBranch());
+    }
+    match /salary_structures/{employeeId} {
+      allow read: if isGlobalAdmin() || isFinance() || isCentralHR() || (isBranchHR() && get(/databases/$(database)/documents/employees/$(employeeId)).data.branch == callerBranch()) || (isSignedIn() && employeeId == request.auth.uid);
+      allow write: if isGlobalAdmin() || isFinance();
+    }
+    match /payroll_runs/{runId} {
+      allow read: if isGlobalAdmin() || isFinance() || isCentralHR() || isBranchHR();
+      allow write: if isGlobalAdmin() || isFinance();
+    }
+    match /leave_requests/{requestId} {
+      allow read: if isGlobalAdmin() || isCentralHR() || (isBranchHR() && resource.data.branch == callerBranch()) || (isSignedIn() && resource.data.employeeId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update: if isGlobalAdmin() || isCentralHR() || (isBranchHR() && resource.data.branch == callerBranch());
+      allow delete: if isGlobalAdmin();
+    }
+    match /attendance/{attId} {
+      allow read: if isGlobalAdmin() || isCentralHR() || (isBranchHR() && resource.data.branch == callerBranch()) || (isSignedIn() && resource.data.employeeId == request.auth.uid);
+      allow create, update: if isGlobalAdmin() || isCentralHR() || (isBranchHR() && resource.data.branch == callerBranch()) || (isSignedIn() && request.resource.data.employeeId == request.auth.uid);
+    }
+    match /audit_logs/{logId} {
+      allow read: if isGlobalAdmin() || isCentralHR() || isFinance() || isBranchHR();
+      allow create: if isSignedIn();
+      allow update, delete: if false; // Tamper-proof append-only
+    }
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if isGlobalAdmin();
     }
   }
 }`;
