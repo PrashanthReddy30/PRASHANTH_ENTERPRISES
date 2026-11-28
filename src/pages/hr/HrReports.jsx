@@ -16,10 +16,12 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getVerifiedEmployeeLedger } from '../../services/leaveCalculationService.js';
 
 export function HrReports() {
   const { storeData } = useAuth();
   const [selectedReport, setSelectedReport] = useState('leave'); // 'leave' | 'payroll' | 'dept' | 'attrition' | 'recruitment' | 'attendance' | 'employee' | 'branch'
+  const [leaveReportView, setLeaveReportView] = useState('balances'); // 'balances' | 'requests'
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (msg) => {
