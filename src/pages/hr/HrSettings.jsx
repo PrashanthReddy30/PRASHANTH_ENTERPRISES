@@ -124,6 +124,158 @@ service cloud.firestore {
     log.details.toLowerCase().includes(auditSearch.toLowerCase())
   );
 
+  // --- RBAC & Access Matrix States ---
+  const initialMatrix = useMemo(() => {
+    return storeData.rolePermissions && storeData.rolePermissions.length > 0
+      ? storeData.rolePermissions
+      : DEFAULT_ROLE_MATRIX;
+  }, [storeData.rolePermissions]);
+
+  const [matrixForm, setMatrixForm] = useState(initialMatrix);
+  const [isMatrixModified, setIsMatrixModified] = useState(false);
+  const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
+  const [activeUsersPopover, setActiveUsersPopover] = useState(null);
+
+  useEffect(() => {
+    if (!isMatrixModified) {
+      setMatrixForm(initialMatrix);
+    }
+  }, [initialMatrix, isMatrixModified]);
+
+  // Privileged Access Holders Count
+  const privilegedHolders = useMemo(() => {
+    return storeData.employees.filter(e => {
+      const isNotStandard = e.systemRole && e.systemRole !== 'Employee';
+      const hasOverrides = e.permissionsOverride && Object.values(e.permissionsOverride).some(Boolean);
+      return isNotStandard || hasOverrides;
+    });
+  }, [storeData.employees]);
+
+  // --- User Access Assignment Modal States ---
+  const [showUserAccessModal, setShowUserAccessModal] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(storeData.employees[0]?.id || 'PE000');
+  const [userFormRole, setUserFormRole] = useState('Employee');
+  const [userFormScope, setUserFormScope] = useState('Assigned Hub');
+  const [userFormOverrides, setUserFormOverrides] = useState({
+    canProcessPayroll: false,
+    canManageRecruitment: false,
+    canManageEmployees: false,
+    canApproveLeaves: false,
+    canViewAuditLogs: false
+  });
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+
+  const selectedEmployee = useMemo(() => {
+    return storeData.employees.find(e => e.id === selectedEmployeeId) || storeData.employees[0];
+  }, [storeData.employees, selectedEmployeeId]);
+
+  const handleSelectEmployee = (emp) => {
+    setSelectedEmployeeId(emp.id);
+    setUserFormRole(emp.systemRole || 'Employee');
+    setUserFormScope(emp.branchScope || emp.branch || 'Assigned Hub');
+    setUserFormOverrides({
+      canProcessPayroll: !!emp.permissionsOverride?.canProcessPayroll,
+      canManageRecruitment: !!emp.permissionsOverride?.canManageRecruitment,
+      canManageEmployees: !!emp.permissionsOverride?.canManageEmployees,
+      canApproveLeaves: !!emp.permissionsOverride?.canApproveLeaves,
+      canViewAuditLogs: !!emp.permissionsOverride?.canViewAuditLogs
+    });
+  };
+
+  const handleOpenAssignModal = (preselectedRole = null, preselectedEmployee = null) => {
+    setShowUserAccessModal(true);
+    setShowRevokeConfirm(false);
+    if (preselectedEmployee) {
+      handleSelectEmployee(preselectedEmployee);
+      if (preselectedRole) setUserFormRole(preselectedRole);
+    } else if (preselectedRole) {
+      const match = storeData.employees.find(e => (e.systemRole || 'Employee') === preselectedRole);
+      if (match) {
+        handleSelectEmployee(match);
+      } else if (selectedEmployee) {
+        handleSelectEmployee(selectedEmployee);
+        setUserFormRole(preselectedRole);
+      }
+    } else if (selectedEmployee) {
+      handleSelectEmployee(selectedEmployee);
+    }
+  };
+
+  const handleMatrixCellChange = (roleName, field, value) => {
+    if (roleName === 'Global Admin') return; // Strictly locked
+    setMatrixForm(prev => prev.map(row => {
+      if (row.role === roleName) {
+        return { ...row, [field]: value };
+      }
+      return row;
+    }));
+    setIsMatrixModified(true);
+  };
+
+  const handleSaveMatrix = () => {
+    try {
+      hrmStore.updateRolePermissions(matrixForm, currentUser.id, currentUser.name);
+      setIsMatrixModified(false);
+      setShowSaveConfirmModal(false);
+      showToast('Enterprise Role Matrix updated! Live permissions enforced across the portal.');
+    } catch (err) {
+      alert(`Failed to save matrix: ${err.message}`);
+    }
+  };
+
+  const handleResetMatrix = () => {
+    setMatrixForm(initialMatrix);
+    setIsMatrixModified(false);
+    showToast('Reverted unsaved matrix changes.');
+  };
+
+  const handleSaveUserAccess = (e) => {
+    e?.preventDefault();
+    if (!selectedEmployee) return;
+    try {
+      hrmStore.updateUserRoleAccess(
+        selectedEmployee.id,
+        {
+          systemRole: userFormRole,
+          branchScope: userFormScope,
+          permissionsOverride: userFormOverrides
+        },
+        currentUser.id,
+        currentUser.name
+      );
+      showToast(`Role & access rights updated for ${selectedEmployee.name} (${userFormRole}).`);
+      setShowUserAccessModal(false);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleRevokeUserAccess = () => {
+    if (!selectedEmployee) return;
+    try {
+      hrmStore.revokeUserAccess(selectedEmployee.id, currentUser.id, currentUser.name);
+      showToast(`Privileged access revoked for ${selectedEmployee.name}. Reverted to Standard Employee.`);
+      setShowRevokeConfirm(false);
+      setShowUserAccessModal(false);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const getCellColorClasses = (val) => {
+    if (val === 'None' || val === '❌') {
+      return 'border-rose-200 bg-rose-50/70 text-rose-700';
+    }
+    if (val === 'Full' || val === 'Company-Wide' || val === 'All Hubs' || val === 'Full Process' || val === 'Full Audit') {
+      return 'border-emerald-200 bg-emerald-50 text-emerald-800 font-semibold';
+    }
+    if (val === 'Branch' || val === 'Assigned Hub' || val === 'Team') {
+      return 'border-blue-200 bg-blue-50 text-blue-800 font-semibold';
+    }
+    return 'border-amber-200 bg-amber-50 text-amber-800 font-semibold';
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Toast */}
