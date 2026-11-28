@@ -2539,6 +2539,99 @@ export class HrmDataEngine {
     return this.data.systemConfig;
   }
 
+  // --- 8. Role & User Access Control Center (Global Admin Controlled) ---
+  updateRolePermissions(newRoleMatrix, adminUserId = 'PE000', adminUserName = 'Global Admin') {
+    this.data.rolePermissions = newRoleMatrix;
+    this.logAudit(
+      'ROLE_PERMISSIONS_UPDATED',
+      'Access Control',
+      adminUserName,
+      adminUserId,
+      `Global Admin updated enterprise role-based access matrix across 6 tiers. Live permissions enforced.`
+    );
+    this.saveData();
+    this.syncDocToFirebase('system_config', 'role_permissions', {
+      roles: newRoleMatrix,
+      updatedAt: new Date().toISOString(),
+      updatedBy: adminUserName
+    });
+    return this.data.rolePermissions;
+  }
+
+  updateUserRoleAccess(employeeId, { systemRole, branchScope, permissionsOverride }, adminUserId = 'PE000', adminUserName = 'Global Admin') {
+    const emp = this.data.employees.find(e => e.id === employeeId || e.employeeId === employeeId);
+    if (!emp) throw new Error('Employee not found');
+
+    const prevRole = emp.systemRole || 'Employee';
+    emp.systemRole = systemRole;
+    emp.branchScope = branchScope || 'Assigned Hub';
+    emp.permissionsOverride = permissionsOverride || {};
+
+    this.normalizeEmployee360(emp);
+
+    const overrideSummary = Object.keys(emp.permissionsOverride)
+      .filter(k => emp.permissionsOverride[k] !== undefined)
+      .map(k => `${k}:${emp.permissionsOverride[k] ? 'Granted' : 'Revoked'}`)
+      .join(', ');
+
+    this.logAudit(
+      'USER_ACCESS_ASSIGNED',
+      'Access Control',
+      adminUserName,
+      adminUserId,
+      `Assigned role "${systemRole}" (Scope: ${emp.branchScope}) to ${emp.name} (${emp.employeeId}). Previous role: "${prevRole}". ${overrideSummary ? 'Overrides: ' + overrideSummary : 'Default tier rules applied.'}`
+    );
+
+    this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
+    this.syncDocToFirebase('users', emp.id, {
+      id: emp.id,
+      name: emp.name,
+      email: emp.email,
+      systemRole: emp.systemRole,
+      branch: emp.branch,
+      branchScope: emp.branchScope,
+      permissionsOverride: emp.permissionsOverride,
+      updatedAt: new Date().toISOString(),
+      updatedBy: adminUserName
+    });
+
+    return emp;
+  }
+
+  revokeUserAccess(employeeId, adminUserId = 'PE000', adminUserName = 'Global Admin') {
+    const emp = this.data.employees.find(e => e.id === employeeId || e.employeeId === employeeId);
+    if (!emp) throw new Error('Employee not found');
+
+    const prevRole = emp.systemRole || 'Employee';
+    emp.systemRole = 'Employee';
+    emp.branchScope = 'Self';
+    emp.permissionsOverride = {};
+
+    this.normalizeEmployee360(emp);
+
+    this.logAudit(
+      'USER_ACCESS_REVOKED',
+      'Access Control',
+      adminUserName,
+      adminUserId,
+      `Revoked privileged access for ${emp.name} (${emp.employeeId}). Reverted role from "${prevRole}" back to standard "Employee". Reset all module overrides.`
+    );
+
+    this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
+    this.syncDocToFirebase('users', emp.id, {
+      id: emp.id,
+      systemRole: 'Employee',
+      branchScope: 'Self',
+      permissionsOverride: {},
+      updatedAt: new Date().toISOString(),
+      updatedBy: adminUserName
+    });
+
+    return emp;
+  }
+
   // --- 8. Celebration & Wishes Automation System ---
   saveCelebrationTemplate(templateData, hrUserName = 'HR Admin', hrUserId = 'HR') {
     if (!this.data.celebrationTemplates) {
