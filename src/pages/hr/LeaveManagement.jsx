@@ -20,6 +20,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getVerifiedEmployeeLedger } from '../../services/leaveCalculationService.js';
 
 export function LeaveManagement() {
   const { storeData, hrmStore, currentUser } = useAuth();
@@ -37,6 +38,15 @@ export function LeaveManagement() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleRunGlobalReconciliation = () => {
+    try {
+      const report = hrmStore.reconcileAllEmployeeLeaves(currentUser?.id || 'HR', currentUser?.name || 'HR Admin');
+      showToast(`Global audit reconciled! ${report.totalEmployees} employees across Hyderabad, Chennai, and Mumbai verified.`);
+    } catch (err) {
+      alert('Error running global reconciliation: ' + err.message);
+    }
   };
 
   // Filter Leave Applications
