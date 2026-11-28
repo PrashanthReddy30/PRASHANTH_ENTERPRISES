@@ -649,8 +649,10 @@ export function AuthProvider({ children }) {
       targetRoute = '/admin/dashboard';
     }
 
-    if (options.portal) targetPortal = options.portal;
-    if (options.route) targetRoute = options.route;
+    if (sRole !== 'Global Admin') {
+      if (options.portal) targetPortal = options.portal;
+      if (options.route) targetRoute = options.route;
+    }
 
     // 1. Immediately update activePersona state and activeUserId
     setActivePersona(targetPersona);
