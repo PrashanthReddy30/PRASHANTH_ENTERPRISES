@@ -1518,6 +1518,20 @@ export class HrmDataEngine {
           if (!parsed.rolePermissions || parsed.rolePermissions.length === 0) {
             parsed.rolePermissions = JSON.parse(JSON.stringify(initialEnterpriseData.rolePermissions));
           }
+          if (!parsed.payrollRuns || parsed.payrollRuns.length < initialEnterpriseData.payrollRuns.length) {
+            parsed.payrollRuns = JSON.parse(JSON.stringify(initialEnterpriseData.payrollRuns));
+          } else {
+            parsed.payrollRuns = parsed.payrollRuns.map(run => {
+              const seed = initialEnterpriseData.payrollRuns.find(sr => sr.id === run.id);
+              if (seed) {
+                if (!run.paymentDate) run.paymentDate = seed.paymentDate;
+                if (seed.branchBreakdown) {
+                  run.branchBreakdown = { ...seed.branchBreakdown, ...(run.branchBreakdown || {}) };
+                }
+              }
+              return run;
+            });
+          }
           return parsed;
         }
       }
