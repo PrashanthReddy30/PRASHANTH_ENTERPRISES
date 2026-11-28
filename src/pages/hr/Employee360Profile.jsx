@@ -1749,6 +1749,333 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
           </div>
         </div>
       )}
+
+      {/* MODAL: EDIT OVERVIEW / SNAPSHOT */}
+      {showEditOverviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="text-sm font-bold text-slate-900">Modify Personnel & Corporate Snapshot</h3>
+              <button onClick={() => setShowEditOverviewModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveOverview} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Employee Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={overviewForm.name || ''}
+                  onChange={(e) => setOverviewForm({ ...overviewForm, name: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-medium outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Corporate Designation / Role</label>
+                <input
+                  type="text"
+                  required
+                  value={overviewForm.role || ''}
+                  onChange={(e) => setOverviewForm({ ...overviewForm, role: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-medium outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Department</label>
+                <input
+                  type="text"
+                  required
+                  value={overviewForm.department || ''}
+                  onChange={(e) => setOverviewForm({ ...overviewForm, department: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-medium outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Regional Branch Hub</label>
+                <select
+                  value={overviewForm.branch || ''}
+                  onChange={(e) => setOverviewForm({ ...overviewForm, branch: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-semibold outline-none focus:border-brand-500"
+                >
+                  <option value="Hyderabad">Hyderabad Hub</option>
+                  <option value="Bengaluru">Bengaluru Hub</option>
+                  <option value="Chennai">Chennai Hub</option>
+                  <option value="Mumbai">Mumbai Hub</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowEditOverviewModal(false)}
+                  className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700"
+                >
+                  Save & Log Audit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT LEAVE BALANCES */}
+      {showEditLeaveBalanceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Adjust Leave Balances (Atomic Ledger)</h3>
+                <p className="text-[11px] text-slate-500">Update available entitlements and opening balances directly</p>
+              </div>
+              <button onClick={() => setShowEditLeaveBalanceModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveLeaveBalance} className="space-y-4 text-xs">
+              {[
+                { code: 'CL', name: 'Casual Leave' },
+                { code: 'SL', name: 'Sick Leave' },
+                { code: 'PL', name: 'Privilege Leave' },
+                { code: 'COMP', name: 'Compensatory Off' }
+              ].map(({ code, name }) => (
+                <div key={code} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-slate-800">
+                    <span>{name} ({code})</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Available Days</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={leaveBalanceForm[code]?.available ?? 0}
+                        onChange={(e) => setLeaveBalanceForm({
+                          ...leaveBalanceForm,
+                          [code]: {
+                            ...(leaveBalanceForm[code] || {}),
+                            available: parseFloat(e.target.value) || 0
+                          }
+                        })}
+                        className="w-full rounded-xl border border-slate-300 p-2 font-mono font-bold text-slate-900 outline-none focus:border-brand-500 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Opening Balance</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={leaveBalanceForm[code]?.opening ?? 0}
+                        onChange={(e) => setLeaveBalanceForm({
+                          ...leaveBalanceForm,
+                          [code]: {
+                            ...(leaveBalanceForm[code] || {}),
+                            opening: parseFloat(e.target.value) || 0
+                          }
+                        })}
+                        className="w-full rounded-xl border border-slate-300 p-2 font-mono font-bold text-slate-900 outline-none focus:border-brand-500 bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-end gap-2 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowEditLeaveBalanceModal(false)}
+                  className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700"
+                >
+                  Save & Log Audit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT BIOMETRIC ID */}
+      {showEditBiometricModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <Fingerprint className="h-4 w-4 text-brand-600" />
+                <h3 className="text-sm font-bold text-slate-900">Modify Biometric ID</h3>
+              </div>
+              <button onClick={() => setShowEditBiometricModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveBiometric} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Terminal Reader ID</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. BIO-HYD-042"
+                  value={biometricForm.biometricId}
+                  onChange={(e) => setBiometricForm({ biometricId: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-mono font-bold text-slate-900 outline-none focus:border-brand-500"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Matrix Intranet punch terminal controller identifier</p>
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowEditBiometricModal(false)}
+                  className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700"
+                >
+                  Save & Log Audit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT BANK DETAILS */}
+      {showEditBankModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-brand-600" />
+                <h3 className="text-sm font-bold text-slate-900">Modify Salary Bank Details</h3>
+              </div>
+              <button onClick={() => setShowEditBankModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveBank} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Bank Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. HDFC Bank"
+                  value={bankForm.bankName || ''}
+                  onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-medium outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Account Number</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 50100492817261"
+                  value={bankForm.accountNumber || ''}
+                  onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-mono font-medium outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">IFSC Code</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. HDFC0001234"
+                  value={bankForm.ifscCode || ''}
+                  onChange={(e) => setBankForm({ ...bankForm, ifscCode: e.target.value.toUpperCase() })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-mono font-medium uppercase outline-none focus:border-brand-500"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowEditBankModal(false)}
+                  className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700"
+                >
+                  Save & Log Audit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT EMPLOYMENT STATUS */}
+      {showEditStatusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <UserCog className="h-4 w-4 text-brand-600" />
+                <h3 className="text-sm font-bold text-slate-900">Change Employment Status</h3>
+              </div>
+              <button onClick={() => setShowEditStatusModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveStatus} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Status</label>
+                <select
+                  value={statusForm.status}
+                  onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-semibold outline-none focus:border-brand-500"
+                >
+                  <option value="Active">Active (In Good Standing)</option>
+                  <option value="On Leave">On Leave (Authorized Absence)</option>
+                  <option value="Suspended">Suspended (Pending Investigation)</option>
+                  <option value="Resigned">Resigned (Serving Notice)</option>
+                  <option value="Terminated">Terminated (Separated)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Reason / HR Justification</label>
+                <textarea
+                  rows="3"
+                  placeholder="Provide context or board authorization for status change..."
+                  value={statusForm.statusReason || ''}
+                  onChange={(e) => setStatusForm({ ...statusForm, statusReason: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 p-2 font-medium outline-none focus:border-brand-500"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowEditStatusModal(false)}
+                  className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700"
+                >
+                  Save & Log Audit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
