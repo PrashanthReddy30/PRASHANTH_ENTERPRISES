@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
     canAccessGlobalAdmin: isGlobalAdmin,
     canApproveLeaves: isManager || isHR || isGlobalAdmin,
     canManageEmployees: isHR || isGlobalAdmin,
-    canProcessPayroll: isFinance || isGlobalAdmin,
+    canProcessPayroll: isFinance || isHR || isGlobalAdmin,
     canManageRecruitment: isHR || isGlobalAdmin,
     canEditSettings: isGlobalAdmin,
     canViewAuditLogs: isHR || isGlobalAdmin
