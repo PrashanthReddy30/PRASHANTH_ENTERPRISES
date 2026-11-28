@@ -2505,6 +2505,464 @@ class HrmDataEngine {
     });
     return result;
   }
+
+  // --- 9. New Employee Onboarding & Document Management ---
+  getOnboardingCases() {
+    return this.data.onboardingCases || [];
+  }
+
+  getOnboardingCaseById(caseId) {
+    return (this.data.onboardingCases || []).find(c => c.id === caseId || c.candidateId === caseId);
+  }
+
+  getOnboardingCaseByToken(token) {
+    return (this.data.onboardingCases || []).find(c => c.token === token);
+  }
+
+  createOrGetOnboardingCase(candidateId, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    if (!this.data.onboardingCases) {
+      this.data.onboardingCases = [];
+    }
+
+    // Check if case already exists for this candidate
+    let existingCase = this.data.onboardingCases.find(c => c.candidateId === candidateId);
+    if (existingCase) {
+      return existingCase;
+    }
+
+    const candidate = this.data.candidates.find(c => c.id === candidateId);
+    if (!candidate) {
+      throw new Error(`Candidate with ID ${candidateId} not found in Recruitment.`);
+    }
+
+    // Auto-generate next Employee ID based on workforce directory
+    let maxNum = -1;
+    for (const emp of this.data.employees) {
+      const match = (emp.id || '').match(/PE(\d+)/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    const nextNum = maxNum >= 0 ? maxNum + 1 : this.data.employees.length;
+    const autoEmpId = `EMP-${new Date().getFullYear()}-${String(nextNum).padStart(3, '0')}`;
+    const token = `onb-tok-${candidate.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`;
+
+    // Default salary structure: default 1,800,000 CTC
+    const initialCtc = 1800000;
+    const salaryBreakup = calculateSalaryBreakup(initialCtc);
+
+    const newCase = {
+      id: `ONB-${Date.now()}`,
+      token,
+      candidateId: candidate.id,
+      status: 'Draft',
+      candidateInfo: {
+        name: candidate.name,
+        email: candidate.email,
+        phone: candidate.phone,
+        jobTitle: candidate.jobTitle,
+        experience: candidate.experience || '3-5 Years',
+        department: candidate.department || 'Information Technology',
+        branch: candidate.branch || 'Hyderabad'
+      },
+      personal: {
+        fullName: candidate.name,
+        dob: '1996-05-15',
+        gender: 'Male',
+        personalEmail: candidate.email,
+        mobile: candidate.phone,
+        alternatePhone: '',
+        bloodGroup: 'O+ve',
+        maritalStatus: 'Single',
+        photograph: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'
+      },
+      address: {
+        currentAddress: 'Flat 402, Cyber Residency, Madhapur',
+        permanentAddress: 'Plot 12, Tilak Road, Rajahmundry, Andhra Pradesh 533101',
+        city: 'Hyderabad',
+        state: 'Telangana',
+        country: 'India',
+        pinCode: '500081'
+      },
+      employment: {
+        employeeId: autoEmpId,
+        dateOfJoining: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+        designation: candidate.jobTitle,
+        department: candidate.department || 'Information Technology',
+        deptCode: 'IT',
+        employmentType: 'Full-Time Permanent',
+        workLocation: 'Hyderabad Hub - Tech Floor Bay 4',
+        branch: 'Hyderabad',
+        branchId: 'HYD',
+        reportingManager: 'Rajesh Kannan',
+        reportingManagerId: 'PE003',
+        employmentCategory: 'Core Engineering',
+        probationPeriod: '6 Months',
+        noticePeriod: '60 Days',
+        workEmail: `${candidate.name.toLowerCase().replace(/\s+/g, '.')}@prashanthenterprises.in`
+      },
+      salary: salaryBreakup,
+      bank: {
+        accountHolderName: candidate.name,
+        bankName: 'HDFC Bank Ltd',
+        accountNumber: '5010048291000',
+        ifscCode: 'HDFC0001823',
+        branchName: 'Madhapur Tech Hub Branch'
+      },
+      emergencyContact: {
+        name: 'Family Emergency Contact',
+        relationship: 'Parent / Spouse',
+        phone: '+91 98480 99881',
+        address: 'Plot 12, Tilak Road, Rajahmundry, Andhra Pradesh'
+      },
+      education: [
+        {
+          id: `EDU-${Date.now()}-1`,
+          qualification: 'Bachelor of Technology (B.Tech)',
+          institution: 'JNTU College of Engineering',
+          yearOfPassing: '2019',
+          percentage: '84.5%',
+          certificateFile: 'BTech_Degree_Certificate.pdf'
+        }
+      ],
+      previousEmployment: [
+        {
+          id: `EXP-${Date.now()}-1`,
+          companyName: 'Previous Tech Solutions',
+          designation: 'Software Development Engineer',
+          duration: candidate.experience || '3.5 Years',
+          ctc: 1200000,
+          relievingLetter: 'Relieving_Letter.pdf',
+          experienceCert: 'Experience_Certificate.pdf'
+        }
+      ],
+      documents: {
+        aadhaar: { name: 'Aadhaar Card', uploaded: false, fileName: '', verified: false, remarks: '' },
+        pan: { name: 'PAN Card', uploaded: false, fileName: '', verified: false, remarks: '' },
+        photo: { name: 'Passport Size Photograph', uploaded: true, fileName: 'Candidate_Photo.jpg', verified: false, remarks: '' },
+        education: { name: 'Educational Certificates', uploaded: false, fileName: '', verified: false, remarks: '' },
+        previousEmployment: { name: 'Previous Employment Documents', uploaded: false, fileName: '', verified: false, remarks: '' },
+        bankProof: { name: 'Bank Proof (Cancelled Cheque / Passbook)', uploaded: false, fileName: '', verified: false, remarks: '' },
+        addressProof: { name: 'Address Proof', uploaded: false, fileName: '', verified: false, remarks: '' }
+      },
+      lettersConfig: {
+        appointmentLetter: { enabled: true, status: 'Ready', signed: false },
+        nda: { enabled: true, status: 'Ready', signed: false },
+        codeOfConduct: { enabled: true, status: 'Ready', signed: false },
+        assetAllocation: {
+          enabled: true,
+          laptopDetails: 'MacBook Pro M3 / 16GB / 512GB SSD',
+          laptopSerial: 'C02XYZ12345M',
+          charger: '70W USB-C Power Adapter',
+          idCard: `PE-ID-${autoEmpId}`,
+          accessCard: 'HID-RFID-8921',
+          companyPhone: 'N/A',
+          issueDate: new Date().toISOString().split('T')[0],
+          signed: false
+        },
+        joiningReport: { enabled: true, signed: false },
+        serviceBond: { enabled: false, bondPeriod: '2 Years', bondAmount: 200000, signed: false },
+        ipAssignment: { enabled: true, signed: false }
+      },
+      statutoryForms: {
+        pfForm11: { enabled: true, prevUan: '', prevPfNumber: '', signed: false },
+        pfForm2: { enabled: true, nomineeName: '', nomineeRelation: '', nomineeShare: '100%', signed: false },
+        esicForm: { enabled: salaryBreakup.esiApplicable, eligible: salaryBreakup.esiApplicable, reason: salaryBreakup.esiApplicable ? 'Eligible' : 'Monthly gross wages exceed ₹21,000 threshold', signed: false },
+        bgvConsent: { enabled: true, signed: false }
+      },
+      emailTracking: {
+        sentAt: null,
+        sentTo: candidate.email,
+        emailSubject: 'Welcome to Prashanth Enterprises – Complete Your Onboarding',
+        status: 'Draft'
+      },
+      signatures: {
+        employeeSignature: null,
+        signedAt: null,
+        ipAddress: null,
+        hrSignature: 'Prashanth Reddy (Director of Operations)',
+        hrSignedAt: new Date().toISOString()
+      },
+      timeline: [
+        {
+          action: 'CASE_CREATED',
+          by: hrUserName,
+          timestamp: new Date().toISOString(),
+          note: `Onboarding case created for ${candidate.name} (${candidate.jobTitle}). Prepopulated from Recruitment.`
+        }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    this.data.onboardingCases.unshift(newCase);
+    this.logAudit('ONBOARDING_INITIATED', 'Onboarding', hrUserName, hrUserId, `Initiated onboarding case ${newCase.id} for candidate ${candidate.name}`);
+    this.saveData();
+    this.syncDocToFirebase('onboarding_cases', newCase.id, newCase);
+    return newCase;
+  }
+
+  saveOnboardingDraft(caseData, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    if (!this.data.onboardingCases) this.data.onboardingCases = [];
+    const idx = this.data.onboardingCases.findIndex(c => c.id === caseData.id);
+    if (idx === -1) {
+      throw new Error(`Onboarding case ${caseData.id} not found.`);
+    }
+
+    const updated = {
+      ...this.data.onboardingCases[idx],
+      ...caseData,
+      updatedAt: new Date().toISOString()
+    };
+
+    updated.timeline.unshift({
+      action: 'DRAFT_SAVED',
+      by: hrUserName,
+      timestamp: new Date().toISOString(),
+      note: 'Onboarding case details updated by HR.'
+    });
+
+    this.data.onboardingCases[idx] = updated;
+    this.logAudit('ONBOARDING_DRAFT_SAVED', 'Onboarding', hrUserName, hrUserId, `Saved onboarding draft for ${updated.personal?.fullName || updated.id}`);
+    this.saveData();
+    this.syncDocToFirebase('onboarding_cases', updated.id, updated);
+    return updated;
+  }
+
+  sendOnboardingInvitation(caseId, emailOptions = {}, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    const obCase = (this.data.onboardingCases || []).find(c => c.id === caseId);
+    if (!obCase) throw new Error('Onboarding case not found.');
+
+    const recipient = emailOptions.recipient || obCase.personal?.personalEmail || obCase.candidateInfo?.email;
+    obCase.status = 'Invitation Sent';
+    obCase.emailTracking = {
+      sentAt: new Date().toISOString(),
+      sentTo: recipient,
+      emailSubject: emailOptions.subject || 'Welcome to Prashanth Enterprises – Complete Your Onboarding',
+      status: 'Sent'
+    };
+
+    obCase.timeline.unshift({
+      action: 'INVITATION_SENT',
+      by: hrUserName,
+      timestamp: new Date().toISOString(),
+      note: `Onboarding invitation email dispatched to ${recipient}.`
+    });
+
+    // Add in-app notification
+    this.data.notifications.unshift({
+      id: `NOTIF-ONB-${Date.now()}`,
+      title: 'Onboarding Invitation Sent',
+      message: `Onboarding invitation sent to ${obCase.personal?.fullName || recipient}.`,
+      type: 'ONBOARDING',
+      read: false,
+      createdAt: new Date().toISOString(),
+      targetRoles: ['HR', 'Global Admin']
+    });
+
+    this.logAudit('ONBOARDING_INVITATION_SENT', 'Onboarding', hrUserName, hrUserId, `Sent onboarding invitation to ${recipient} for case ${obCase.id}`);
+    this.saveData();
+    this.syncDocToFirebase('onboarding_cases', obCase.id, obCase);
+    return obCase;
+  }
+
+  submitEmployeeOnboarding(token, submissionData) {
+    const obCase = (this.data.onboardingCases || []).find(c => c.token === token);
+    if (!obCase) throw new Error('Invalid or expired onboarding session token.');
+
+    // Merge employee submission
+    if (submissionData.personal) obCase.personal = { ...obCase.personal, ...submissionData.personal };
+    if (submissionData.address) obCase.address = { ...obCase.address, ...submissionData.address };
+    if (submissionData.bank) obCase.bank = { ...obCase.bank, ...submissionData.bank };
+    if (submissionData.emergencyContact) obCase.emergencyContact = { ...obCase.emergencyContact, ...submissionData.emergencyContact };
+    if (submissionData.statutoryForms) obCase.statutoryForms = { ...obCase.statutoryForms, ...submissionData.statutoryForms };
+    if (submissionData.documents) {
+      for (const [key, docVal] of Object.entries(submissionData.documents)) {
+        if (obCase.documents[key]) {
+          obCase.documents[key] = { ...obCase.documents[key], ...docVal };
+        }
+      }
+    }
+
+    obCase.signatures = {
+      ...obCase.signatures,
+      employeeSignature: submissionData.signature || 'Digitally Signed by Candidate',
+      signedAt: new Date().toISOString(),
+      ipAddress: submissionData.ipAddress || '192.168.1.185 (Corporate Intranet)'
+    };
+
+    obCase.status = 'Documents Submitted';
+    obCase.submittedAt = new Date().toISOString();
+
+    obCase.timeline.unshift({
+      action: 'DOCUMENTS_SUBMITTED',
+      by: obCase.personal?.fullName || 'Candidate',
+      timestamp: new Date().toISOString(),
+      note: 'Employee submitted complete onboarding details, statutory forms, and electronic signatures.'
+    });
+
+    // Notify HR
+    this.data.notifications.unshift({
+      id: `NOTIF-ONB-SUBMIT-${Date.now()}`,
+      title: 'Onboarding Submission Received',
+      message: `${obCase.personal?.fullName} has submitted all onboarding documents. Pending HR verification.`,
+      type: 'ONBOARDING',
+      read: false,
+      createdAt: new Date().toISOString(),
+      targetRoles: ['HR', 'Global Admin']
+    });
+
+    this.logAudit('ONBOARDING_SUBMITTED', 'Onboarding', obCase.personal?.fullName, 'EMPLOYEE', `Submitted onboarding packet for case ${obCase.id}`);
+    this.saveData();
+    this.syncDocToFirebase('onboarding_cases', obCase.id, obCase);
+    return obCase;
+  }
+
+  verifyOnboardingDocument(caseId, docKey, status, remarks = '', hrUserName = 'HR Admin', hrUserId = 'HR') {
+    const obCase = (this.data.onboardingCases || []).find(c => c.id === caseId);
+    if (!obCase) throw new Error('Onboarding case not found.');
+
+    if (!obCase.documents[docKey]) {
+      throw new Error(`Document ${docKey} does not exist in onboarding packet.`);
+    }
+
+    obCase.documents[docKey].verified = status === 'APPROVED';
+    obCase.documents[docKey].rejected = status === 'REJECTED';
+    obCase.documents[docKey].remarks = remarks;
+    obCase.documents[docKey].verifiedBy = hrUserName;
+    obCase.documents[docKey].verifiedAt = new Date().toISOString();
+
+    obCase.timeline.unshift({
+      action: status === 'APPROVED' ? 'DOC_APPROVED' : 'DOC_REJECTED',
+      by: hrUserName,
+      timestamp: new Date().toISOString(),
+      note: `${obCase.documents[docKey].name}: ${status}${remarks ? ' - ' + remarks : ''}`
+    });
+
+    // Check if all mandatory documents are verified
+    const allApproved = Object.values(obCase.documents).every(d => !d.uploaded || d.verified);
+    if (allApproved && obCase.status === 'Documents Submitted') {
+      obCase.status = 'Verification Completed';
+    }
+
+    this.saveData();
+    this.syncDocToFirebase('onboarding_cases', obCase.id, obCase);
+    return obCase;
+  }
+
+  completeOnboardingAndCreateEmployee(caseId, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    const obCase = (this.data.onboardingCases || []).find(c => c.id === caseId);
+    if (!obCase) throw new Error('Onboarding case not found.');
+
+    // Check if already an employee with this email or ID
+    const existing = this.data.employees.find(e => 
+      e.email === obCase.personal?.personalEmail || 
+      e.email === obCase.employment?.workEmail || 
+      e.employeeId === obCase.employment?.employeeId
+    );
+
+    let createdEmployee = existing;
+
+    if (!createdEmployee) {
+      // Create employee in master workforce
+      const rawEmployee = {
+        name: obCase.personal?.fullName || obCase.candidateInfo?.name,
+        email: obCase.employment?.workEmail || `${(obCase.personal?.fullName || 'employee').toLowerCase().replace(/\s+/g, '.')}@prashanthenterprises.in`,
+        personalEmail: obCase.personal?.personalEmail || obCase.candidateInfo?.email,
+        phone: obCase.personal?.mobile || obCase.candidateInfo?.phone,
+        role: obCase.employment?.designation || obCase.candidateInfo?.jobTitle,
+        systemRole: 'Employee',
+        department: obCase.employment?.department || 'Information Technology',
+        deptCode: obCase.employment?.deptCode || 'IT',
+        branch: obCase.employment?.branch || 'Hyderabad',
+        branchId: obCase.employment?.branchId || 'HYD',
+        managerId: obCase.employment?.reportingManagerId || 'PE000',
+        managerName: obCase.employment?.reportingManager || 'Prashanth Reddy',
+        joiningDate: obCase.employment?.dateOfJoining || new Date().toISOString().split('T')[0],
+        dob: obCase.personal?.dob || '1996-05-15',
+        status: 'Active',
+        employmentType: obCase.employment?.employmentType || 'Full-Time Permanent',
+        panNumber: 'ABCDE1234F',
+        pfNumber: obCase.statutoryForms?.pfForm11?.prevPfNumber || 'MH/BAN/0012938/000/0048291',
+        uan: obCase.statutoryForms?.pfForm11?.prevUan || '100984920194',
+        avatar: obCase.personal?.photograph || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        basicSalary: obCase.salary?.basicSalary || 60000,
+        hra: obCase.salary?.hra || 30000,
+        specialAllowance: obCase.salary?.specialAllowance || 45000,
+        education: obCase.education,
+        experience: obCase.previousEmployment,
+        bankDetails: obCase.bank,
+        emergencyContact: obCase.emergencyContact,
+        documents: obCase.documents
+      };
+
+      createdEmployee = this.addEmployee(rawEmployee, hrUserId, hrUserName);
+    }
+
+    // Update candidate stage in recruitment if exists
+    if (obCase.candidateId) {
+      const cand = this.data.candidates.find(c => c.id === obCase.candidateId);
+      if (cand) {
+        cand.stage = 'Hired';
+      }
+    }
+
+    obCase.status = 'Onboarding Completed';
+    obCase.completedAt = new Date().toISOString();
+    obCase.createdEmployeeId = createdEmployee.id;
+
+    obCase.timeline.unshift({
+      action: 'ONBOARDING_COMPLETED',
+      by: hrUserName,
+      timestamp: new Date().toISOString(),
+      note: `Onboarding completed successfully! Employee master profile activated (${createdEmployee.name} - ${createdEmployee.employeeId}).`
+    });
+
+    this.logAudit('ONBOARDING_COMPLETED', 'Onboarding', hrUserName, hrUserId, `Completed onboarding for ${obCase.personal?.fullName}. Employee ID ${createdEmployee.employeeId} registered in Employee Management & Employee 360.`);
+    this.saveData();
+    this.syncDocToFirebase('onboarding_cases', obCase.id, obCase);
+
+    return { case: obCase, employee: createdEmployee };
+  }
+
+  saveOnboardingTemplate(templateData, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    if (!this.data.onboardingTemplates) {
+      this.data.onboardingTemplates = JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_TEMPLATES));
+    }
+
+    const idx = this.data.onboardingTemplates.findIndex(t => t.id === templateData.id);
+    let tpl = null;
+
+    if (idx !== -1) {
+      tpl = { ...this.data.onboardingTemplates[idx], ...templateData, updatedAt: new Date().toISOString() };
+      this.data.onboardingTemplates[idx] = tpl;
+    } else {
+      tpl = {
+        id: templateData.id || `TPL-CUSTOM-${Date.now()}`,
+        ...templateData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      this.data.onboardingTemplates.unshift(tpl);
+    }
+
+    this.logAudit('ONBOARDING_TEMPLATE_SAVED', 'Onboarding', hrUserName, hrUserId, `Saved onboarding template "${tpl.title}" (${tpl.id})`);
+    this.saveData();
+    this.syncDocToFirebase('onboarding_templates', tpl.id, tpl);
+    return tpl;
+  }
+
+  deleteOnboardingTemplate(templateId, hrUserName = 'HR Admin', hrUserId = 'HR') {
+    if (!this.data.onboardingTemplates) return;
+    const idx = this.data.onboardingTemplates.findIndex(t => t.id === templateId);
+    if (idx === -1) throw new Error('Template not found.');
+
+    const removed = this.data.onboardingTemplates.splice(idx, 1)[0];
+    this.logAudit('ONBOARDING_TEMPLATE_DELETED', 'Onboarding', hrUserName, hrUserId, `Deleted template "${removed.title}" (${removed.id})`);
+    this.saveData();
+    return removed;
+  }
 }
 
 // Global Singleton Instance
