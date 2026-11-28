@@ -105,5 +105,17 @@ service cloud.firestore {
     match /celebration_logs/{logId} {
       allow read, write: if true;
     }
+
+    // 13. New Employee Onboarding & Document Management
+    match /onboarding_cases/{caseId} {
+      allow read, write: if true;
+      match /documents/{docId} {
+        allow read, write: if true;
+      }
+    }
+
+    match /onboarding_templates/{templateId} {
+      allow read, write: if true;
+    }
   }
 }
