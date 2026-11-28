@@ -1859,7 +1859,7 @@ export class HrmDataEngine {
     if (!req) throw new Error('Leave request not found.');
     if (req.status !== 'Pending') throw new Error(`Request has already been processed with status: ${req.status}`);
 
-    const ledger = this.data.leaveLedger[req.employeeId] || this.data.leaveLedger['PE001'];
+    const ledger = this.data.leaveLedger[req.employeeId] || this.getEmployeeLedger(req.employeeId);
     const balance = ledger ? ledger[req.leaveTypeCode] : null;
 
     if (balance) {
@@ -1909,7 +1909,7 @@ export class HrmDataEngine {
     if (req.status !== 'Pending') throw new Error(`Request is not pending: ${req.status}`);
 
     // Release reservation back to available balance
-    const ledger = this.data.leaveLedger[req.employeeId] || this.data.leaveLedger['PE001'];
+    const ledger = this.data.leaveLedger[req.employeeId] || this.getEmployeeLedger(req.employeeId);
     const balance = ledger ? ledger[req.leaveTypeCode] : null;
 
     if (balance) {
@@ -1947,7 +1947,7 @@ export class HrmDataEngine {
     if (!req) throw new Error('Leave request not found.');
     if (req.status === 'Cancelled') throw new Error('Request already cancelled.');
 
-    const ledger = this.data.leaveLedger[req.employeeId] || this.data.leaveLedger['PE001'];
+    const ledger = this.data.leaveLedger[req.employeeId] || this.getEmployeeLedger(req.employeeId);
     const balance = ledger ? ledger[req.leaveTypeCode] : null;
 
     if (balance) {
