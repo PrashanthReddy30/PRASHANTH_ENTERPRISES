@@ -31,9 +31,9 @@ console.log('✓ ESIC threshold check passed (gross <= 21,000 correctly flagged)
 console.log('[Test 3] Verifying 11 standard document templates...');
 assert.strictEqual(DEFAULT_ONBOARDING_TEMPLATES.length, 11);
 const expectedKeys = [
-  'appointment_letter', 'nda_agreement', 'code_of_conduct_posh', 
-  'asset_allocation', 'joining_report', 'service_bond', 
-  'ip_assignment', 'pf_form_11', 'pf_form_2', 'esic_form_1', 'bgv_consent'
+  'TPL-APPOINTMENT', 'TPL-NDA', 'TPL-CODE-OF-CONDUCT', 
+  'TPL-ASSET-ALLOCATION', 'TPL-JOINING-REPORT', 'TPL-SERVICE-BOND', 
+  'TPL-IP-ASSIGNMENT', 'TPL-PF-FORM-11', 'TPL-PF-FORM-2', 'TPL-ESIC-FORM', 'TPL-BGV-CONSENT'
 ];
 for (const key of expectedKeys) {
   const tmpl = DEFAULT_ONBOARDING_TEMPLATES.find(t => t.id === key);
@@ -62,7 +62,7 @@ const sampleCase = {
     annualCtc: 1200000
   }
 };
-const appointmentTmpl = DEFAULT_ONBOARDING_TEMPLATES.find(t => t.id === 'appointment_letter');
+const appointmentTmpl = DEFAULT_ONBOARDING_TEMPLATES.find(t => t.id === 'TPL-APPOINTMENT');
 const populated = populateDocumentText(appointmentTmpl.body, sampleCase);
 assert(populated.includes('Rahul Sharma'), 'Must replace {{fullName}}');
 assert(populated.includes('Senior Cloud Engineer'), 'Must replace {{designation}}');
