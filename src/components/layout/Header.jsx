@@ -64,14 +64,21 @@ export function Header({ toggleMobileSidebar }) {
   };
 
   const handlePortalSwitch = (portal) => {
+    if (portal === 'GLOBAL_ADMIN') {
+      if (switchPersona) {
+        switchPersona('Global Admin', { portal: 'GLOBAL_ADMIN', route: '/admin/dashboard' });
+      } else {
+        setCurrentPortal('GLOBAL_ADMIN');
+      }
+      navigate('/admin/dashboard');
+      return;
+    }
     const success = setCurrentPortal(portal);
     if (success) {
       if (portal === 'EMPLOYEE') {
         navigate('/home');
       } else if (portal === 'HR') {
         navigate('/hr/dashboard');
-      } else if (portal === 'GLOBAL_ADMIN') {
-        navigate('/admin/dashboard');
       }
     }
   };
