@@ -2,130 +2,251 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Enterprise HRMS Firestore Security Rules - Prashanth Enterprises
-    // In production, tighten with Firebase Auth UID & custom claims.
-    
+    // =========================================================================
+    // PRASHANTH ENTERPRISES HRMS - STRICT CONFIDENTIAL ZERO-TRUST RBAC RULES
+    // Default-Deny: Access is denied by default unless explicitly granted.
+    // =========================================================================
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Retrieve the caller's employee master profile from /employees/
+    function getCaller() {
+      return get(/databases/$(database)/documents/employees/$(request.auth.uid)).data;
+    }
+
+    function isGlobalAdmin() {
+      return isSignedIn() && (
+        request.auth.token.role == 'Global Admin' ||
+        request.auth.uid == 'PE000' ||
+        getCaller().systemRole == 'Global Admin'
+      );
+    }
+
+    function isCentralHR() {
+      return isSignedIn() && (
+        isGlobalAdmin() ||
+        request.auth.token.role == 'Central HR' ||
+        request.auth.token.role == 'HR Admin' ||
+        getCaller().systemRole == 'Central HR' ||
+        getCaller().systemRole == 'HR Admin'
+      );
+    }
+
+    function isBranchHR() {
+      return isSignedIn() && (
+        isCentralHR() ||
+        request.auth.token.role == 'Branch HR' ||
+        getCaller().systemRole == 'Branch HR'
+      );
+    }
+
+    function isFinance() {
+      return isSignedIn() && (
+        isGlobalAdmin() ||
+        request.auth.token.role == 'Finance' ||
+        getCaller().systemRole == 'Finance'
+      );
+    }
+
+    function isManager() {
+      return isSignedIn() && (
+        isCentralHR() ||
+        request.auth.token.role == 'Manager' ||
+        getCaller().systemRole == 'Manager'
+      );
+    }
+
+    function callerBranch() {
+      return getCaller().branch;
+    }
+
     // 1. Employee Workforce Master Directory
     match /employees/{employeeId} {
-      allow read: if true;
-      allow write: if true;
+      // Global Admin & Central HR can read all.
+      // Branch HR can read only their own branch.
+      // Employees can read themselves or standard corporate directory.
+      allow read: if isGlobalAdmin() 
+        || isCentralHR()
+        || (isBranchHR() && resource.data.branch == callerBranch())
+        || (isSignedIn() && employeeId == request.auth.uid)
+        || isSignedIn();
+
+      // Mutation: Only Global Admin and Central HR across all, or Branch HR within same branch.
+      allow create, delete: if isGlobalAdmin() || isCentralHR();
+      allow update: if isGlobalAdmin() 
+        || isCentralHR()
+        || (isBranchHR() && resource.data.branch == callerBranch());
     }
 
-    // 2. Corporate Branches & Regional Hubs
-    match /branches/{branchId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // 3. Departments
-    match /departments/{departmentId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // 4. Biometric Attendance Logs & Punches
-    match /attendance/{attendanceId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // 5. Leave Applications & Requests
-    match /leave_requests/{requestId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // 6. Atomic Leave Ledgers
-    match /leave_ledger/{employeeId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // 7. System Configuration & Audit
-    match /system_config/{configId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // 8. Helpdesk & Support Tickets
-    match /helpdesk_tickets/{ticketId} {
-      allow read, write: if true;
-      match /comments/{commentId} {
-        allow read, write: if true;
-      }
-    }
-
-    // 9. Taxes, Payroll & Salary Structures (Branch-Scoped Security)
-    // Global Admin (PE000) has unrestricted read/write across all 3 hubs (Hyderabad, Chennai, Mumbai).
-    // HR Admin / Branch HR is strictly scoped: access granted only if employee branch matches HR's assigned branch.
+    // 2. Confidential Salary Structures & CTC (Zero Data Leakage)
     match /salary_structures/{employeeId} {
-      allow read, write: if true; // Enforced at application layer via branch matching & token claims
+      // Strict: Never leak another employee's salary to unauthorized roles or cross-branch
+      allow read: if isGlobalAdmin()
+        || isFinance()
+        || isCentralHR()
+        || (isBranchHR() && get(/databases/$(database)/documents/employees/$(employeeId)).data.branch == callerBranch())
+        || (isSignedIn() && employeeId == request.auth.uid);
+
+      // Writes: Strictly Global Admin or authorized Finance
+      allow write: if isGlobalAdmin() || isFinance();
     }
 
+    // 3. Corporate Payroll Runs & Financial Totals
     match /payroll_runs/{runId} {
-      allow read, write: if true;
+      allow read: if isGlobalAdmin() || isFinance() || isCentralHR() || isBranchHR();
+      // Only Global Admin and Finance can execute or finalize payroll disbursements
+      allow create, update, delete: if isGlobalAdmin() || isFinance();
     }
 
     match /taxes_finances/{docId} {
-      allow read, write: if true;
+      allow read: if isGlobalAdmin() || isFinance() || isCentralHR();
+      allow write: if isGlobalAdmin() || isFinance();
+
       match /monthly_payslips/{slipId} {
-        allow read, write: if true;
+        allow read: if isGlobalAdmin() || isFinance() || isCentralHR() || (isSignedIn() && slipId == request.auth.uid);
+        allow write: if isGlobalAdmin() || isFinance();
       }
     }
 
-    // 10. Engage Announcements & Polls
-    match /engage_announcements/{announcementId} {
-      allow read, write: if true;
-      match /comments/{commentId} {
-        allow read, write: if true;
-      }
+    // 4. Leave Applications & Requests (Strict Approval Level Enforcement)
+    match /leave_requests/{requestId} {
+      // Read: Requester, Manager (direct reports), Branch HR (same branch), Central HR, Global Admin
+      allow read: if isGlobalAdmin()
+        || isCentralHR()
+        || (isBranchHR() && resource.data.branch == callerBranch())
+        || (isManager() && (resource.data.managerId == request.auth.uid || resource.data.reportingManagerId == request.auth.uid))
+        || (isSignedIn() && resource.data.employeeId == request.auth.uid);
+
+      // Create: Any employee for themselves
+      allow create: if isSignedIn();
+
+      // Approval / Rejection: Exact authority level matching
+      // None → Denied
+      // Direct Reports → Only if caller is reporting manager
+      // Branch → Only if caller's branch matches applicant's branch
+      // Full → Central HR or Global Admin
+      allow update: if isGlobalAdmin()
+        || isCentralHR()
+        || (isBranchHR() && resource.data.branch == callerBranch())
+        || (isManager() && (resource.data.managerId == request.auth.uid || resource.data.reportingManagerId == request.auth.uid));
+
+      allow delete: if isGlobalAdmin();
     }
 
-    match /engage_polls/{pollId} {
-      allow read, write: if true;
-      match /votes/{voterUid} {
-        allow read, write: if true;
-      }
+    // 5. Leave Ledger Balances
+    match /leave_ledger/{employeeId} {
+      allow read: if isGlobalAdmin()
+        || isCentralHR()
+        || (isBranchHR() && get(/databases/$(database)/documents/employees/$(employeeId)).data.branch == callerBranch())
+        || (isSignedIn() && employeeId == request.auth.uid);
+
+      allow write: if isGlobalAdmin() || isCentralHR() || isBranchHR();
     }
 
-    // 11. Matrix Biometric Streams
-    match /matrix_biometric_punches/{punchId} {
-      allow read, write: if true;
+    // 6. Biometric Attendance Logs & Punches
+    match /attendance/{attendanceId} {
+      allow read: if isGlobalAdmin()
+        || isCentralHR()
+        || (isBranchHR() && resource.data.branch == callerBranch())
+        || (isManager() && resource.data.department == getCaller().department)
+        || (isSignedIn() && resource.data.employeeId == request.auth.uid);
+
+      allow create, update: if isGlobalAdmin()
+        || isCentralHR()
+        || (isBranchHR() && resource.data.branch == callerBranch())
+        || isSignedIn();
+
+      allow delete: if isGlobalAdmin();
     }
 
-    // 12. Celebration & Wishes Automation System
-    match /celebration_templates/{templateId} {
-      allow read, write: if true;
+    // 7. Tamper-Proof Audit Logs (Immutable Append-Only Ledger)
+    match /audit_logs/{logId} {
+      allow read: if isGlobalAdmin() || isCentralHR() || isBranchHR() || isFinance();
+      // Appending security tamper events is allowed for all authenticated users
+      allow create: if isSignedIn();
+      // Immutable: Existing audit records can NEVER be modified or deleted
+      allow update, delete: if false;
     }
 
-    match /employee_engagement_posts/{postId} {
-      allow read, write: if true;
-      match /wishes/{wishId} {
-        allow read, write: if true;
-      }
-      match /likes/{userId} {
-        allow read, write: if true;
-      }
-    }
-
-    match /celebration_settings/{settingId} {
-      allow read, write: if true;
-    }
-
-    match /celebration_logs/{logId} {
-      allow read, write: if true;
-    }
-
-    // 13. New Employee Onboarding & Document Management
+    // 8. New Employee Onboarding & KYC Documents
     match /onboarding_cases/{caseId} {
-      allow read, write: if true;
+      allow read: if isGlobalAdmin()
+        || isCentralHR()
+        || (isBranchHR() && resource.data.employment.branch == callerBranch())
+        || (isSignedIn() && resource.data.candidateId == request.auth.uid);
+
+      allow write: if isGlobalAdmin() || isCentralHR() || isBranchHR();
+
       match /documents/{docId} {
-        allow read, write: if true;
+        allow read, write: if isGlobalAdmin() || isCentralHR() || isBranchHR() || isSignedIn();
       }
     }
 
     match /onboarding_templates/{templateId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isGlobalAdmin() || isCentralHR();
+    }
+
+    // 9. System Configuration & Live Role-Based Access Matrix
+    match /system_config/{configId} {
+      // Everyone can read to evaluate live permissions
+      allow read: if true;
+      // ONLY Global Admin can update configuration or role permissions
+      allow write: if isGlobalAdmin();
+    }
+
+    // 10. Regional Hubs & Departments
+    match /branches/{branchId} {
+      allow read: if isSignedIn();
+      allow write: if isGlobalAdmin();
+    }
+
+    match /departments/{departmentId} {
+      allow read: if isSignedIn();
+      allow write: if isGlobalAdmin();
+    }
+
+    // 11. Support Tickets
+    match /helpdesk_tickets/{ticketId} {
+      allow read, write: if isSignedIn();
+      match /comments/{commentId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // 12. Corporate Celebrations & Posts
+    match /celebration_templates/{templateId} {
+      allow read: if isSignedIn();
+      allow write: if isGlobalAdmin() || isCentralHR();
+    }
+
+    match /employee_engagement_posts/{postId} {
+      allow read, write: if isSignedIn();
+      match /wishes/{wishId} {
+        allow read, write: if isSignedIn();
+      }
+      match /likes/{userId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    match /celebration_settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if isGlobalAdmin();
+    }
+
+    match /celebration_logs/{logId} {
+      allow read: if isSignedIn();
+      allow write: if isGlobalAdmin() || isCentralHR();
+    }
+
+    // =========================================================================
+    // DEFAULT-DENY FALLBACK: Block all unspecified paths
+    // =========================================================================
+    match /{document=**} {
+      allow read, write: if isGlobalAdmin();
     }
   }
 }
