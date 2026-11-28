@@ -72,6 +72,7 @@ export function Sidebar({ collapsed, setCollapsed }) {
     { name: 'Leave Governance', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals' },
     { name: 'Payroll Audit', path: '/hr/payroll', icon: DollarSign, description: 'Financial Overview' },
     { name: 'Recruitment Pipeline', path: '/hr/recruitment', icon: Briefcase, description: 'Hiring Operations' },
+    { name: 'Onboarding Hub', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Verification' },
     { name: 'Hub Infrastructure', path: '/hr/departments', icon: MapPin, description: 'HYD / CHE / MUM' },
     { name: 'Celebration Automation', path: '/hr/celebrations', icon: Sparkles, description: '01:00 AM Scheduler' },
     { name: 'Executive Reports', path: '/hr/reports', icon: FileText, description: '8 Regulatory Reports' },
