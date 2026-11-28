@@ -477,25 +477,86 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-              <p className="text-xs font-semibold text-slate-500">Employment Status</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs relative">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-500">Employment Status</p>
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      setStatusForm({ status: employee.status || 'Active', statusReason: employee.statusReason || '' });
+                      setShowEditStatusModal(true);
+                    }}
+                    className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                    title="Change Status"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
               <p className="text-lg font-bold text-emerald-600 mt-1">{employee.status} (Permanent)</p>
               <p className="text-[11px] text-slate-400 mt-1">Confirmed on {employee.employment?.confirmationDate || employee.joiningDate}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-              <p className="text-xs font-semibold text-slate-500">Available Paid Leaves</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs relative">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-500">Available Paid Leaves</p>
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      setLeaveBalanceForm({
+                        CL: { ...(employeeLedger.CL || { available: 0, opening: 0 }) },
+                        SL: { ...(employeeLedger.SL || { available: 0, opening: 0 }) },
+                        PL: { ...(employeeLedger.PL || { available: 0, opening: 0 }) },
+                        COMP: { ...(employeeLedger.COMP || { available: 0, opening: 0 }) }
+                      });
+                      setShowEditLeaveBalanceModal(true);
+                    }}
+                    className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                    title="Adjust Leave Balances"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
               <p className="text-lg font-bold text-brand-600 mt-1">
                 {((employeeLedger.CL?.available || 0) + (employeeLedger.PL?.available || 0) + (employeeLedger.SL?.available || 0)).toFixed(1)} Days
               </p>
               <p className="text-[11px] text-slate-400 mt-1">CL: {employeeLedger.CL?.available || 0} • SL: {employeeLedger.SL?.available || 0} • PL: {employeeLedger.PL?.available || 0}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-              <p className="text-xs font-semibold text-slate-500">Biometric Attendance</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs relative">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-500">Biometric Attendance</p>
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      setBiometricForm({ biometricId: employee.biometricId || '' });
+                      setShowEditBiometricModal(true);
+                    }}
+                    className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                    title="Edit Biometric ID"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
               <p className="text-lg font-bold text-slate-900 mt-1">100% Punctual</p>
               <p className="text-[11px] text-emerald-600 font-medium mt-1">Reader: {employee.biometricId}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-              <p className="text-xs font-semibold text-slate-500">Reporting Line</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs relative">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-500">Reporting Line</p>
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      setSelectedNewManagerId(employee.managerId || '');
+                      setShowReassignManagerModal(true);
+                    }}
+                    className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                    title="Reassign Reporting Supervisor"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
               <p className="text-sm font-bold text-slate-900 mt-1 truncate">{employee.managerName || 'Board of Directors'}</p>
               <p className="text-[11px] text-slate-400 mt-1">{employee.department} Division</p>
             </div>
@@ -504,9 +565,28 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Quick Profile Summary */}
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-                Personnel & Corporate Snapshot
-              </h3>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 className="text-sm font-bold text-slate-900">
+                  Personnel & Corporate Snapshot
+                </h3>
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      setOverviewForm({
+                        name: employee.name || '',
+                        role: employee.role || '',
+                        department: employee.department || '',
+                        branch: employee.branch || ''
+                      });
+                      setShowEditOverviewModal(true);
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline"
+                  >
+                    <Edit3 className="h-3 w-3" />
+                    <span>Edit Snapshot</span>
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-slate-400">Designation:</span>
@@ -538,20 +618,34 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
             {/* Recent Audit Timeline Highlights */}
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 className="text-sm font-bold text-slate-900">Recent Employee Milestones & Audits</h3>
-                <span className="text-[11px] text-slate-400">{employeeAuditLogs.length} Events</span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Recent Employee Milestones & Audits</h3>
+                  <p className="text-[11px] text-slate-400">Chronological modification trace with HR attribution</p>
+                </div>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                  {employeeAuditLogs.length} Events
+                </span>
               </div>
-              <div className="space-y-2.5 max-h-60 overflow-y-auto">
+              <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
                 {employeeAuditLogs.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-4 text-center">No recent logged events.</p>
+                  <p className="text-xs text-slate-400 py-6 text-center">No recent logged events.</p>
                 ) : (
-                  employeeAuditLogs.slice(0, 4).map(log => (
-                    <div key={log.id} className="text-xs border-l-2 border-brand-500 pl-3 py-1">
+                  employeeAuditLogs.slice(0, 10).map((log, idx) => (
+                    <div key={log.id || idx} className="text-xs border-l-2 border-brand-500 pl-3 py-1.5 rounded-r-lg bg-slate-50/50 hover:bg-slate-50 transition">
                       <div className="flex items-center justify-between text-[10px] text-slate-400">
-                        <span className="font-bold text-slate-700">{log.action}</span>
-                        <span>{new Date(log.timestamp).toLocaleDateString()}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-brand-700 bg-brand-50 border border-brand-200 px-1.5 py-0.2 rounded font-mono text-[9px]">
+                            {log.action}
+                          </span>
+                          {log.user && (
+                            <span className="text-slate-600 font-medium">
+                              By: <strong className="text-slate-800">{log.user}</strong>
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-mono">{new Date(log.timestamp).toLocaleString()}</span>
                       </div>
-                      <p className="text-[11px] text-slate-600 mt-0.5">{log.details}</p>
+                      <p className="text-[11px] text-slate-700 font-medium mt-1 leading-snug">{log.details}</p>
                     </div>
                   ))
                 )}
