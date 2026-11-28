@@ -647,6 +647,25 @@ const initialEnterpriseData = {
   // 9. Enterprise Payroll Structures & Monthly Runs
   payrollRuns: [
     {
+      id: 'PR-2026-11',
+      period: 'November 2026',
+      year: 2026,
+      month: 11,
+      status: 'Processing',
+      approvedBy: 'Sneha Kulkarni',
+      approvedAt: '2026-11-28T10:00:00+05:30',
+      totalGross: 1485000,
+      totalDeductions: 189200,
+      totalNet: 1295800,
+      totalEmployees: 10,
+      paymentDate: '30 Nov 2026',
+      branchBreakdown: {
+        HYD: { gross: 915000, deductions: 115200, net: 799800, count: 6, status: 'Processing', paymentDate: '30 Nov 2026' },
+        CHE: { gross: 255000, deductions: 33200, net: 221800, count: 2, status: 'Processing', paymentDate: '30 Nov 2026' },
+        MUM: { gross: 315000, deductions: 40800, net: 274200, count: 2, status: 'Processing', paymentDate: '30 Nov 2026' }
+      }
+    },
+    {
       id: 'PR-2026-10',
       period: 'October 2026',
       year: 2026,
@@ -658,28 +677,49 @@ const initialEnterpriseData = {
       totalDeductions: 182400,
       totalNet: 1242600,
       totalEmployees: 10,
+      paymentDate: '31 Oct 2026',
       branchBreakdown: {
-        HYD: { gross: 885000, deductions: 112000, net: 773000, count: 6 },
-        CHE: { gross: 245000, deductions: 32000, net: 213000, count: 2 },
-        MUM: { gross: 295000, deductions: 38400, net: 256600, count: 2 }
+        HYD: { gross: 885000, deductions: 112000, net: 773000, count: 6, status: 'Paid', paymentDate: '31 Oct 2026' },
+        CHE: { gross: 245000, deductions: 32000, net: 213000, count: 2, status: 'Paid', paymentDate: '31 Oct 2026' },
+        MUM: { gross: 295000, deductions: 38400, net: 256600, count: 2, status: 'Paid', paymentDate: '31 Oct 2026' }
       }
     },
     {
-      id: 'PR-2026-11',
-      period: 'November 2026',
+      id: 'PR-2026-09',
+      period: 'September 2026',
       year: 2026,
-      month: 11,
-      status: 'Preview Generated',
-      approvedBy: null,
-      approvedAt: null,
-      totalGross: 1485000,
-      totalDeductions: 189200,
-      totalNet: 1295800,
+      month: 9,
+      status: 'Finalized',
+      approvedBy: 'Sneha Kulkarni',
+      approvedAt: '2026-09-30T17:00:00+05:30',
+      totalGross: 1410000,
+      totalDeductions: 180200,
+      totalNet: 1229800,
       totalEmployees: 10,
+      paymentDate: '30 Sep 2026',
       branchBreakdown: {
-        HYD: { gross: 915000, deductions: 115200, net: 799800, count: 6 },
-        CHE: { gross: 255000, deductions: 33200, net: 221800, count: 2 },
-        MUM: { gross: 315000, deductions: 40800, net: 274200, count: 2 }
+        HYD: { gross: 875000, deductions: 110500, net: 764500, count: 6, status: 'Paid', paymentDate: '30 Sep 2026' },
+        CHE: { gross: 245000, deductions: 32000, net: 213000, count: 2, status: 'Paid', paymentDate: '30 Sep 2026' },
+        MUM: { gross: 290000, deductions: 37700, net: 252300, count: 2, status: 'Paid', paymentDate: '30 Sep 2026' }
+      }
+    },
+    {
+      id: 'PR-2026-08',
+      period: 'August 2026',
+      year: 2026,
+      month: 8,
+      status: 'Finalized',
+      approvedBy: 'Sneha Kulkarni',
+      approvedAt: '2026-08-31T17:00:00+05:30',
+      totalGross: 1395000,
+      totalDeductions: 178500,
+      totalNet: 1216500,
+      totalEmployees: 10,
+      paymentDate: '31 Aug 2026',
+      branchBreakdown: {
+        HYD: { gross: 865000, deductions: 109500, net: 755500, count: 6, status: 'Paid', paymentDate: '31 Aug 2026' },
+        CHE: { gross: 245000, deductions: 32000, net: 213000, count: 2, status: 'Paid', paymentDate: '31 Aug 2026' },
+        MUM: { gross: 285000, deductions: 37000, net: 248000, count: 2, status: 'Paid', paymentDate: '31 Aug 2026' }
       }
     }
   ],
