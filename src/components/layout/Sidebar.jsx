@@ -33,6 +33,7 @@ export function Sidebar({ collapsed, setCollapsed }) {
   // Pending counts
   const pendingLeaves = storeData.leaveRequests.filter(r => r.status === 'Pending').length;
   const pendingCorrections = storeData.attendanceCorrections.filter(c => c.status === 'Pending').length;
+  const pendingOnboarding = (storeData.onboardingCases || []).filter(c => c.status === 'Documents Submitted' || c.status === 'Pending HR Verification').length;
   const totalPending = pendingLeaves + pendingCorrections;
 
   // 1. Employee Navigation Items (ESS)
@@ -55,6 +56,7 @@ export function Sidebar({ collapsed, setCollapsed }) {
     { name: 'Leave Mgmt', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals & Ledger' },
     { name: 'Payroll', path: '/hr/payroll', icon: DollarSign, description: 'Runs & CTC Master' },
     { name: 'Recruitment', path: '/hr/recruitment', icon: Briefcase, description: 'Pipeline & Openings' },
+    { name: 'Onboarding', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Document Verification' },
     { name: 'Depts & Hubs', path: '/hr/departments', icon: Building2, description: 'Regional Branches' },
     { name: 'Celebrations', path: '/hr/celebrations', icon: Sparkles, description: 'Automated 01:00 AM Engine' },
     { name: 'Approvals', path: '/hr/approvals', icon: CheckSquare, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Queue' },
