@@ -22,6 +22,7 @@ import {
   Copy,
   Check,
   UserPlus,
+  UserMinus,
   Edit2,
   UserCheck,
   Shield,
@@ -30,7 +31,9 @@ import {
   Info,
   ChevronDown,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { seedLiveFirebase, checkFirestoreConnection } from '../../services/firebaseSeeder';
