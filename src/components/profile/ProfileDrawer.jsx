@@ -208,6 +208,10 @@ export function ProfileDrawer({ isOpen, onClose }) {
               <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
               <span>{currentUser.branch} Branch</span>
             </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <span className="truncate">{currentUser.email}</span>
+            </div>
           </div>
 
           {/* System role badge */}
@@ -215,6 +219,42 @@ export function ProfileDrawer({ isOpen, onClose }) {
             <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 border border-brand-200 px-2.5 py-0.5 text-[11px] font-bold text-brand-700">
               {currentUser.systemRole}
             </span>
+          </div>
+
+          {/* Quick Persona Switcher */}
+          <div className="mt-4 pt-3 border-t border-slate-100">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Switch Active Persona</p>
+            <div className="space-y-1.5">
+              <button
+                onClick={() => { switchUser('PE016'); onClose(); }}
+                className={`w-full flex items-center justify-between p-2 rounded-xl text-left border transition text-xs ${
+                  currentUser.id === 'PE016'
+                    ? 'border-brand-500 bg-brand-50/70 text-brand-900 font-bold shadow-2xs'
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <div className="truncate">
+                  <span className="block font-bold truncate">Niharika (HR Admin)</span>
+                  <span className="text-[10px] text-slate-500 font-normal truncate">chinnareddy123a@gmail.com</span>
+                </div>
+                {currentUser.id === 'PE016' && <span className="text-[10px] text-brand-700 font-bold shrink-0 ml-1">Active</span>}
+              </button>
+
+              <button
+                onClick={() => { switchUser('PE000'); onClose(); }}
+                className={`w-full flex items-center justify-between p-2 rounded-xl text-left border transition text-xs ${
+                  currentUser.id === 'PE000'
+                    ? 'border-purple-500 bg-purple-50/70 text-purple-900 font-bold shadow-2xs'
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <div className="truncate">
+                  <span className="block font-bold truncate">Prashanth Reddy (Global Admin)</span>
+                  <span className="text-[10px] text-slate-500 font-normal truncate">prashanth.reddy@prashanthenterprises.in</span>
+                </div>
+                {currentUser.id === 'PE000' && <span className="text-[10px] text-purple-700 font-bold shrink-0 ml-1">Active</span>}
+              </button>
+            </div>
           </div>
         </div>
 
