@@ -12,9 +12,10 @@ export function Layout() {
   const [showPwaPrompt, setShowPwaPrompt] = useState(false);
   const location = useLocation();
 
-  // Scroll to top on route change
+  // Scroll to top and close mobile menu on route change
   useEffect(() => {
     window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
   }, [location.pathname]);
 
   // Online / Offline Intranet monitor
@@ -41,10 +42,12 @@ export function Layout() {
         </div>
       )}
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar & Mobile Drawer */}
       <Sidebar 
         collapsed={collapsed} 
         setCollapsed={setCollapsed} 
+        mobileOpen={mobileMenuOpen}
+        setMobileOpen={setMobileMenuOpen}
       />
 
       {/* Main Content Area */}
