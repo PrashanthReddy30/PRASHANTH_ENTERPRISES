@@ -154,54 +154,102 @@ service cloud.firestore {
     });
   }, [storeData.employees]);
 
-  // --- User Access Assignment Modal States ---
-  const [showUserAccessModal, setShowUserAccessModal] = useState(false);
-  const [userSearchQuery, setUserSearchQuery] = useState('');
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState(storeData.employees[0]?.id || 'PE000');
-  const [userFormRole, setUserFormRole] = useState('Employee');
-  const [userFormScope, setUserFormScope] = useState('Assigned Hub');
-  const [userFormOverrides, setUserFormOverrides] = useState({
-    canProcessPayroll: false,
-    canManageRecruitment: false,
-    canManageEmployees: false,
-    canApproveLeaves: false,
-    canViewAuditLogs: false
-  });
-  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+  // --- Role-Specific Access Drawer States ---
+  const [showRoleDrawer, setShowRoleDrawer] = useState(false);
+  const [selectedRoleTier, setSelectedRoleTier] = useState('Branch HR');
+  const [addMemberSearch, setAddMemberSearch] = useState('');
+  const [selectedNewMember, setSelectedNewMember] = useState(null);
+  const [newMemberScope, setNewMemberScope] = useState('Assigned Hub');
+  const [isAddSearchFocused, setIsAddSearchFocused] = useState(false);
 
-  const selectedEmployee = useMemo(() => {
-    return storeData.employees.find(e => e.id === selectedEmployeeId) || storeData.employees[0];
-  }, [storeData.employees, selectedEmployeeId]);
-
-  const handleSelectEmployee = (emp) => {
-    setSelectedEmployeeId(emp.id);
-    setUserFormRole(emp.systemRole || 'Employee');
-    setUserFormScope(emp.branchScope || emp.branch || 'Assigned Hub');
-    setUserFormOverrides({
-      canProcessPayroll: !!emp.permissionsOverride?.canProcessPayroll,
-      canManageRecruitment: !!emp.permissionsOverride?.canManageRecruitment,
-      canManageEmployees: !!emp.permissionsOverride?.canManageEmployees,
-      canApproveLeaves: !!emp.permissionsOverride?.canApproveLeaves,
-      canViewAuditLogs: !!emp.permissionsOverride?.canViewAuditLogs
-    });
+  const handleOpenRoleDrawer = (roleName = 'Branch HR') => {
+    setSelectedRoleTier(roleName);
+    setShowRoleDrawer(true);
+    setAddMemberSearch('');
+    setSelectedNewMember(null);
+    setNewMemberScope('Assigned Hub');
+    setIsAddSearchFocused(false);
   };
 
-  const handleOpenAssignModal = (preselectedRole = null, preselectedEmployee = null) => {
-    setShowUserAccessModal(true);
-    setShowRevokeConfirm(false);
-    if (preselectedEmployee) {
-      handleSelectEmployee(preselectedEmployee);
-      if (preselectedRole) setUserFormRole(preselectedRole);
-    } else if (preselectedRole) {
-      const match = storeData.employees.find(e => (e.systemRole || 'Employee') === preselectedRole);
-      if (match) {
-        handleSelectEmployee(match);
-      } else if (selectedEmployee) {
-        handleSelectEmployee(selectedEmployee);
-        setUserFormRole(preselectedRole);
+  // Current Assigned Users in the selected tier
+  const assignedUsersInSelectedTier = useMemo(() => {
+    return (storeData.employees || []).filter(e => {
+      const empRole = e.systemRole || 'Employee';
+      if (selectedRoleTier === 'Central HR') {
+        return empRole === 'Central HR' || empRole === 'HR Admin';
       }
-    } else if (selectedEmployee) {
-      handleSelectEmployee(selectedEmployee);
+      return empRole === selectedRoleTier;
+    });
+  }, [storeData.employees, selectedRoleTier]);
+
+  // Candidates available to add to this tier (excluding existing members)
+  const candidateEmployeesToAdd = useMemo(() => {
+    const assignedIds = new Set(assignedUsersInSelectedTier.map(u => u.id));
+    return (storeData.employees || []).filter(e => {
+      if (assignedIds.has(e.id)) return false;
+      if (!addMemberSearch.trim()) return true;
+      const q = addMemberSearch.toLowerCase();
+      return (
+        e.name.toLowerCase().includes(q) ||
+        (e.employeeId || '').toLowerCase().includes(q) ||
+        (e.branch || '').toLowerCase().includes(q) ||
+        (e.department || '').toLowerCase().includes(q)
+      );
+    });
+  }, [storeData.employees, assignedUsersInSelectedTier, addMemberSearch]);
+
+  const handleAddMemberToRole = () => {
+    if (!selectedNewMember) return;
+    try {
+      hrmStore.updateUserRoleAccess(
+        selectedNewMember.id,
+        {
+          systemRole: selectedRoleTier,
+          branchScope: newMemberScope === 'Assigned Hub' ? (selectedNewMember.branch || 'Assigned Hub') : newMemberScope,
+          permissionsOverride: selectedNewMember.permissionsOverride || {}
+        },
+        currentUser.id,
+        currentUser.name
+      );
+      showToast(`Added ${selectedNewMember.name} to ${selectedRoleTier} (${newMemberScope})!`);
+      setSelectedNewMember(null);
+      setAddMemberSearch('');
+      setIsAddSearchFocused(false);
+    } catch (err) {
+      alert(`Error adding member: ${err.message}`);
+    }
+  };
+
+  const handleUpdateUserScope = (emp, newScope) => {
+    try {
+      hrmStore.updateUserRoleAccess(
+        emp.id,
+        {
+          systemRole: emp.systemRole || selectedRoleTier,
+          branchScope: newScope,
+          permissionsOverride: emp.permissionsOverride || {}
+        },
+        currentUser.id,
+        currentUser.name
+      );
+      showToast(`Branch scope for ${emp.name} set to "${newScope}".`);
+    } catch (err) {
+      alert(`Error updating scope: ${err.message}`);
+    }
+  };
+
+  const handleRemoveMemberFromRole = (emp) => {
+    if (selectedRoleTier === 'Global Admin' && emp.id === 'PE000') {
+      alert('Cannot revoke primary Global Admin account.');
+      return;
+    }
+    if (window.confirm(`Revoke ${selectedRoleTier} access for ${emp.name}? They will be reverted to standard Employee role.`)) {
+      try {
+        hrmStore.revokeUserAccess(emp.id, currentUser.id, currentUser.name);
+        showToast(`Revoked ${selectedRoleTier} role from ${emp.name}. Reverted to Employee.`);
+      } catch (err) {
+        alert(`Error removing user: ${err.message}`);
+      }
     }
   };
 
@@ -231,39 +279,6 @@ service cloud.firestore {
     setMatrixForm(initialMatrix);
     setIsMatrixModified(false);
     showToast('Reverted unsaved matrix changes.');
-  };
-
-  const handleSaveUserAccess = (e) => {
-    e?.preventDefault();
-    if (!selectedEmployee) return;
-    try {
-      hrmStore.updateUserRoleAccess(
-        selectedEmployee.id,
-        {
-          systemRole: userFormRole,
-          branchScope: userFormScope,
-          permissionsOverride: userFormOverrides
-        },
-        currentUser.id,
-        currentUser.name
-      );
-      showToast(`Role & access rights updated for ${selectedEmployee.name} (${userFormRole}).`);
-      setShowUserAccessModal(false);
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleRevokeUserAccess = () => {
-    if (!selectedEmployee) return;
-    try {
-      hrmStore.revokeUserAccess(selectedEmployee.id, currentUser.id, currentUser.name);
-      showToast(`Privileged access revoked for ${selectedEmployee.name}. Reverted to Standard Employee.`);
-      setShowRevokeConfirm(false);
-      setShowUserAccessModal(false);
-    } catch (err) {
-      alert(err.message);
-    }
   };
 
   const getCellColorClasses = (val) => {
