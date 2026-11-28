@@ -2413,6 +2413,10 @@ export class HrmDataEngine {
     const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
     if (!emp) throw new Error('Employee not found.');
 
+    if (hrUserId) {
+      this.validateActionAuthorization('UPDATE_EMPLOYEE', hrUserId, { employee: emp, updates: employmentData });
+    }
+
     const oldBranch = emp.branch;
     const oldDept = emp.department;
 
@@ -2545,6 +2549,10 @@ export class HrmDataEngine {
 
   // --- 4. Payroll Operations ---
   processPayrollRun(periodLabel, year, month, hrUserId, hrUserName) {
+    if (hrUserId) {
+      this.validateActionAuthorization('PROCESS_PAYROLL', hrUserId);
+    }
+
     let grossTotal = 0;
     let netTotal = 0;
     let dedTotal = 0;
@@ -2600,6 +2608,10 @@ export class HrmDataEngine {
   approvePayrollRun(runId, approverId, approverName) {
     const run = this.data.payrollRuns.find(r => r.id === runId);
     if (!run) throw new Error('Payroll run not found.');
+
+    if (approverId) {
+      this.validateActionAuthorization('APPROVE_PAYROLL', approverId, { run });
+    }
 
     run.status = 'Finalized';
     run.approvedBy = approverName;
