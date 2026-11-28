@@ -275,7 +275,7 @@ export function Header({ toggleMobileSidebar }) {
               <p className="text-[10px] font-semibold text-brand-600 leading-none mt-0.5">
                 {currentUser.id === 'PE000'
                   ? 'Global Admin'
-                  : (currentUser.systemRole === 'Central HR' ? 'HR Admin' : (currentUser.systemRole || 'Employee'))}
+                  : (currentUser.roleTier || (currentUser.systemRole === 'Central HR' ? 'Central HR' : (currentUser.systemRole || 'Employee')))}
               </p>
             </div>
             <ChevronDown className="h-3 w-3 text-slate-400 hidden sm:block" />
