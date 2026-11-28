@@ -1731,6 +1731,20 @@ export class HrmDataEngine {
       });
       this.syncListeners.push(unsubOnbTpl);
 
+      // 11. Real-time Role Permissions Matrix Listener
+      const unsubRoles = onSnapshot(doc(db, 'system_config', 'role_permissions'), (snapshot) => {
+        try {
+          if (snapshot.exists() && snapshot.data().roles) {
+            this.data.rolePermissions = snapshot.data().roles;
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Role permissions listener error:', err);
+        }
+      });
+      this.syncListeners.push(unsubRoles);
+
     } catch (error) {
       console.warn('[Firebase Live Sync] Initialization warning:', error);
     }
