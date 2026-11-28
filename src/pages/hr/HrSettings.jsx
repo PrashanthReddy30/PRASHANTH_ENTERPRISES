@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Settings, 
@@ -20,11 +20,41 @@ import {
   AlertTriangle,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  UserPlus,
+  Edit2,
+  UserCheck,
+  Shield,
+  X,
+  RotateCcw,
+  Info,
+  ChevronDown,
+  Sparkles,
+  AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { seedLiveFirebase, checkFirestoreConnection } from '../../services/firebaseSeeder';
 import { firebaseConfig } from '../../services/firebaseConfig';
+
+const PERMISSION_OPTIONS = {
+  ve: ['None', 'Self', 'Team', 'Branch', 'Full'],
+  me: ['None', 'Self', 'Team', 'Branch', 'Full'],
+  att: ['None', 'Self', 'Team', 'Branch', 'Full'],
+  al: ['None', 'Direct Reports', 'Branch', 'Full'],
+  pay: ['None', 'Self Slips', 'Verify', 'Full Process', 'Full Audit'],
+  rec: ['None', 'View Jobs', 'Interviews', 'Branch', 'Full'],
+  aud: ['None', 'Financial', 'Branch', 'Full'],
+  scope: ['Self', 'Department', 'Assigned Hub', 'All Hubs', 'Company-Wide']
+};
+
+const DEFAULT_ROLE_MATRIX = [
+  { role: 'Employee', ve: 'Self', me: 'None', att: 'Self', al: 'None', pay: 'Self Slips', rec: 'View Jobs', aud: 'None', scope: 'Self' },
+  { role: 'Manager', ve: 'Team', me: 'None', att: 'Team', al: 'Direct Reports', pay: 'None', rec: 'Interviews', aud: 'None', scope: 'Department' },
+  { role: 'Branch HR', ve: 'Branch', me: 'Branch', att: 'Branch', al: 'Branch', pay: 'None', rec: 'Branch', aud: 'Branch', scope: 'Assigned Hub' },
+  { role: 'Central HR', ve: 'Full', me: 'Full', att: 'Full', al: 'Full', pay: 'Verify', rec: 'Full', aud: 'Full', scope: 'All Hubs' },
+  { role: 'Finance', ve: 'Read', me: 'None', att: 'Read', al: 'None', pay: 'Full Process', rec: 'None', aud: 'Financial', scope: 'All Hubs' },
+  { role: 'Global Admin', ve: 'Full', me: 'Full', att: 'Full', al: 'Full', pay: 'Full Audit', rec: 'Full', aud: 'Full', scope: 'Company-Wide' }
+];
 
 export function HrSettings() {
   const { storeData, hrmStore, currentUser, permissions } = useAuth();
