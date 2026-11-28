@@ -36,6 +36,20 @@ import GlobalAdminDashboard from './pages/admin/GlobalAdminDashboard';
 import BranchMonitor from './pages/admin/BranchMonitor';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
+// Root Route Landing Redirect Component (Global Admin strictly lands on /admin/dashboard)
+function RootRouteRedirect() {
+  const { currentUser, permissions } = useAuth();
+  const roleTier = currentUser?.id === 'PE000' 
+    ? 'Global Admin' 
+    : (currentUser?.roleTier || currentUser?.systemRole || 'Employee');
+  const isGlobalAdmin = roleTier === 'Global Admin' || permissions?.isGlobalAdmin;
+
+  if (isGlobalAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  return <Navigate to="/home" replace />;
+}
+
 export function App() {
   return (
     <AuthProvider>
@@ -46,8 +60,8 @@ export function App() {
 
           {/* Main Application Layout wrapper */}
           <Route path="/" element={<Layout />}>
-            {/* Default redirect to Home */}
-            <Route index element={<Navigate to="/home" replace />} />
+            {/* Automatic Role-Based Landing Redirect */}
+            <Route index element={<RootRouteRedirect />} />
             
             {/* 1. Employee Self-Service (ESS) Portal */}
             <Route path="home" element={<Home />} />
