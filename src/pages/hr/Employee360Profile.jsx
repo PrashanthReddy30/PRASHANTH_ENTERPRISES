@@ -351,16 +351,18 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
             <Printer className="h-3.5 w-3.5 text-slate-500" />
             <span>Print 360° Profile</span>
           </button>
-          <button
-            onClick={() => {
-              setPersonalForm({ ...(employee.personal || {}) });
-              setShowEditPersonalModal(true);
-            }}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-sm"
-          >
-            <Edit3 className="h-3.5 w-3.5" />
-            <span>Edit Profile</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => {
+                setPersonalForm({ ...(employee.personal || {}) });
+                setShowEditPersonalModal(true);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-sm"
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              <span>Edit Profile</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -388,6 +390,19 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
                   }`}>
                     {employee.status}
                   </span>
+                  {canEdit && (
+                    <button
+                      onClick={() => {
+                        setStatusForm({ status: employee.status || 'Active', statusReason: employee.statusReason || '' });
+                        setShowEditStatusModal(true);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-slate-100 hover:bg-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
+                      title="Update Employment Status"
+                    >
+                      <UserCog className="h-3 w-3 text-slate-500" />
+                      <span>Change Status</span>
+                    </button>
+                  )}
                 </div>
                 <p className="text-xs font-semibold text-slate-600">{employee.role} • {employee.department}</p>
                 <p className="text-[11px] text-slate-500 flex items-center gap-2">
@@ -413,9 +428,23 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
                 <Phone className="h-3.5 w-3.5 text-slate-400" />
                 {employee.phone}
               </span>
-              <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-brand-600 bg-brand-50 px-2 py-0.5 rounded">
-                Biometric: {employee.biometricId}
-              </span>
+              <div className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-brand-600 bg-brand-50 px-2 py-0.5 rounded">
+                  Biometric: {employee.biometricId}
+                </span>
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      setBiometricForm({ biometricId: employee.biometricId || '' });
+                      setShowEditBiometricModal(true);
+                    }}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                    title="Edit Biometric ID"
+                  >
+                    <Edit3 className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
