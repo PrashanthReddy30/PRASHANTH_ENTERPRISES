@@ -27,6 +27,9 @@ import HrApprovals from './pages/hr/HrApprovals';
 import HrReports from './pages/hr/HrReports';
 import HrSettings from './pages/hr/HrSettings';
 import CelebrationAutomation from './pages/hr/CelebrationAutomation';
+import NewEmployeeOnboarding from './pages/hr/NewEmployeeOnboarding';
+import OnboardingTrackingDashboard from './pages/hr/OnboardingTrackingDashboard';
+import EmployeeOnboardingPortal from './pages/portal/EmployeeOnboardingPortal';
 
 // Global Admin Module
 import GlobalAdminDashboard from './pages/admin/GlobalAdminDashboard';

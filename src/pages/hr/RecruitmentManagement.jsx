@@ -234,12 +234,23 @@ export function RecruitmentManagement() {
                             )}
 
                             {st === 'Offer Stage' && (
-                              <button
-                                onClick={() => handleHireAndOnboard(cand)}
-                                className="rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-700"
-                              >
-                                Finalize Hire
-                              </button>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => navigate(`/hr/onboarding?candidateId=${cand.id}`)}
+                                  className="flex items-center gap-1 rounded bg-brand-600 hover:bg-brand-700 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs transition active:scale-95"
+                                  title="Launch New Employee Onboarding Workflow"
+                                >
+                                  <UserCheck className="h-3 w-3" />
+                                  <span>Onboarding</span>
+                                </button>
+                                <button
+                                  onClick={() => handleHireAndOnboard(cand)}
+                                  className="rounded bg-slate-100 hover:bg-slate-200 text-slate-700 px-1.5 py-0.5 text-[10px] font-semibold"
+                                  title="Direct Quick Hire"
+                                >
+                                  Hire
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
