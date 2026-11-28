@@ -1353,13 +1353,15 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
                   <h3 className="text-base font-bold text-slate-900">Personnel Dossier & Document Verification</h3>
                   <p className="text-xs text-slate-500">Official statutory proofs, contracts, and employment letters.</p>
                 </div>
-                <button
-                  onClick={() => setShowUploadDocModal(true)}
-                  className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
-                >
-                  <Upload className="h-4 w-4" />
-                  <span>Upload Document</span>
-                </button>
+                {canEdit && (
+                  <button
+                    onClick={() => setShowUploadDocModal(true)}
+                    className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>Upload Document</span>
+                  </button>
+                )}
               </div>
 
               <div className="overflow-x-auto">
@@ -1401,7 +1403,7 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
                               >
                                 Preview
                               </button>
-                              {doc.verificationStatus !== 'Verified' && (
+                              {canEdit && doc.verificationStatus !== 'Verified' && (
                                 <button
                                   onClick={() => handleVerifyDocument(doc.id)}
                                   className="rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-700"
