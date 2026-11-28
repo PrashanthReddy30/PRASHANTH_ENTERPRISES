@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Briefcase, 
   Users, 
@@ -23,6 +24,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export function RecruitmentManagement() {
+  const navigate = useNavigate();
   const { storeData, hrmStore, currentUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState('pipeline'); // 'pipeline' | 'openings'
