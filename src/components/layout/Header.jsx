@@ -19,6 +19,7 @@ export function Header({ toggleMobileSidebar }) {
     switchUser, 
     currentPortal, 
     setCurrentPortal, 
+    switchPersona,
     permissions, 
     storeData, 
     hrmStore 
