@@ -16,6 +16,7 @@ import {
   Sliders,
   CheckSquare,
   Wallet,
+  Activity,
   X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -48,20 +49,24 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
 
   if (isGlobalAdminRoute) {
     // -----------------------------------------------------------------------
-    // A. GLOBAL ADMIN PORTAL (/admin/*): Clean executive list only
+    // A. GLOBAL ADMIN PORTAL (/admin/*): Clean executive list ONLY for Global Admin
     // -----------------------------------------------------------------------
     sectionTitle = 'Global Admin Governance';
-    navItems = [
-      { name: 'Global Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard, description: 'Executive HUD' },
-      { name: 'Branch Monitor', path: '/admin/branch-monitor', icon: Building2, description: 'Live Multi-Branch & Financials' },
-      { name: 'Employees', path: '/hr/employees', icon: Users, description: 'All Branches' },
-      { name: 'Attendance', path: '/hr/attendance', icon: Clock, description: 'Multi-Hub Biometric' },
-      { name: 'Leaves', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals & Ledger' },
-      { name: 'Payroll', path: '/hr/payroll', icon: DollarSign, description: 'Financial Overview' },
-      { name: 'Onboarding / Recruitment', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Verification' },
-      { name: 'Audit Logs', path: '/hr/reports', icon: FileText, description: 'Executive Audit Logs' },
-      { name: 'Role Matrix & Settings', path: '/hr/settings', icon: Sliders, description: 'System Governance & RBAC' }
-    ];
+    if (roleTier === 'Global Admin') {
+      navItems = [
+        { name: 'Global Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard, description: 'Executive HUD' },
+        { name: 'Branch Monitor', path: '/admin/branch-monitor', icon: Activity, description: 'Live Office & Financial Oversight' },
+        { name: 'Employees', path: '/hr/employees', icon: Users, description: 'All Branches' },
+        { name: 'Attendance', path: '/hr/attendance', icon: Clock, description: 'Multi-Hub Biometric' },
+        { name: 'Leaves', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals & Ledger' },
+        { name: 'Payroll', path: '/hr/payroll', icon: DollarSign, description: 'Financial Overview' },
+        { name: 'Onboarding / Recruitment', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Verification' },
+        { name: 'Audit Logs', path: '/hr/reports', icon: FileText, description: 'Executive Audit Logs' },
+        { name: 'Role Matrix & Settings', path: '/hr/settings', icon: Sliders, description: 'System Governance & RBAC' }
+      ];
+    } else {
+      navItems = [];
+    }
   } else if (isHrRoute) {
     // -----------------------------------------------------------------------
     // B. HR ADMIN PORTAL (/hr/*): Strictly HR/Finance/Manager icons by role
