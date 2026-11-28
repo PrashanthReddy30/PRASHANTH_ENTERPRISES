@@ -78,6 +78,17 @@ export function ProfileDrawer({ isOpen, onClose }) {
       color: 'text-violet-600'
     },
     {
+      icon: Key,
+      label: 'Password & Security',
+      description: 'Firebase password reset & verification',
+      href: null,
+      action: async () => {
+        const res = await sendPasswordReset(currentUser.email);
+        alert(res.message);
+      },
+      color: 'text-amber-600'
+    },
+    {
       icon: Info,
       label: 'About',
       description: 'Version 2.0 · Prashanth Enterprises HRMS',
