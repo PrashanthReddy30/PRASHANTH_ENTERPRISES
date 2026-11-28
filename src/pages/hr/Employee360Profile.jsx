@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getVerifiedEmployeeLedger } from '../../services/leaveCalculationService.js';
 
 export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnBack }) {
   const { employeeId: paramEmployeeId } = useParams();
@@ -171,7 +172,7 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
   // Related Records from central store
   const employeeAttendance = storeData.attendance.filter(a => a.employeeId === employee.id || a.employeeId === employee.employeeId);
   const employeeLeaves = storeData.leaveRequests.filter(r => r.employeeId === employee.id || r.employeeId === employee.employeeId);
-  const employeeLedger = storeData.leaveLedger[employee.id] || storeData.leaveLedger['PE001'] || {};
+  const employeeLedger = getVerifiedEmployeeLedger(employee.id, storeData) || storeData.leaveLedger?.[employee.id] || {};
   const employeeSalary = storeData.salaryStructures[employee.id] || { basic: 45000, hra: 22500, specialAllowance: 22500, pf: 5400, pt: 200, tds: 4500, gross: 90000, net: 79900 };
   
   // Specific Audit Logs for this employee (sorted newest first)
