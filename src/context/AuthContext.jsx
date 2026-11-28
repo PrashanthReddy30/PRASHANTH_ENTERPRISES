@@ -734,7 +734,9 @@ export function AuthProvider({ children }) {
   const value = {
     currentUser,
     activeUserId,
+    activePersona,
     switchUser,
+    switchPersona,
     currentPortal,
     setCurrentPortal: setPortalSafely,
     selectedBranchFilter,
