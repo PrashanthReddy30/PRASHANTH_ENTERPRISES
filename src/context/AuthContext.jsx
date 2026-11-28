@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { hrmStore } from '../services/hrmDataStore';
 import { auth, isFirebaseConfigured } from '../services/firebaseConfig';
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -319,6 +319,104 @@ export function AuthProvider({ children }) {
     canViewAuditLogs: canView('audit')
   };
 
+  // Default-Deny Zero Data Leakage: Sanitize storeData so browser memory never retains unpermitted confidential records
+  const userBranchStr = (currentUser.branchScope || currentUser.branch || '').toLowerCase();
+  const sanitizedStoreData = useMemo(() => {
+    if (isGlobalAdmin) return storeData;
+
+    const isUserDirectReport = (emp) => emp.managerId === currentUser.id || emp.reportingManagerId === currentUser.id || emp.managerId === currentUser.employeeId;
+
+    // 1. Employees Directory (Scoped by View Employees permission and branch scope)
+    let scopedEmployees = storeData.employees;
+    if (isNone(veVal)) {
+      scopedEmployees = storeData.employees.filter(e => e.id === currentUser.id || e.employeeId === currentUser.employeeId);
+    } else if (veVal === 'Self') {
+      scopedEmployees = storeData.employees.filter(e => e.id === currentUser.id || e.employeeId === currentUser.employeeId);
+    } else if (veVal === 'Team') {
+      scopedEmployees = storeData.employees.filter(e => e.id === currentUser.id || isUserDirectReport(e));
+    } else if (veVal === 'Branch') {
+      scopedEmployees = storeData.employees.filter(e => (e.branch || '').toLowerCase() === userBranchStr);
+    }
+
+    // 2. Salary Structures & CTC (Strict Confidential Zero Data Leakage)
+    let scopedSalaries = {};
+    if (isFinance || role === 'Central HR') {
+      scopedSalaries = storeData.salaryStructures || {};
+    } else if (role === 'Branch HR') {
+      const allowedEmpIds = new Set(scopedEmployees.map(e => e.id));
+      scopedSalaries = Object.fromEntries(
+        Object.entries(storeData.salaryStructures || {}).filter(([empId]) => allowedEmpIds.has(empId))
+      );
+    } else if (payVal === 'Self Slips' || hasPayrollAccess(currentUser, 'self')) {
+      if (storeData.salaryStructures && storeData.salaryStructures[currentUser.id]) {
+        scopedSalaries = { [currentUser.id]: storeData.salaryStructures[currentUser.id] };
+      }
+    }
+
+    // 3. Payroll Runs
+    let scopedPayrollRuns = [];
+    if (canView('payroll')) {
+      scopedPayrollRuns = storeData.payrollRuns || [];
+    }
+
+    // 4. Leave Requests
+    let scopedLeaves = [];
+    if (role === 'Central HR') {
+      scopedLeaves = storeData.leaveRequests || [];
+    } else if (role === 'Branch HR') {
+      scopedLeaves = (storeData.leaveRequests || []).filter(l => (l.branch || '').toLowerCase() === userBranchStr);
+    } else if (role === 'Manager') {
+      scopedLeaves = (storeData.leaveRequests || []).filter(l => l.employeeId === currentUser.id || (storeData.employees.find(e => e.id === l.employeeId && isUserDirectReport(e))));
+    } else {
+      scopedLeaves = (storeData.leaveRequests || []).filter(l => l.employeeId === currentUser.id || l.employeeId === currentUser.employeeId);
+    }
+
+    // 5. Attendance Records
+    let scopedAttendance = [];
+    if (role === 'Central HR') {
+      scopedAttendance = storeData.attendance || [];
+    } else if (role === 'Branch HR') {
+      scopedAttendance = (storeData.attendance || []).filter(a => (a.branch || '').toLowerCase() === userBranchStr);
+    } else if (role === 'Manager') {
+      scopedAttendance = (storeData.attendance || []).filter(a => a.employeeId === currentUser.id || (storeData.employees.find(e => e.id === a.employeeId && isUserDirectReport(e))));
+    } else {
+      scopedAttendance = (storeData.attendance || []).filter(a => a.employeeId === currentUser.id || a.employeeId === currentUser.employeeId);
+    }
+
+    // 6. Recruitment / Onboarding
+    let scopedOnboarding = [];
+    if (canView('recruitment')) {
+      if (recVal === 'Branch') {
+        scopedOnboarding = (storeData.onboardingCases || []).filter(o => (o.branch || '').toLowerCase() === userBranchStr);
+      } else {
+        scopedOnboarding = storeData.onboardingCases || [];
+      }
+    }
+
+    // 7. Audit Logs
+    let scopedAuditLogs = [];
+    if (canView('audit')) {
+      if (audVal === 'Financial') {
+        scopedAuditLogs = (storeData.auditLogs || []).filter(l => l.module === 'Payroll' || (l.details && l.details.toLowerCase().includes('payroll')));
+      } else if (audVal === 'Branch') {
+        scopedAuditLogs = (storeData.auditLogs || []).filter(l => (l.details && l.details.toLowerCase().includes(userBranchStr)));
+      } else {
+        scopedAuditLogs = storeData.auditLogs || [];
+      }
+    }
+
+    return {
+      ...storeData,
+      employees: scopedEmployees,
+      salaryStructures: scopedSalaries,
+      payrollRuns: scopedPayrollRuns,
+      leaveRequests: scopedLeaves,
+      attendance: scopedAttendance,
+      onboardingCases: scopedOnboarding,
+      auditLogs: scopedAuditLogs
+    };
+  }, [storeData, isGlobalAdmin, currentUser, role, userBranchStr, veVal, alVal, payVal, recVal, audVal, isFinance]);
+
   // Safe portal switcher with authorization check & persona auto-binding
   const setPortalSafely = (targetPortal) => {
     if (targetPortal === 'GLOBAL_ADMIN') {
@@ -436,7 +534,8 @@ export function AuthProvider({ children }) {
     setSelectedBranchFilter,
     permissions,
     sendPasswordReset,
-    storeData,
+    storeData: sanitizedStoreData,
+    rawStoreData: storeData,
     hrmStore
   };
 
