@@ -1780,15 +1780,17 @@ export class HrmDataEngine {
 
     // 2. Validate sufficient balance
     if (!this.data.leaveLedger[emp.id]) {
-      this.data.leaveLedger[emp.id] = {
-        CL: { opening: 12, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 12 },
-        SL: { opening: 10, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 10 },
-        PL: { opening: 18, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 18 },
-        COMP: { opening: 2, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 2.0 }
-      };
+      const policyMap = this.data.leavePolicies ? Object.fromEntries(this.data.leavePolicies.map(p => [p.code, p])) : DEFAULT_LEAVE_POLICIES;
+      this.data.leaveLedger[emp.id] = calculateEmployeeLedger(emp, this.data.leaveRequests, null, policyMap);
     }
-    const ledger = this.data.leaveLedger[emp.id] || this.data.leaveLedger[emp.employeeId] || this.data.leaveLedger['PE001'];
-    const typeBalance = ledger[leaveTypeCode] || { available: 5, opening: 6 };
+    const ledger = this.data.leaveLedger[emp.id] || this.data.leaveLedger[emp.employeeId];
+    if (!ledger) {
+      throw new Error(`Leave ledger for ${emp.name} could not be loaded.`);
+    }
+    const typeBalance = ledger[leaveTypeCode];
+    if (!typeBalance) {
+      throw new Error(`Leave policy for ${leaveType} (${leaveTypeCode}) is not configured.`);
+    }
     if (typeBalance.available < totalDays) {
       throw new Error(`Insufficient ${leaveType} balance. Requested: ${totalDays} days, Available: ${typeBalance.available} days.`);
     }
