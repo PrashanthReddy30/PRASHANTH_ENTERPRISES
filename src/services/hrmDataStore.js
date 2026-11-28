@@ -1089,7 +1089,7 @@ const initialEnterpriseData = {
   onboardingTemplates: DEFAULT_ONBOARDING_TEMPLATES
 };
 
-class HrmDataEngine {
+export class HrmDataEngine {
   constructor() {
     this.subscribers = new Set();
     this.data = this.loadData();
