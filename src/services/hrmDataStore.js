@@ -1369,6 +1369,60 @@ class HrmDataEngine {
       });
       this.syncListeners.push(unsubConfig);
 
+      // 6. Real-time Celebration Templates Listener
+      const unsubTpl = onSnapshot(collection(db, 'celebration_templates'), (snapshot) => {
+        try {
+          const remoteTpls = [];
+          snapshot.forEach(d => remoteTpls.push(d.data()));
+          if (remoteTpls.length > 0) {
+            this.data.celebrationTemplates = remoteTpls;
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing celebration templates:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Celebration templates listener error:', err);
+      });
+      this.syncListeners.push(unsubTpl);
+
+      // 7. Real-time Celebration Engagement Posts Listener
+      const unsubCelebrations = onSnapshot(collection(db, 'employee_engagement_posts'), (snapshot) => {
+        try {
+          const remotePosts = [];
+          snapshot.forEach(d => remotePosts.push(d.data()));
+          if (remotePosts.length > 0) {
+            const postMap = new Map((this.data.employeeEngagementPosts || []).map(p => [p.id, p]));
+            remotePosts.forEach(p => postMap.set(p.id, p));
+            this.data.employeeEngagementPosts = Array.from(postMap.values()).sort((a, b) => new Date(b.eventDate || b.publishedAt || 0) - new Date(a.eventDate || a.publishedAt || 0));
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing celebration posts snapshot:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Celebration posts listener error:', err);
+      });
+      this.syncListeners.push(unsubCelebrations);
+
+      // 8. Real-time Celebration Settings Listener
+      const unsubCelSettings = onSnapshot(doc(db, 'celebration_settings', 'general'), (snapshot) => {
+        try {
+          if (snapshot.exists()) {
+            this.data.celebrationAutomationSettings = { ...this.data.celebrationAutomationSettings, ...snapshot.data() };
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing celebration settings snapshot:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Celebration settings listener error:', err);
+      });
+      this.syncListeners.push(unsubCelSettings);
+
     } catch (error) {
       console.warn('[Firebase Live Sync] Initialization warning:', error);
     }
