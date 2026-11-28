@@ -402,50 +402,256 @@ service cloud.firestore {
 
       {/* Tab 2: Granular RBAC Permissions Matrix */}
       {activeTab === 'roles' && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-          <h2 className="text-sm font-bold text-slate-900">Enterprise Role-Based Access Matrix (6 Distinct Tiers)</h2>
-          <p className="text-xs text-slate-500">
-            Permissions are dynamically validated on the backend and enforce branch scope partitioning.
-          </p>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            {/* Header with Heading, Active Holders summary pill, and Assign Button */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md bg-brand-50 border border-brand-200 px-2.5 py-0.5 text-[11px] font-bold text-brand-700 uppercase">
+                    Security Governance
+                  </span>
+                  <span className="text-xs text-slate-500">• 6 Core Tiers & Dynamic Overrides</span>
+                </div>
+                <h2 className="text-base font-bold text-slate-900 mt-1">
+                  Enterprise Role-Based Access Matrix (6 Distinct Tiers)
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Granular permission control and regional branch boundaries. {permissions.isGlobalAdmin ? 'Exclusively configurable by Global Admin.' : 'Read-only audit view.'}
+                </p>
+              </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
-                  <th className="py-3 px-3">Role Tier</th>
-                  <th className="py-3 px-3 text-center">View Employees</th>
-                  <th className="py-3 px-3 text-center">Manage Employees</th>
-                  <th className="py-3 px-3 text-center">Attendance Logs</th>
-                  <th className="py-3 px-3 text-center">Approve Leaves</th>
-                  <th className="py-3 px-3 text-center">Payroll Access</th>
-                  <th className="py-3 px-3 text-center">Recruitment</th>
-                  <th className="py-3 px-3 text-center">Audit Logs</th>
-                  <th className="py-3 px-3 text-center">Branch Scope</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  { role: 'Employee', ve: 'Self', me: '❌', att: 'Self', al: '❌', pay: 'Self Slips', rec: 'View Jobs', aud: '❌', scope: 'Self' },
-                  { role: 'Manager', ve: 'Team', me: '❌', att: 'Team', al: 'Direct Reports', pay: '❌', rec: 'Interviews', aud: '❌', scope: 'Department' },
-                  { role: 'Branch HR', ve: 'Branch', me: 'Branch', att: 'Branch', al: 'Branch', pay: '❌', rec: 'Branch', aud: 'Branch', scope: 'Assigned Hub' },
-                  { role: 'Central HR', ve: 'Full', me: 'Full', att: 'Full', al: 'Full', pay: 'Verify', rec: 'Full', aud: 'Full', scope: 'All Hubs' },
-                  { role: 'Finance', ve: 'Read', me: '❌', att: 'Read', al: '❌', pay: 'Full Process', rec: '❌', aud: 'Financial', scope: 'All Hubs' },
-                  { role: 'Global Admin', ve: 'Full', me: 'Full', att: 'Full', al: 'Full', pay: 'Full Audit', rec: 'Full', aud: 'Full', scope: 'Company-Wide' },
-                ].map(r => (
-                  <tr key={r.role} className="hover:bg-slate-50/50">
-                    <td className="py-3 px-3 font-bold text-slate-900">{r.role}</td>
-                    <td className="py-3 px-3 text-center font-medium text-slate-700">{r.ve}</td>
-                    <td className="py-3 px-3 text-center font-medium text-slate-700">{r.me}</td>
-                    <td className="py-3 px-3 text-center font-medium text-slate-700">{r.att}</td>
-                    <td className="py-3 px-3 text-center font-medium text-slate-700">{r.al}</td>
-                    <td className="py-3 px-3 text-center font-medium text-slate-700">{r.pay}</td>
-                    <td className="py-3 px-3 text-center font-medium text-slate-700">{r.rec}</td>
-                    <td className="py-3 px-3 text-center font-medium text-slate-700">{r.aud}</td>
-                    <td className="py-3 px-3 text-center font-bold text-brand-600">{r.scope}</td>
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Summary pill showing total privileged access holders */}
+                <div className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-3 py-2 text-xs font-bold text-blue-700 shadow-2xs">
+                  <ShieldCheck className="h-4 w-4 text-blue-600" />
+                  <span>Active Access Holders ({privilegedHolders.length})</span>
+                </div>
+
+                {/* Primary + Assign / Manage User Access button */}
+                {permissions.isGlobalAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAssignModal()}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-brand-700 transition"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>+ Assign / Manage User Access</span>
+                  </button>
+                )}
+
+                {/* Save Matrix Changes button (Global Admin Only) */}
+                {permissions.isGlobalAdmin && (
+                  <div className="flex items-center gap-1.5">
+                    {isMatrixModified && (
+                      <button
+                        type="button"
+                        onClick={handleResetMatrix}
+                        className="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                        title="Revert unsaved changes"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 text-slate-500" />
+                        <span>Reset</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveConfirmModal(true)}
+                      disabled={!isMatrixModified}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition shadow-xs ${
+                        isMatrixModified
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse'
+                          : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                      }`}
+                    >
+                      <Save className="h-4 w-4" />
+                      <span>Save Matrix Changes</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Read-only notification banner for Non-Global Admin */}
+            {!permissions.isGlobalAdmin && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 flex items-center gap-2.5 text-xs text-amber-800">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Read-Only Mode:</strong> You are viewing the live Role-Based Access Matrix. Only the <strong>Global Admin</strong> is authorized to edit matrix permission cells or assign role tiers and module overrides.
+                </span>
+              </div>
+            )}
+
+            {/* Matrix Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    <th className="py-3 px-3">Role Tier</th>
+                    <th className="py-3 px-3">Assigned Users</th>
+                    <th className="py-3 px-2 text-center">View Employees</th>
+                    <th className="py-3 px-2 text-center">Manage Employees</th>
+                    <th className="py-3 px-2 text-center">Attendance Logs</th>
+                    <th className="py-3 px-2 text-center">Approve Leaves</th>
+                    <th className="py-3 px-2 text-center">Payroll Access</th>
+                    <th className="py-3 px-2 text-center">Recruitment</th>
+                    <th className="py-3 px-2 text-center">Audit Logs</th>
+                    <th className="py-3 px-2 text-center">Branch Scope</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {matrixForm.map((r) => {
+                    const assigned = storeData.employees.filter(
+                      e => (e.systemRole || 'Employee') === r.role || (r.role === 'Central HR' && e.systemRole === 'HR Admin')
+                    );
+                    const isGlobalAdminRow = r.role === 'Global Admin';
+
+                    return (
+                      <tr key={r.role} className="hover:bg-slate-50/60 transition-colors">
+                        {/* ROLE TIER */}
+                        <td className="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <span>{r.role}</span>
+                            {isGlobalAdminRow && (
+                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 uppercase flex items-center gap-0.5">
+                                <Lock className="w-2.5 h-2.5" /> Locked
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* ASSIGNED USERS COLUMN */}
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <div className="relative flex items-center gap-2">
+                            {assigned.length === 0 ? (
+                              <span className="text-slate-400 italic text-[11px]">No users</span>
+                            ) : (
+                              <div className="flex items-center -space-x-1.5">
+                                {assigned.slice(0, 3).map((u) => (
+                                  <img
+                                    key={u.id}
+                                    src={u.avatar}
+                                    alt={u.name}
+                                    title={`${u.name} (${u.employeeId}) - ${u.branch}`}
+                                    className="w-6 h-6 rounded-full object-cover border-2 border-white shadow-2xs"
+                                  />
+                                ))}
+                                {assigned.length > 3 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveUsersPopover(activeUsersPopover === r.role ? null : r.role)}
+                                    className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[9px] font-bold text-slate-700 hover:bg-slate-300 transition"
+                                    title="View all assigned users"
+                                  >
+                                    +{assigned.length - 3}
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            {/* First employee name text preview if 1 or 2 */}
+                            {assigned.length > 0 && assigned.length <= 2 && (
+                              <span className="text-[11px] text-slate-600 font-medium hidden lg:inline max-w-[100px] truncate">
+                                {assigned[0].name.split(' ')[0]}{assigned.length > 1 ? `, ${assigned[1].name.split(' ')[0]}` : ''}
+                              </span>
+                            )}
+
+                            {/* Quick Edit/Assign button */}
+                            {permissions.isGlobalAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenAssignModal(r.role)}
+                                className="p-1 rounded-md text-slate-400 hover:text-brand-600 hover:bg-slate-100 transition"
+                                title={`Assign or modify users in ${r.role} tier`}
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {/* Popover for assigned users */}
+                            {activeUsersPopover === r.role && (
+                              <div className="absolute left-0 top-full mt-2 z-30 w-72 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xl animate-fade-in">
+                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-slate-900 text-xs">{r.role}</span>
+                                    <span className="rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand-700">
+                                      {assigned.length} Users
+                                    </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveUsersPopover(null)}
+                                    className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                                <div className="max-h-52 overflow-y-auto space-y-1.5 divide-y divide-slate-50">
+                                  {assigned.map((emp) => (
+                                    <div key={emp.id} className="pt-1.5 flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2">
+                                        <img src={emp.avatar} alt={emp.name} className="w-6 h-6 rounded-full object-cover border border-slate-200" />
+                                        <div>
+                                          <p className="font-bold text-slate-900 text-[11px] leading-tight">{emp.name}</p>
+                                          <p className="text-[10px] text-slate-400">{emp.branch} • {emp.department}</p>
+                                        </div>
+                                      </div>
+                                      {permissions.isGlobalAdmin && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setActiveUsersPopover(null);
+                                            handleOpenAssignModal(r.role, emp);
+                                          }}
+                                          className="text-brand-600 hover:text-brand-700 p-1 text-[11px] font-semibold"
+                                          title="Manage Access"
+                                        >
+                                          Manage
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* 8 PERMISSION CELLS */}
+                        {['ve', 'me', 'att', 'al', 'pay', 'rec', 'aud', 'scope'].map((field) => (
+                          <td key={field} className="py-2.5 px-1.5 text-center whitespace-nowrap">
+                            {permissions.isGlobalAdmin && !isGlobalAdminRow ? (
+                              <select
+                                value={r[field]}
+                                onChange={(e) => handleMatrixCellChange(r.role, field, e.target.value)}
+                                className={`w-full max-w-[110px] mx-auto text-center rounded-lg border py-1 px-1.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer transition shadow-2xs ${getCellColorClasses(r[field])}`}
+                              >
+                                {PERMISSION_OPTIONS[field].map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt === 'None' ? '✕ None' : opt}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span
+                                className={`inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${
+                                  isGlobalAdminRow
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 font-bold'
+                                    : getCellColorClasses(r[field])
+                                }`}
+                              >
+                                {isGlobalAdminRow && <Lock className="w-2.5 h-2.5 text-emerald-600" />}
+                                {r[field] === 'None' ? '✕ None' : r[field]}
+                              </span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
