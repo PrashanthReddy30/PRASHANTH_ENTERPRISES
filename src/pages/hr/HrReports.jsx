@@ -46,8 +46,32 @@ export function HrReports() {
     let rows = [];
 
     if (selectedReport === 'leave') {
-      headers = ['Leave ID', 'Employee ID', 'Employee Name', 'Department', 'Branch', 'Type', 'From Date', 'To Date', 'Total Days', 'Status'];
-      rows = storeData.leaveRequests.map(r => [r.id, r.employeeId, r.employeeName, r.department, r.branch, r.leaveType, r.fromDate, r.toDate, r.totalDays, r.status]);
+      if (leaveReportView === 'balances') {
+        headers = ['Employee ID', 'Employee Name', 'Branch', 'Department', 'DOJ', 'CL Available', 'CL Used', 'CL Total', 'SL Available', 'SL Used', 'SL Total', 'PL Available', 'PL Used', 'PL Total', 'COMP Available'];
+        rows = storeData.employees.map(e => {
+          const l = getVerifiedEmployeeLedger(e.id, storeData) || {};
+          return [
+            e.employeeId,
+            e.name,
+            e.branch,
+            e.department,
+            e.joiningDate,
+            l.CL?.available ?? 0,
+            l.CL?.used ?? 0,
+            l.CL?.total ?? 0,
+            l.SL?.available ?? 0,
+            l.SL?.used ?? 0,
+            l.SL?.total ?? 0,
+            l.PL?.available ?? 0,
+            l.PL?.used ?? 0,
+            l.PL?.total ?? 0,
+            l.COMP?.available ?? 0
+          ];
+        });
+      } else {
+        headers = ['Leave ID', 'Employee ID', 'Employee Name', 'Department', 'Branch', 'Type', 'From Date', 'To Date', 'Total Days', 'Status'];
+        rows = storeData.leaveRequests.map(r => [r.id, r.employeeId, r.employeeName, r.department, r.branch, r.leaveType, r.fromDate, r.toDate, r.totalDays, r.status]);
+      }
     } else if (selectedReport === 'payroll') {
       headers = ['Employee ID', 'Employee Name', 'Branch', 'Department', 'Monthly Basic', 'HRA', 'Special Allowance', 'EPF Deducted', 'Prof Tax', 'Gross CTC', 'Net Take-Home'];
       rows = storeData.employees.map(e => {
