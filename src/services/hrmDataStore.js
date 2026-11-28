@@ -2098,13 +2098,9 @@ export class HrmDataEngine {
       biometricId: `MTX-${newId}`
     };
 
-    // Initialize default leave balance
-    this.data.leaveLedger[newId] = {
-      CL: { opening: 12, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 12 },
-      SL: { opening: 10, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 10 },
-      PL: { opening: 18, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 18 },
-      COMP: { opening: 0, accrued: 0, approvedRestorations: 0, approvedDeductions: 0, pendingReservations: 0, available: 0 }
-    };
+    // Initialize personalized leave eligibility based on DOJ, policy, branch
+    const policyMap = this.data.leavePolicies ? Object.fromEntries(this.data.leavePolicies.map(p => [p.code, p])) : DEFAULT_LEAVE_POLICIES;
+    this.data.leaveLedger[newId] = calculateEmployeeLedger(newEmployee, [], null, policyMap);
 
     // Initialize default salary
     this.data.salaryStructures[newId] = {
