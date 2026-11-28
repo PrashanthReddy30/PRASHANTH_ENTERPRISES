@@ -122,8 +122,8 @@ assert.strictEqual(submittedCase.signatures.employeeSignature, 'data:image/png;b
 console.log('✓ Candidate portal submission verified.');
 
 // 6e: HR Verification of documents
-const verifiedCase = engine.verifyOnboardingDocument(newCase.id, 'aadhaar_card', 'Approved', 'Clear scan matches details');
-assert.strictEqual(verifiedCase.documents.aadhaar_card.status, 'Approved');
+const verifiedCase = engine.verifyOnboardingDocument(newCase.id, 'aadhaar', 'Approved', 'Clear scan matches details');
+assert.strictEqual(verifiedCase.documents.aadhaar.status, 'Approved');
 assert.strictEqual(verifiedCase.status, 'Pending HR Verification');
 console.log('✓ HR document verification verified.');
 
