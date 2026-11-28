@@ -578,7 +578,7 @@ service cloud.firestore {
                             {permissions.isGlobalAdmin && (
                               <button
                                 type="button"
-                                onClick={() => handleOpenAssignModal(r.role)}
+                                onClick={() => handleOpenRoleDrawer(r.role)}
                                 className="p-1 rounded-md text-slate-400 hover:text-brand-600 hover:bg-slate-100 transition"
                                 title={`Assign or modify users in ${r.role} tier`}
                               >
@@ -619,7 +619,7 @@ service cloud.firestore {
                                           type="button"
                                           onClick={() => {
                                             setActiveUsersPopover(null);
-                                            handleOpenAssignModal(r.role, emp);
+                                            handleOpenRoleDrawer(r.role);
                                           }}
                                           className="text-brand-600 hover:text-brand-700 p-1 text-[11px] font-semibold"
                                           title="Manage Access"
