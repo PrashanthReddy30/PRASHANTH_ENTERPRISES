@@ -368,18 +368,30 @@ export function LeaveManagement() {
       {activeTab === 'ledger' && (
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h2 className="text-sm font-bold text-slate-900 mb-1">
-              Atomic Leave Balance Ledger (Opening + Accrued - Approved = Available)
-            </h2>
-            <p className="text-xs text-slate-500 mb-4">
-              Real-time calculation ledger guaranteed by transactional deductions and pending reservations.
-            </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 mb-1">
+                  Atomic Leave Balance Ledger (Opening + Accrued - Deductions - Reservations = Available)
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Global real-time calculation engine applying policy accrual, joining year pro-ration, and transaction deductions for all employees across all branches.
+                </p>
+              </div>
+              <button
+                onClick={handleRunGlobalReconciliation}
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-brand-700 transition"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Re-run Global Audit & Reconcile</span>
+              </button>
+            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
                     <th className="py-3 px-4">Employee</th>
+                    <th className="py-3 px-4">Branch & Dept</th>
                     <th className="py-3 px-4">Leave Type</th>
                     <th className="py-3 px-4">Opening</th>
                     <th className="py-3 px-4">Accrued</th>
@@ -390,12 +402,18 @@ export function LeaveManagement() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {storeData.employees.map((emp) => {
-                    const ledger = storeData.leaveLedger[emp.id] || storeData.leaveLedger['PE001'];
+                    const ledger = getVerifiedEmployeeLedger(emp.id, storeData) || storeData.leaveLedger?.[emp.id];
                     if (!ledger) return null;
                     return Object.entries(ledger).map(([code, bal]) => (
                       <tr key={`${emp.id}-${code}`} className="hover:bg-slate-50/50">
                         <td className="py-2.5 px-4 font-bold text-slate-900">
-                          {emp.name} ({emp.employeeId})
+                          {emp.name} <span className="text-slate-400 font-normal">({emp.employeeId})</span>
+                        </td>
+                        <td className="py-2.5 px-4 text-slate-600">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 mr-1.5">
+                            {emp.branch}
+                          </span>
+                          <span className="text-slate-500">{emp.department}</span>
                         </td>
                         <td className="py-2.5 px-4">
                           <span className="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-700">
