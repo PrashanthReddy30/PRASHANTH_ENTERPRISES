@@ -1782,7 +1782,113 @@ export class HrmDataEngine {
       timestamp: new Date().toISOString(),
       details
     };
+    if (!this.data.auditLogs) this.data.auditLogs = [];
     this.data.auditLogs.unshift(entry);
+  }
+
+  // --- Tamper-Proof Zero-Trust Security Audit Logger ---
+  logTamperAttempt(actorId, actorRole, action, details) {
+    const entry = {
+      id: `AUD-SEC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      action: 'SECURITY_ACCESS_DENIED',
+      module: 'Security / Zero-Trust RBAC',
+      user: actorRole || 'Unauthorized User',
+      userId: actorId || 'UNKNOWN',
+      role: actorRole || 'Unknown',
+      timestamp: new Date().toISOString(),
+      details: details || `Blocked unauthorized attempt to execute action: ${action}`,
+      severity: 'HIGH_ALERT'
+    };
+    if (!this.data.auditLogs) this.data.auditLogs = [];
+    this.data.auditLogs.unshift(entry);
+    this.saveData();
+    this.syncDocToFirebase('audit_logs', entry.id, entry);
+    return entry;
+  }
+
+  // --- Strict Confidential Zero-Trust Action Authorization Validator ---
+  validateActionAuthorization(actionType, actorId, targetDetails = {}) {
+    // Global Admin (PE000) is always unrestricted
+    if (actorId === 'PE000') return true;
+
+    const actor = this.data.employees?.find(e => e.id === actorId || e.employeeId === actorId);
+    if (actor?.systemRole === 'Global Admin') return true;
+
+    if (!actor) {
+      this.logTamperAttempt(actorId, 'Unauthenticated', actionType, `Unknown actor attempted to execute ${actionType}`);
+      throw new Error(`Access Denied: Unrecognized actor identity (${actorId}) in Zero-Trust environment.`);
+    }
+
+    const roleTier = actor.systemRole || 'Employee';
+    const matrix = this.data.rolePermissions || initialEnterpriseData.rolePermissions;
+    const roleRow = matrix.find(r => r.role.toLowerCase() === roleTier.toLowerCase()) || matrix[0];
+    const overrides = actor.permissionsOverride || {};
+    const effectiveVal = (key) => overrides[key] !== undefined ? overrides[key] : roleRow[key];
+
+    const alVal = effectiveVal('al');
+    const meVal = effectiveVal('me');
+    const payVal = effectiveVal('pay');
+    const isNone = (val) => !val || val === 'None' || val === '❌' || val === 'none';
+
+    if (actionType === 'APPROVE_LEAVE' || actionType === 'REJECT_LEAVE') {
+      if (isNone(alVal)) {
+        this.logTamperAttempt(actorId, roleTier, actionType, `Role ${roleTier} has no leave approval privileges (al: None)`);
+        throw new Error('Access Denied: Your role does not have leave approval privileges.');
+      }
+      if (alVal === 'Self') {
+        this.logTamperAttempt(actorId, roleTier, actionType, `Role ${roleTier} cannot approve other employees' leaves (al: Self)`);
+        throw new Error('Access Denied: Cannot approve leave requests with Self permission.');
+      }
+      if (alVal === 'Direct Reports' || alVal === 'Team') {
+        const targetEmp = targetDetails.employee;
+        const isDirect = targetEmp && (
+          targetEmp.managerId === actor.id ||
+          targetEmp.reportingManagerId === actor.id ||
+          targetEmp.managerId === actor.employeeId ||
+          targetEmp.managerName === actor.name
+        );
+        if (!isDirect) {
+          this.logTamperAttempt(actorId, roleTier, actionType, `Manager ${actor.name} (${actor.id}) attempted to approve leave for ${targetEmp?.name || 'unknown'} outside direct reports`);
+          throw new Error('Access Denied: You may only approve leave requests for your direct reports.');
+        }
+      } else if (alVal === 'Branch') {
+        const targetEmp = targetDetails.employee;
+        const actorBranch = (actor.branchScope || actor.branch || '').toLowerCase();
+        const empBranch = (targetEmp?.branch || targetEmp?.workLocation || '').toLowerCase();
+        if (!targetEmp || !actorBranch || !empBranch || (actorBranch !== 'all hubs' && actorBranch !== empBranch)) {
+          this.logTamperAttempt(actorId, roleTier, actionType, `Branch HR ${actor.name} (${actor.branch}) attempted leave action on employee ${targetEmp?.name} from branch ${targetEmp?.branch}`);
+          throw new Error(`Access Denied: You may only approve leave requests within your assigned branch (${actor.branch}).`);
+        }
+      }
+      return true;
+    }
+
+    if (actionType === 'UPDATE_EMPLOYEE') {
+      if (isNone(meVal)) {
+        this.logTamperAttempt(actorId, roleTier, actionType, `Role ${roleTier} has no employee management privileges (me: None)`);
+        throw new Error('Access Denied: Your role is not authorized to edit employee records.');
+      }
+      if (meVal === 'Branch') {
+        const targetEmp = targetDetails.employee;
+        const actorBranch = (actor.branchScope || actor.branch || '').toLowerCase();
+        const empBranch = (targetEmp?.branch || targetEmp?.workLocation || '').toLowerCase();
+        if (actorBranch !== 'all hubs' && (!targetEmp || !actorBranch || !empBranch || actorBranch !== empBranch)) {
+          this.logTamperAttempt(actorId, roleTier, actionType, `Branch HR ${actor.name} (${actor.branch}) attempted profile modification on ${targetEmp?.name} in ${targetEmp?.branch}`);
+          throw new Error(`Access Denied: You may only manage employees within your assigned branch (${actor.branch}).`);
+        }
+      }
+      return true;
+    }
+
+    if (actionType === 'PROCESS_PAYROLL' || actionType === 'APPROVE_PAYROLL') {
+      if (payVal !== 'Full Process' && payVal !== 'Full Audit') {
+        this.logTamperAttempt(actorId, roleTier, actionType, `Role ${roleTier} attempted payroll processing/approval with unauthorized permission level (${payVal})`);
+        throw new Error('Access Denied: Full Process or Full Audit permission required to process or finalize payroll.');
+      }
+      return true;
+    }
+
+    return true;
   }
 
   // --- 1. Leave Management Lifecycle ---
