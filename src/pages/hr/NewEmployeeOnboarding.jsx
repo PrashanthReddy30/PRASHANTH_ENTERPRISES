@@ -211,7 +211,7 @@ export function NewEmployeeOnboarding() {
         employeeSignature: null,
         signedAt: null,
         ipAddress: null,
-        hrSignature: 'Prashanth Reddy (Director of Operations)',
+        hrSignature: `${currentUser?.name || 'Niharika'} (${currentUser?.role || 'HR Admin'})`,
         hrSignedAt: new Date().toISOString()
       },
       timeline: []

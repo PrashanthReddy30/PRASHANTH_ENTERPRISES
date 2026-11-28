@@ -267,7 +267,7 @@ export function Header({ toggleMobileSidebar }) {
                 {currentUser.name.split(' ')[0]}
               </p>
               <p className="text-[10px] font-semibold text-brand-600 leading-none mt-0.5">
-                {currentUser.systemRole}
+                {currentUser.systemRole === 'Central HR' ? 'HR Admin' : currentUser.systemRole}
               </p>
             </div>
             <ChevronDown className="h-3 w-3 text-slate-400 hidden sm:block" />
