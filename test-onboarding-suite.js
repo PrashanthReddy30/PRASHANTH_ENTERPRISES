@@ -38,7 +38,7 @@ const expectedKeys = [
 for (const key of expectedKeys) {
   const tmpl = DEFAULT_ONBOARDING_TEMPLATES.find(t => t.id === key);
   assert(tmpl, `Missing template for ${key}`);
-  assert(tmpl.body && tmpl.body.length > 50, `Template body too short for ${key}`);
+  assert(tmpl.templateText && tmpl.templateText.length > 50, `Template body too short for ${key}`);
 }
 console.log('✓ All 11 templates present and valid.');
 
@@ -63,7 +63,7 @@ const sampleCase = {
   }
 };
 const appointmentTmpl = DEFAULT_ONBOARDING_TEMPLATES.find(t => t.id === 'TPL-APPOINTMENT');
-const populated = populateDocumentText(appointmentTmpl.body, sampleCase);
+const populated = populateDocumentText(appointmentTmpl.templateText, sampleCase);
 assert(populated.includes('Rahul Sharma'), 'Must replace {{fullName}}');
 assert(populated.includes('Senior Cloud Engineer'), 'Must replace {{designation}}');
 assert(populated.includes('Hyderabad Hub'), 'Must replace {{workLocation}}');
