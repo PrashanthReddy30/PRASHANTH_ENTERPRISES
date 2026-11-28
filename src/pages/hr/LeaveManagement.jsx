@@ -23,7 +23,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getVerifiedEmployeeLedger } from '../../services/leaveCalculationService.js';
 
 export function LeaveManagement() {
-  const { storeData, hrmStore, currentUser } = useAuth();
+  const { storeData, hrmStore, currentUser, permissions } = useAuth();
 
   const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'ledger' | 'policies'
   const [statusFilter, setStatusFilter] = useState('Pending'); // 'Pending' | 'Approved' | 'Rejected' | 'ALL'
