@@ -33,15 +33,18 @@ export function PayrollManagement() {
   const [selectedRun, setSelectedRun] = useState(storeData.payrollRuns[0] || null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Branch Scoping Setup
+  // Branch Scoping Setup (Single Source of Truth via Role Matrix)
   const isGlobalAdmin = permissions.isGlobalAdmin;
-  const userBranch = currentUser?.branch || 'Hyderabad';
+  const userBranch = currentUser?.branchScope || currentUser?.branch || 'Hyderabad';
   const userBranchId = currentUser?.branchId || (userBranch === 'Hyderabad' ? 'HYD' : userBranch === 'Chennai' ? 'CHE' : 'MUM');
+  const canExecuteProcess = permissions.isGlobalAdmin || permissions.hasPayrollAccess(null, 'process');
 
-  // Filter state (Global Admin can toggle; HR Admin is locked)
+  // Filter state (Global Admin can toggle; Hub-restricted roles are locked)
   const [selectedBranchFilter, setSelectedBranchFilter] = useState('ALL');
-  const activeBranch = isGlobalAdmin ? selectedBranchFilter : userBranch;
-  const isBranchLocked = !isGlobalAdmin;
+  const activeBranch = isGlobalAdmin || permissions.getBranchScope() === 'Company-Wide' || permissions.getBranchScope() === 'All Hubs'
+    ? selectedBranchFilter 
+    : userBranch;
+  const isBranchLocked = !isGlobalAdmin && permissions.getBranchScope() === 'Assigned Hub';
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -50,21 +53,11 @@ export function PayrollManagement() {
 
   // Branch-scoped employee list
   const scopedEmployees = useMemo(() => {
-    if (isGlobalAdmin && activeBranch === 'ALL') {
-      return storeData.employees;
-    }
-    return storeData.employees.filter(emp => {
-      const empBranch = (emp.branch || '').trim().toLowerCase();
-      const targetBranch = activeBranch.trim().toLowerCase();
-      const empBranchId = (emp.branchId || '').trim().toUpperCase();
-      const targetBranchId = (
-        activeBranch === 'Hyderabad' ? 'HYD' :
-        activeBranch === 'Chennai' ? 'CHE' :
-        activeBranch === 'Mumbai' ? 'MUM' : activeBranch
-      ).toUpperCase();
-      return empBranch === targetBranch || empBranchId === targetBranchId;
+    return permissions.filterByScope(storeData.employees, {
+      branchKey: 'branch',
+      empIdKey: 'id'
     });
-  }, [storeData.employees, isGlobalAdmin, activeBranch]);
+  }, [storeData.employees, permissions]);
 
   // Branch-scoped financial totals
   const branchMetrics = useMemo(() => {
@@ -198,13 +191,20 @@ export function PayrollManagement() {
               </div>
             ) : null}
 
-            <button
-              onClick={() => handleGeneratePreview('November 2026', 2026, 11)}
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
-            >
-              <Play className="h-4 w-4" />
-              <span>Run Nov 2026 Payroll {isBranchLocked ? `(${userBranch})` : ''}</span>
-            </button>
+            {canExecuteProcess ? (
+              <button
+                onClick={() => handleGeneratePreview('November 2026', 2026, 11)}
+                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+              >
+                <Play className="h-4 w-4" />
+                <span>Run Nov 2026 Payroll {isBranchLocked ? `(${userBranch})` : ''}</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-800">
+                <ShieldCheck className="h-4 w-4 text-amber-600" />
+                <span>Verify Mode (Audit Only)</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -263,13 +263,20 @@ export function PayrollManagement() {
               </div>
 
               {selectedRun.status !== 'Finalized' ? (
-                <button
-                  onClick={() => handleApprovePayroll(selectedRun.id)}
-                  className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition"
-                >
-                  <FileCheck className="h-4 w-4" />
-                  <span>Authorize & Finalize Payroll {isBranchLocked ? `(${userBranch})` : ''}</span>
-                </button>
+                canExecuteProcess ? (
+                  <button
+                    onClick={() => handleApprovePayroll(selectedRun.id)}
+                    className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition"
+                  >
+                    <FileCheck className="h-4 w-4" />
+                    <span>Authorize & Finalize Payroll {isBranchLocked ? `(${userBranch})` : ''}</span>
+                  </button>
+                ) : (
+                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 flex items-center gap-1">
+                    <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
+                    <span>Read/Verify Mode (Processing Blocked)</span>
+                  </span>
+                )
               ) : (
                 <div className="text-right">
                   <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">

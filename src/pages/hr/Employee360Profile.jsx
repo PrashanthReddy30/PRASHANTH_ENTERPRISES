@@ -48,23 +48,25 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
   const onBack = propOnBack || (() => navigate('/hr/employees'));
   const { storeData, hrmStore, currentUser, permissions } = useAuth();
 
-  // HR permission check — edit controls only visible to HR/Admin in HR portal
-  const canEdit = !!(permissions.canManageEmployees || permissions.isGlobalAdmin);
-
   // Find employee
   const employee = storeData.employees.find(e => e.id === employeeId || e.employeeId === employeeId);
 
-  // Branch matching check for Finance & Payroll:
-  // Global Admin: unrestricted across all 3 branches
-  // HR Admin / Finance: allowed if employee.branch === currentUser.branch (same branch)
-  const isFinanceAuthorized = !!(
-    permissions.isGlobalAdmin || (
-      currentUser?.branch && employee?.branch && (
-        currentUser.branch.trim().toLowerCase() === employee.branch.trim().toLowerCase() ||
-        currentUser.branchId === employee.branchId
-      )
-    )
+  // Live Role-Based Access Matrix Enforcement (Single Source of Truth)
+  // 1. MANAGE EMPLOYEES:
+  //    None → Edit buttons completely hidden (Strictly read-only)
+  //    Branch → Editable only if employee is within same branch scope
+  //    Full / Global Admin → Editable across all branches
+  const canEdit = !!(
+    permissions.isGlobalAdmin || 
+    (permissions.canManage('employees') && permissions.canManageEmployee(employee))
   );
+
+  // 2. PAYROLL ACCESS:
+  //    None → Tab completely hidden
+  //    Self Slips → Visible only if viewing own profile
+  //    Verify / Full Process / Full Audit → Authorized based on branch scope
+  const canAccessPayroll = permissions.hasPayrollAccess(employee);
+  const isFinanceAuthorized = canAccessPayroll;
 
   // Active Tab (13 tabs)
   const [activeTab, setActiveTab] = useState('overview');
@@ -198,7 +200,7 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
     { id: 'loginSessions', label: '5. Login & Logout History', icon: Laptop },
     { id: 'leaveApplications', label: '6. Leave Applications', icon: Calendar },
     { id: 'leaveBalance', label: '7. Leave Balance', icon: CheckCircle2 },
-    { id: 'finance', label: '8. Finance & Payroll', icon: DollarSign, protected: true },
+    ...(canAccessPayroll ? [{ id: 'finance', label: '8. Finance & Payroll', icon: DollarSign, protected: true }] : []),
     { id: 'education', label: '9. Education Details', icon: GraduationCap },
     { id: 'experience', label: '10. Previous Experience', icon: Briefcase },
     { id: 'manager', label: '11. Reporting Manager', icon: Network },

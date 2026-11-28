@@ -49,8 +49,16 @@ export function LeaveManagement() {
     }
   };
 
+  // Scoped Leave Applications (Branch Scope Single Source of Truth)
+  const scopedRequests = React.useMemo(() => {
+    return permissions.filterByScope(storeData.leaveRequests, {
+      branchKey: 'branch',
+      empIdKey: 'employeeId'
+    });
+  }, [storeData.leaveRequests, permissions]);
+
   // Filter Leave Applications
-  const filteredRequests = storeData.leaveRequests.filter((req) => {
+  const filteredRequests = scopedRequests.filter((req) => {
     const matchesSearch = 
       req.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       req.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -324,24 +332,35 @@ export function LeaveManagement() {
                         {/* Actions */}
                         <td className="py-3 px-4 text-right">
                           {req.status === 'Pending' ? (
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => handleApprove(req)}
-                                className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700 shadow-2xs transition"
-                                title="Approve Leave and Deduct Balance"
-                              >
-                                <Check className="h-3.5 w-3.5" />
-                                <span>Approve</span>
-                              </button>
-                              <button
-                                onClick={() => handleOpenReject(req)}
-                                className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
-                                title="Reject Leave and Release Reservation"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                                <span>Reject</span>
-                              </button>
-                            </div>
+                            (() => {
+                              const targetEmp = storeData.employees.find(e => e.id === req.employeeId);
+                              const canApprove = permissions.canApproveLeaves(targetEmp || { branch: req.branch, managerId: req.managerId });
+                              
+                              if (!canApprove) {
+                                return <span className="text-slate-400 text-[11px] italic">No Approval Authority</span>;
+                              }
+
+                              return (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleApprove(req)}
+                                    className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700 shadow-2xs transition"
+                                    title="Approve Leave and Deduct Balance"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                    <span>Approve</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenReject(req)}
+                                    className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                                    title="Reject Leave and Release Reservation"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                    <span>Reject</span>
+                                  </button>
+                                </div>
+                              );
+                            })()
                           ) : req.status === 'Approved' ? (
                             <button
                               onClick={() => handleCancel(req)}

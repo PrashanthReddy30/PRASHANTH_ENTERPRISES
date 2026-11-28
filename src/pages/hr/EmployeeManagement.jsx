@@ -98,13 +98,21 @@ export function EmployeeManagement() {
     );
   };
 
-  // Quick Autocomplete / Search Matches
-  const matchedEmployeesForDropdown = storeData.employees.filter((emp) =>
+  // Quick Autocomplete / Search Matches (Branch Scoped)
+  const scopedMasterEmployees = React.useMemo(() => {
+    return permissions.filterByScope(storeData.employees, {
+      branchKey: 'branch',
+      empIdKey: 'id',
+      deptKey: 'department'
+    });
+  }, [storeData.employees, permissions]);
+
+  const matchedEmployeesForDropdown = scopedMasterEmployees.filter((emp) =>
     matchEmployeeSearch(emp, searchQuery)
   );
 
   // Filter Employees
-  const filteredEmployees = storeData.employees.filter((emp) => {
+  const filteredEmployees = scopedMasterEmployees.filter((emp) => {
     const matchesSearch = matchEmployeeSearch(emp, searchQuery);
     const matchesBranch = branchFilter === 'ALL' || emp.branchId === branchFilter;
     const matchesDept = deptFilter === 'ALL' || emp.deptCode === deptFilter;
@@ -195,13 +203,15 @@ export function EmployeeManagement() {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition"
-          >
-            <UserPlus className="h-4 w-4" />
-            <span>Onboard New Employee</span>
-          </button>
+          {permissions.canManage('employees') && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span>Onboard New Employee</span>
+            </button>
+          )}
         </div>
 
         {/* Filter Controls Bar */}
@@ -427,15 +437,17 @@ export function EmployeeManagement() {
                         <Eye className="h-3.5 w-3.5" />
                         <span>360° Profile</span>
                       </button>
-                      <button
-                        onClick={() => handleToggleStatus(emp)}
-                        className={`rounded-lg p-1.5 transition ${
-                          emp.status === 'Active' ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'
-                        }`}
-                        title={emp.status === 'Active' ? "Mark Inactive / Process Exit" : "Reactivate Employee"}
-                      >
-                        <UserCheck className="h-4 w-4" />
-                      </button>
+                      {permissions.canManageEmployee(emp) && (
+                        <button
+                          onClick={() => handleToggleStatus(emp)}
+                          className={`rounded-lg p-1.5 transition ${
+                            emp.status === 'Active' ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'
+                          }`}
+                          title={emp.status === 'Active' ? "Mark Inactive / Process Exit" : "Reactivate Employee"}
+                        >
+                          <UserCheck className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

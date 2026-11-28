@@ -21,7 +21,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export function AttendanceManagement() {
-  const { storeData, hrmStore, currentUser } = useAuth();
+  const { storeData, hrmStore, currentUser, permissions } = useAuth();
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [branchFilter, setBranchFilter] = useState('ALL');
@@ -42,8 +42,17 @@ export function AttendanceManagement() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Scoped Attendance Records (Branch Scope Single Source of Truth)
+  const scopedAttendance = React.useMemo(() => {
+    return permissions.filterByScope(storeData.attendance, {
+      branchKey: 'branch',
+      empIdKey: 'employeeId',
+      deptKey: 'department'
+    });
+  }, [storeData.attendance, permissions]);
+
   // Filter Attendance Records
-  const attendanceList = storeData.attendance.filter((rec) => {
+  const attendanceList = scopedAttendance.filter((rec) => {
     const matchesSearch = 
       rec.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rec.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||

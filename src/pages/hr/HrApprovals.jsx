@@ -17,7 +17,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export function HrApprovals() {
-  const { storeData, hrmStore, currentUser } = useAuth();
+  const { storeData, hrmStore, currentUser, permissions } = useAuth();
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -26,8 +26,15 @@ export function HrApprovals() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // 1. Pending Leaves
-  const pendingLeaves = storeData.leaveRequests.filter(r => r.status === 'Pending').map(r => ({
+  // 1. Pending Leaves (Scoped)
+  const scopedLeaves = React.useMemo(() => {
+    return permissions.filterByScope(storeData.leaveRequests.filter(r => r.status === 'Pending'), {
+      branchKey: 'branch',
+      empIdKey: 'employeeId'
+    });
+  }, [storeData.leaveRequests, permissions]);
+
+  const pendingLeaves = scopedLeaves.map(r => ({
     id: r.id,
     type: 'Leave Approval',
     category: 'LEAVE',
@@ -40,8 +47,15 @@ export function HrApprovals() {
     raw: r
   }));
 
-  // 2. Pending Attendance Corrections
-  const pendingCorrections = storeData.attendanceCorrections.filter(c => c.status === 'Pending').map(c => ({
+  // 2. Pending Attendance Corrections (Scoped)
+  const scopedCorrections = React.useMemo(() => {
+    return permissions.filterByScope(storeData.attendanceCorrections.filter(c => c.status === 'Pending'), {
+      branchKey: 'branch',
+      empIdKey: 'employeeId'
+    });
+  }, [storeData.attendanceCorrections, permissions]);
+
+  const pendingCorrections = scopedCorrections.map(c => ({
     id: c.id,
     type: 'Attendance Regularization',
     category: 'ATTENDANCE',
@@ -171,20 +185,33 @@ export function HrApprovals() {
                 </div>
 
                 <div className="flex items-center gap-2 self-end sm:self-center">
-                  <button
-                    onClick={() => handleApprove(item)}
-                    className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    <span>Approve</span>
-                  </button>
-                  <button
-                    onClick={() => handleReject(item)}
-                    className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    <span>Reject</span>
-                  </button>
+                  {(() => {
+                    const targetEmp = storeData.employees.find(e => e.id === item.employeeId);
+                    const canApprove = permissions.canApproveLeaves(targetEmp || { branch: item.branch, managerId: item.raw?.managerId });
+                    
+                    if (!canApprove) {
+                      return <span className="text-slate-400 text-xs italic">View Only</span>;
+                    }
+
+                    return (
+                      <>
+                        <button
+                          onClick={() => handleApprove(item)}
+                          className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(item)}
+                          className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          <span>Reject</span>
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             ))}

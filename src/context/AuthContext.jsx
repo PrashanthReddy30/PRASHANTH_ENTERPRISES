@@ -454,3 +454,9 @@ export function useAuth() {
   }
   return context;
 }
+
+export function usePermissions() {
+  const context = useAuth();
+  return context.permissions;
+}
+

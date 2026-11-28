@@ -120,7 +120,7 @@ const initialTeamApprovals = [
 ];
 
 export function Inbox() {
-  const { currentUser: authUser, storeData, hrmStore, currentPortal } = useAuth();
+  const { currentUser: authUser, storeData, hrmStore, currentPortal, permissions } = useAuth();
 
   // Strictly follow top-header portal mode (EMPLOYEE, HR ADMIN, GLOBAL ADMIN)
   const isEmployee = currentPortal === 'EMPLOYEE';
@@ -168,10 +168,19 @@ export function Inbox() {
     return [...personalTasks, ...mySubmittedRequests];
   }, [personalTasks, mySubmittedRequests]);
   
-  // Real dynamic pending approvals from store
-  const storePendingApprovals = (storeData?.leaveRequests || [])
-    .filter(r => r.status === 'Pending')
-    .map(r => ({
+  // Real dynamic pending approvals from store (Scoped & Permission Enforced)
+  const storePendingApprovals = useMemo(() => {
+    if (!permissions.canApproveLeaves()) {
+      return []; // APPROVE LEAVES: None → Hide leave requests from approval queue
+    }
+
+    const rawLeaves = (storeData?.leaveRequests || []).filter(r => r.status === 'Pending');
+    const scopedLeaves = permissions.filterByScope(rawLeaves, {
+      branchKey: 'branch',
+      empIdKey: 'employeeId'
+    });
+
+    return scopedLeaves.map(r => ({
       id: r.id,
       type: 'Leave Approval',
       requester: r.employeeName,
@@ -184,9 +193,12 @@ export function Inbox() {
       isStoreItem: true,
       raw: r
     }));
+  }, [storeData?.leaveRequests, permissions]);
 
   const [teamApprovals, setTeamApprovals] = useState(initialTeamApprovals);
-  const combinedTeamApprovals = [...storePendingApprovals, ...teamApprovals.filter(a => !storePendingApprovals.some(s => s.id === a.id))];
+  const combinedTeamApprovals = useMemo(() => {
+    return [...storePendingApprovals, ...teamApprovals.filter(a => !storePendingApprovals.some(s => s.id === a.id))];
+  }, [storePendingApprovals, teamApprovals]);
   
   const [employeeFilter, setEmployeeFilter] = useState('All');
   const [hrFilter, setHrFilter] = useState('All');
@@ -517,27 +529,38 @@ export function Inbox() {
 
                     {/* HR/Admin Decision Actions (Approve / Reject) */}
                     <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRejectTeamRequest(req.id, req.requester);
-                        }}
-                        className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition"
-                        title="Reject Request"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleApproveTeamRequest(req.id, req.requester);
-                        }}
-                        className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
-                        title="Approve Request"
-                      >
-                        <Check className="h-4 w-4" />
-                        <span>Approve</span>
-                      </button>
+                      {(() => {
+                        const targetEmp = storeData.employees.find(e => e.name === req.requester || e.id === req.raw?.employeeId);
+                        const canApprove = permissions.canApproveLeaves(targetEmp || { branch: req.raw?.branch, managerId: req.raw?.managerId });
+                        if (!canApprove) {
+                          return <span className="text-slate-400 text-xs italic">View Only</span>;
+                        }
+                        return (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRejectTeamRequest(req.id, req.requester);
+                              }}
+                              className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition"
+                              title="Reject Request"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApproveTeamRequest(req.id, req.requester);
+                              }}
+                              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
+                              title="Approve Request"
+                            >
+                              <Check className="h-4 w-4" />
+                              <span>Approve</span>
+                            </button>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -609,20 +632,35 @@ export function Inbox() {
                     </button>
                   )
                 ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleRejectTeamRequest(selectedItem.id, selectedItem.requester)}
-                      className="flex-1 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 py-2 text-xs font-bold text-rose-700 transition"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => handleApproveTeamRequest(selectedItem.id, selectedItem.requester)}
-                      className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2 text-xs font-bold text-white shadow-xs transition"
-                    >
-                      Approve Request
-                    </button>
-                  </div>
+                  (() => {
+                    const targetEmp = storeData.employees.find(e => e.name === selectedItem.requester || e.id === selectedItem.raw?.employeeId);
+                    const canApprove = permissions.canApproveLeaves(targetEmp || { branch: selectedItem.raw?.branch, managerId: selectedItem.raw?.managerId });
+                    
+                    if (!canApprove) {
+                      return (
+                        <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-center text-xs text-slate-500 italic">
+                          View-only mode: Your active role does not have leave approval authority for this employee.
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleRejectTeamRequest(selectedItem.id, selectedItem.requester)}
+                          className="flex-1 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 py-2 text-xs font-bold text-rose-700 transition"
+                        >
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => handleApproveTeamRequest(selectedItem.id, selectedItem.requester)}
+                          className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2 text-xs font-bold text-white shadow-xs transition"
+                        >
+                          Approve Request
+                        </button>
+                      </div>
+                    );
+                  })()
                 )}
               </div>
             </div>

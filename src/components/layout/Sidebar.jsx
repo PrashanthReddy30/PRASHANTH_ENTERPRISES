@@ -28,7 +28,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export function Sidebar({ collapsed, setCollapsed }) {
-  const { currentPortal, storeData } = useAuth();
+  const { currentPortal, storeData, permissions } = useAuth();
 
   // Pending counts
   const pendingLeaves = storeData.leaveRequests.filter(r => r.status === 'Pending').length;
@@ -41,48 +41,50 @@ export function Sidebar({ collapsed, setCollapsed }) {
     { name: 'Home', path: '/home', icon: Home, description: 'Overview & Celebrations' },
     { name: 'Me', path: '/me', icon: UserCheck, description: 'Profile, Attendance & Leave' },
     { name: 'Inbox', path: '/inbox', icon: Inbox, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Pending Tasks' },
-    { name: 'My Team', path: '/team', icon: Users, description: 'Manager Tracking' },
+    { name: 'My Team', path: '/team', icon: Users, description: 'Manager Tracking', visible: permissions.isGlobalAdmin || permissions.isManager || permissions.canView('employees') },
     { name: 'Org', path: '/org', icon: Building2, description: 'Directory & Policies' },
     { name: 'Engage', path: '/engage', icon: Megaphone, description: 'Announcements & Polls' },
     { name: 'Helpdesk', path: '/helpdesk', icon: LifeBuoy, description: 'Ticketing & Support' },
-    { name: 'Finance', path: '/finance', icon: Wallet, description: 'Summary, Payslips & Taxes' }
+    { name: 'Finance', path: '/finance', icon: Wallet, description: 'Summary, Payslips & Taxes', visible: permissions.isGlobalAdmin || (permissions.roleRow?.pay !== 'None' && permissions.roleRow?.pay !== '❌') }
   ];
 
-  // 2. HR Admin Navigation Items
+  // 2. HR Admin Navigation Items (Dynamically filtered by Role-Based Access Matrix)
   const hrNavItems = [
-    { name: 'HR Dashboard', path: '/hr/dashboard', icon: LayoutDashboard, description: 'Command Center' },
-    { name: 'Employees', path: '/hr/employees', icon: Users, description: 'Directory & Lifecycle' },
-    { name: 'Attendance', path: '/hr/attendance', icon: Clock, description: 'Live Biometric Console' },
-    { name: 'Leave Mgmt', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals & Ledger' },
-    { name: 'Payroll', path: '/hr/payroll', icon: DollarSign, description: 'Runs & CTC Master' },
-    { name: 'Recruitment', path: '/hr/recruitment', icon: Briefcase, description: 'Pipeline & Openings' },
-    { name: 'Onboarding', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Document Verification' },
-    { name: 'Depts & Hubs', path: '/hr/departments', icon: Building2, description: 'Regional Branches' },
-    { name: 'Celebrations', path: '/hr/celebrations', icon: Sparkles, description: 'Automated 01:00 AM Engine' },
-    { name: 'Approvals', path: '/hr/approvals', icon: CheckSquare, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Queue' },
-    { name: 'Reports', path: '/hr/reports', icon: FileText, description: 'Audit & CSV Export' },
-    { name: 'Settings', path: '/hr/settings', icon: Sliders, description: 'RBAC & Audit Trail' }
+    { name: 'HR Dashboard', path: '/hr/dashboard', icon: LayoutDashboard, description: 'Command Center', visible: true },
+    { name: 'Employees', path: '/hr/employees', icon: Users, description: 'Directory & Lifecycle', visible: permissions.canView('employees') },
+    { name: 'Attendance', path: '/hr/attendance', icon: Clock, description: 'Live Biometric Console', visible: permissions.canView('attendance') },
+    { name: 'Leave Mgmt', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals & Ledger', visible: permissions.canView('leaves') },
+    { name: 'Payroll', path: '/hr/payroll', icon: DollarSign, description: 'Runs & CTC Master', visible: permissions.canView('payroll') && permissions.hasPayrollAccess() },
+    { name: 'Recruitment', path: '/hr/recruitment', icon: Briefcase, description: 'Pipeline & Openings', visible: permissions.canView('recruitment') },
+    { name: 'Onboarding', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Document Verification', visible: permissions.canView('recruitment') },
+    { name: 'Depts & Hubs', path: '/hr/departments', icon: Building2, description: 'Regional Branches', visible: permissions.isGlobalAdmin || permissions.isHR },
+    { name: 'Celebrations', path: '/hr/celebrations', icon: Sparkles, description: 'Automated 01:00 AM Engine', visible: permissions.isGlobalAdmin || permissions.isHR },
+    { name: 'Approvals', path: '/hr/approvals', icon: CheckSquare, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Queue', visible: permissions.canApproveLeaves() },
+    { name: 'Reports', path: '/hr/reports', icon: FileText, description: 'Audit & CSV Export', visible: permissions.canView('audit') || permissions.canViewAuditLogs },
+    { name: 'Settings', path: '/hr/settings', icon: Sliders, description: 'RBAC & Audit Trail', visible: permissions.isGlobalAdmin || permissions.isHR }
   ];
 
-  // 3. Global Admin Navigation Items
+  // 3. Global Admin Navigation Items (Always unrestricted)
   const adminNavItems = [
-    { name: 'Control Center', path: '/admin/dashboard', icon: LayoutDashboard, description: 'Executive HUD' },
-    { name: 'Personnel Census', path: '/hr/employees', icon: Users, description: 'All Branches' },
-    { name: 'Attendance Logs', path: '/hr/attendance', icon: Clock, description: 'Multi-Hub Biometric' },
-    { name: 'Leave Governance', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals' },
-    { name: 'Payroll Audit', path: '/hr/payroll', icon: DollarSign, description: 'Financial Overview' },
-    { name: 'Recruitment Pipeline', path: '/hr/recruitment', icon: Briefcase, description: 'Hiring Operations' },
-    { name: 'Onboarding Hub', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Verification' },
-    { name: 'Hub Infrastructure', path: '/hr/departments', icon: MapPin, description: 'HYD / CHE / MUM' },
-    { name: 'Celebration Automation', path: '/hr/celebrations', icon: Sparkles, description: '01:00 AM Scheduler' },
-    { name: 'Executive Reports', path: '/hr/reports', icon: FileText, description: '8 Regulatory Reports' },
-    { name: 'System Governance', path: '/hr/settings', icon: ShieldCheck, description: 'Compliance & Audit' }
+    { name: 'Control Center', path: '/admin/dashboard', icon: LayoutDashboard, description: 'Executive HUD', visible: true },
+    { name: 'Personnel Census', path: '/hr/employees', icon: Users, description: 'All Branches', visible: true },
+    { name: 'Attendance Logs', path: '/hr/attendance', icon: Clock, description: 'Multi-Hub Biometric', visible: true },
+    { name: 'Leave Governance', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals', visible: true },
+    { name: 'Payroll Audit', path: '/hr/payroll', icon: DollarSign, description: 'Financial Overview', visible: true },
+    { name: 'Recruitment Pipeline', path: '/hr/recruitment', icon: Briefcase, description: 'Hiring Operations', visible: true },
+    { name: 'Onboarding Hub', path: '/hr/onboarding-tracker', icon: UserCheck, badge: pendingOnboarding, badgeColor: 'bg-emerald-500 text-white', description: 'Letters & Verification', visible: true },
+    { name: 'Hub Infrastructure', path: '/hr/departments', icon: MapPin, description: 'HYD / CHE / MUM', visible: true },
+    { name: 'Celebration Automation', path: '/hr/celebrations', icon: Sparkles, description: '01:00 AM Scheduler', visible: true },
+    { name: 'Executive Reports', path: '/hr/reports', icon: FileText, description: '8 Regulatory Reports', visible: true },
+    { name: 'System Governance', path: '/hr/settings', icon: ShieldCheck, description: 'Compliance & Audit', visible: true }
   ];
 
-  const currentNavItems = 
+  const rawNavItems = 
     currentPortal === 'HR' ? hrNavItems : 
     currentPortal === 'GLOBAL_ADMIN' ? adminNavItems : 
     employeeNavItems;
+
+  const currentNavItems = rawNavItems.filter(item => item.visible !== false);
 
   const portalBadge = 
     currentPortal === 'HR' ? { text: 'HR ADMIN', color: 'bg-brand-500/20 text-brand-300' } :

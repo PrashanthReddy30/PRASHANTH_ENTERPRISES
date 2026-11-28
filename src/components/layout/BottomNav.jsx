@@ -14,23 +14,29 @@ import {
   ChevronRight,
   ShieldCheck
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export function BottomNav() {
+  const { permissions } = useAuth();
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
 
-  const mainMobileTabs = [
-    { name: 'Home', path: '/home', icon: Home },
-    { name: 'Me', path: '/me', icon: UserCheck },
-    { name: 'Inbox', path: '/inbox', icon: Inbox, badge: 4 },
-    { name: 'Finance', path: '/finance', icon: Wallet },
+  const rawMainMobileTabs = [
+    { name: 'Home', path: '/home', icon: Home, visible: true },
+    { name: 'Me', path: '/me', icon: UserCheck, visible: true },
+    { name: 'Inbox', path: '/inbox', icon: Inbox, badge: 4, visible: true },
+    { name: 'Finance', path: '/finance', icon: Wallet, visible: permissions.isGlobalAdmin || (permissions.roleRow?.pay !== 'None' && permissions.roleRow?.pay !== '❌') },
   ];
 
-  const moreModules = [
-    { name: 'My Team', path: '/team', icon: Users, desc: 'Team attendance, approvals & tracking' },
-    { name: 'Org & Policies', path: '/org', icon: Building2, desc: 'Directory, Org tree, IT policy-2025, Hiring' },
-    { name: 'Engage', path: '/engage', icon: Megaphone, desc: 'Company announcements, polls & articles' },
-    { name: 'Helpdesk', path: '/helpdesk', icon: LifeBuoy, desc: 'My tickets, SLA tracker & support requests' },
+  const mainMobileTabs = rawMainMobileTabs.filter(t => t.visible !== false);
+
+  const rawMoreModules = [
+    { name: 'My Team', path: '/team', icon: Users, desc: 'Team attendance, approvals & tracking', visible: permissions.isGlobalAdmin || permissions.isManager || permissions.canView('employees') },
+    { name: 'Org & Policies', path: '/org', icon: Building2, desc: 'Directory, Org tree, IT policy-2025, Hiring', visible: true },
+    { name: 'Engage', path: '/engage', icon: Megaphone, desc: 'Company announcements, polls & articles', visible: true },
+    { name: 'Helpdesk', path: '/helpdesk', icon: LifeBuoy, desc: 'My tickets, SLA tracker & support requests', visible: true },
   ];
+
+  const moreModules = rawMoreModules.filter(m => m.visible !== false);
 
   return (
     <>

@@ -33,6 +33,7 @@ import EmployeeOnboardingPortal from './pages/portal/EmployeeOnboardingPortal';
 
 // Global Admin Module
 import GlobalAdminDashboard from './pages/admin/GlobalAdminDashboard';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 export function App() {
   return (
@@ -60,23 +61,23 @@ export function App() {
             <Route path="finance/:section/:subSection" element={<Finance />} />
             <Route path="finances" element={<Navigate to="/finance" replace />} />
 
-            {/* 2. HR Admin Portal */}
+            {/* 2. HR Admin Portal (Guarded by Live Role-Based Access Matrix) */}
             <Route path="hr">
               <Route index element={<Navigate to="/hr/dashboard" replace />} />
               <Route path="dashboard" element={<HrDashboard />} />
-              <Route path="employees" element={<EmployeeManagement />} />
-              <Route path="employees/:employeeId/profile" element={<EmployeeProfilePage />} />
-              <Route path="attendance" element={<AttendanceManagement />} />
-              <Route path="leaves" element={<LeaveManagement />} />
-              <Route path="payroll" element={<PayrollManagement />} />
-              <Route path="recruitment" element={<RecruitmentManagement />} />
-              <Route path="onboarding" element={<NewEmployeeOnboarding />} />
-              <Route path="onboarding-tracker" element={<OnboardingTrackingDashboard />} />
+              <Route path="employees" element={<ProtectedRoute module="employees"><EmployeeManagement /></ProtectedRoute>} />
+              <Route path="employees/:employeeId/profile" element={<ProtectedRoute module="employees"><EmployeeProfilePage /></ProtectedRoute>} />
+              <Route path="attendance" element={<ProtectedRoute module="attendance"><AttendanceManagement /></ProtectedRoute>} />
+              <Route path="leaves" element={<ProtectedRoute module="leaves"><LeaveManagement /></ProtectedRoute>} />
+              <Route path="payroll" element={<ProtectedRoute module="payroll"><PayrollManagement /></ProtectedRoute>} />
+              <Route path="recruitment" element={<ProtectedRoute module="recruitment"><RecruitmentManagement /></ProtectedRoute>} />
+              <Route path="onboarding" element={<ProtectedRoute module="recruitment"><NewEmployeeOnboarding /></ProtectedRoute>} />
+              <Route path="onboarding-tracker" element={<ProtectedRoute module="recruitment"><OnboardingTrackingDashboard /></ProtectedRoute>} />
               <Route path="departments" element={<DepartmentsBranches />} />
-              <Route path="approvals" element={<HrApprovals />} />
+              <Route path="approvals" element={<ProtectedRoute module="leaves" requireApproval={true}><HrApprovals /></ProtectedRoute>} />
               <Route path="celebrations" element={<CelebrationAutomation />} />
-              <Route path="reports" element={<HrReports />} />
-              <Route path="settings" element={<HrSettings />} />
+              <Route path="reports" element={<ProtectedRoute module="audit"><HrReports /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute module="settings"><HrSettings /></ProtectedRoute>} />
             </Route>
 
             {/* 3. Global Admin Portal */}
