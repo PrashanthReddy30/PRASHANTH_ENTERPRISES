@@ -843,6 +843,142 @@ export function Home() {
           </div>
         </div>
       )}
+
+      {/* Celebration Poster Fullscreen Modal */}
+      {selectedPosterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-800">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 p-4 bg-slate-900 text-white">
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="h-5 w-5 text-amber-400" />
+                <div>
+                  <h3 className="text-sm font-bold">
+                    {selectedPosterModal.employeeName} • {selectedPosterModal.badge}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {selectedPosterModal.role} • {selectedPosterModal.department}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedPosterModal(null)}
+                className="h-8 w-8 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center transition active:scale-95"
+                title="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Poster Canvas / Image Display */}
+            <div className="p-2 sm:p-4 bg-slate-950 flex items-center justify-center">
+              <img
+                src={selectedPosterModal.posterUrl}
+                alt={`${selectedPosterModal.employeeName} Celebration Poster`}
+                className="max-h-[65vh] w-auto rounded-lg shadow-xl"
+              />
+            </div>
+
+            {/* Modal Footer with Download */}
+            <div className="flex items-center justify-between border-t border-slate-100 p-4 bg-slate-50 text-xs">
+              <span className="text-slate-600 italic truncate max-w-md">
+                "{selectedPosterModal.message || selectedPosterModal.title}"
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = selectedPosterModal.posterUrl;
+                    link.download = `${selectedPosterModal.employeeName.replace(/\s+/g, '_')}_Celebration_Poster.png`;
+                    link.click();
+                  }}
+                  className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Download Poster</span>
+                </button>
+                <button
+                  onClick={() => setSelectedPosterModal(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition active:scale-95"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* All Historical Celebrations Modal */}
+      {showAllCelebrationsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="relative w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white">
+              <div className="flex items-center gap-2.5">
+                <PartyPopper className="h-5 w-5 text-amber-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">All Celebrations & Milestones</h3>
+                  <p className="text-xs text-slate-300">Browse current and recent company wishes, birthdays & anniversaries</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAllCelebrationsModal(false)}
+                className="h-8 w-8 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {celebrations.map((item) => (
+                  <div key={item.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-brand-300 transition-all shadow-2xs space-y-3">
+                    <div className="flex items-center gap-3">
+                      <img src={item.avatar} alt={item.employeeName} className="w-12 h-12 rounded-xl object-cover ring-2 ring-slate-200" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-slate-900 truncate">{item.employeeName}</div>
+                        <div className="text-xs text-slate-500 truncate">{item.role} • {item.department}</div>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-pink-100 text-pink-800 border border-pink-200">
+                          {item.badge}
+                        </span>
+                      </div>
+                    </div>
+
+                    {item.posterUrl && (
+                      <div 
+                        onClick={() => setSelectedPosterModal(item)}
+                        className="cursor-pointer rounded-lg overflow-hidden border border-slate-200 group relative"
+                      >
+                        <img src={item.posterUrl} alt="Poster" className="w-full h-32 object-cover group-hover:scale-105 transition-all" />
+                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                          <Eye className="w-3.5 h-3.5" /> View Poster
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200">
+                      <span className="font-semibold text-rose-600 flex items-center gap-1">
+                        <Heart className="w-3.5 h-3.5 fill-rose-500" /> {item.likes} Likes
+                      </span>
+                      <span>{item.date}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 p-4 bg-slate-50 flex justify-end">
+              <button
+                onClick={() => setShowAllCelebrationsModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
