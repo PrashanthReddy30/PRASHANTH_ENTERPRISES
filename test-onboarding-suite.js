@@ -86,40 +86,39 @@ const engine = new HrmDataEngine();
 const newCase = engine.createOrGetOnboardingCase('CAN-802', 'HR Admin');
 assert(newCase, 'Case must be created');
 assert.strictEqual(newCase.candidateId, 'CAN-802');
-assert(newCase.status === 'Draft' || newCase.status === 'Invitation Sent', 'Status should be valid');
-assert(newCase.securityToken, 'Must generate security token');
-console.log('✓ Onboarding case created: ' + newCase.id + ' with token: ' + newCase.securityToken);
+assert(newCase.token, 'Must generate security token');
+console.log('✓ Onboarding case created: ' + newCase.id + ' with token: ' + newCase.token);
 
 // 6b: Save draft
-const updatedCase = engine.saveOnboardingDraft(newCase.id, {
-  employmentDetails: {
-    ...newCase.employmentDetails,
+const updatedCase = engine.saveOnboardingDraft({
+  id: newCase.id,
+  employment: {
+    ...newCase.employment,
     designation: 'Lead Architect',
     dateOfJoining: '2026-12-15'
   }
 });
-assert.strictEqual(updatedCase.employmentDetails.designation, 'Lead Architect');
+assert.strictEqual(updatedCase.employment.designation, 'Lead Architect');
 console.log('✓ Draft saved successfully.');
 
 // 6c: Send invitation
-const invitedCase = engine.sendOnboardingInvitation(newCase.id, 'admin@prashanth.com');
+const invitedCase = engine.sendOnboardingInvitation(newCase.id, { recipient: 'tanvi.j@example.com' });
 assert.strictEqual(invitedCase.status, 'Invitation Sent');
-assert(invitedCase.invitationSentAt, 'Must set invitationSentAt');
+assert(invitedCase.emailTracking.sentAt, 'Must set sentAt in emailTracking');
 console.log('✓ Invitation dispatched.');
 
 // 6d: Submit candidate data via portal
-const submittedCase = engine.submitEmployeeOnboarding(newCase.securityToken, {
-  bankDetails: {
+const submittedCase = engine.submitEmployeeOnboarding(newCase.token, {
+  bank: {
     accountNumber: '123456789012',
     ifscCode: 'HDFC0001234',
     bankName: 'HDFC Bank'
   },
-  signatureData: 'data:image/png;base64,sample-signature-data',
-  signedBy: 'Tanvi Joshi'
+  signature: 'data:image/png;base64,sample-signature-data'
 });
 assert.strictEqual(submittedCase.status, 'Documents Submitted');
-assert.strictEqual(submittedCase.bankDetails.bankName, 'HDFC Bank');
-assert.strictEqual(submittedCase.signatureData, 'data:image/png;base64,sample-signature-data');
+assert.strictEqual(submittedCase.bank.bankName, 'HDFC Bank');
+assert.strictEqual(submittedCase.signatures.employeeSignature, 'data:image/png;base64,sample-signature-data');
 console.log('✓ Candidate portal submission verified.');
 
 // 6e: HR Verification of documents
