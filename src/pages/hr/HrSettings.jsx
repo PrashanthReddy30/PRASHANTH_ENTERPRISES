@@ -927,276 +927,313 @@ service cloud.firestore {
         </div>
       )}
 
-      {/* 3. User-Level Access Assignment & Revocation Modal */}
-      {showUserAccessModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in">
-          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-scale-in">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 border border-brand-200 text-brand-600">
-                  <ShieldCheck className="h-5 w-5" />
+      {/* 3. Role-Focused Right-Side Slide-Over Drawer */}
+      {showRoleDrawer && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-xs flex justify-end animate-fade-in">
+          <div className="w-full max-w-xl h-full bg-white shadow-2xl border-l border-slate-200 flex flex-col animate-slide-left">
+            {/* Drawer Header */}
+            <div className="p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 border border-brand-200 text-brand-600 shadow-2xs">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">
+                      Manage {selectedRoleTier} Access
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      View current holders, adjust branch scopes, or assign new members.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">User Role & Access Assignment Center</h3>
-                  <p className="text-xs text-slate-500">Configure role tiers, branch scope boundaries, and granular module overrides.</p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRoleDrawer(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition"
+                  title="Close Drawer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowUserAccessModal(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              {/* Role Tier Switcher Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {DEFAULT_ROLE_MATRIX.map(m => (
+                  <button
+                    key={m.role}
+                    type="button"
+                    onClick={() => {
+                      setSelectedRoleTier(m.role);
+                      setSelectedNewMember(null);
+                      setAddMemberSearch('');
+                      setIsAddSearchFocused(false);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                      selectedRoleTier === m.role
+                        ? 'bg-brand-600 text-white shadow-2xs'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {m.role}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSaveUserAccess} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-              {/* Section 1: Employee Selection */}
+            {/* Drawer Body - 2 Clear Sections */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              {/* SECTION 1: Assigned Members (X) */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  1. Select Target Employee
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Searchable dropdown / selector */}
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      Current Assigned Members ({assignedUsersInSelectedTier.length})
+                    </h4>
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    {selectedRoleTier === 'Global Admin' ? 'Super Administrators' : `${selectedRoleTier} Tier`}
+                  </span>
+                </div>
+
+                {assignedUsersInSelectedTier.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center bg-slate-50/50">
+                    <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-semibold text-slate-700">No members assigned to {selectedRoleTier}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Use the quick add form below to assign employees to this role tier.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {assignedUsersInSelectedTier.map(emp => {
+                      const isLockedAdmin = selectedRoleTier === 'Global Admin' && emp.id === 'PE000';
+                      const currentScope = emp.branchScope || emp.branch || 'Assigned Hub';
+
+                      return (
+                        <div
+                          key={emp.id}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition shadow-2xs"
+                        >
+                          {/* User info */}
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img
+                              src={emp.avatar}
+                              alt={emp.name}
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs flex-shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-slate-900 text-xs truncate">{emp.name}</span>
+                                <span className="text-[10px] text-slate-400 font-mono">({emp.employeeId})</span>
+                                {isLockedAdmin && (
+                                  <span className="rounded bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.2 flex items-center gap-0.5">
+                                    <Lock className="w-2.5 h-2.5" /> Primary
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-500 truncate">
+                                {emp.role} • <span className="text-slate-600 font-medium">{emp.department}</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Branch Scope selector & Remove button */}
+                          <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                            <div className="flex flex-col">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Scope</span>
+                              <select
+                                value={currentScope}
+                                onChange={(e) => handleUpdateUserScope(emp, e.target.value)}
+                                disabled={!permissions.isGlobalAdmin}
+                                className="rounded-lg border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs"
+                              >
+                                <option value="Assigned Hub">Assigned Hub ({emp.branch || 'Local'})</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="All Hubs">All Hubs (Corporate)</option>
+                              </select>
+                            </div>
+
+                            {/* One-click remove button */}
+                            {permissions.isGlobalAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveMemberFromRole(emp)}
+                                disabled={isLockedAdmin}
+                                className={`self-end px-2.5 py-1.5 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 ${
+                                  isLockedAdmin
+                                    ? 'text-slate-300 cursor-not-allowed'
+                                    : 'text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200'
+                                }`}
+                                title={isLockedAdmin ? 'Primary Global Admin cannot be removed' : `Remove from ${selectedRoleTier} (Revert to Employee)`}
+                              >
+                                <UserMinus className="w-3.5 h-3.5" />
+                                <span>Remove</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 2: Add New Member to [Tier] */}
+              {permissions.isGlobalAdmin && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-3.5">
                   <div>
-                    <div className="relative mb-2">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <UserPlus className="w-3.5 h-3.5 text-brand-600" />
+                      <span>Add Member to {selectedRoleTier}</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Search any employee to elevate them to {selectedRoleTier} and designate their hub scope.
+                    </p>
+                  </div>
+
+                  {/* Compact Search & Autocomplete Flow */}
+                  <div className="relative">
+                    <div className="relative">
                       <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                       <input
                         type="text"
-                        placeholder="Search employee by name, ID, branch..."
-                        value={userSearchQuery}
-                        onChange={(e) => setUserSearchQuery(e.target.value)}
-                        className="w-full rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs font-medium focus:border-brand-500 outline-none"
+                        placeholder={`Search employee name, ID or branch to add...`}
+                        value={addMemberSearch}
+                        onFocus={() => setIsAddSearchFocused(true)}
+                        onChange={(e) => {
+                          setAddMemberSearch(e.target.value);
+                          setIsAddSearchFocused(true);
+                        }}
+                        className="w-full rounded-xl border border-slate-300 bg-white pl-8 pr-3 py-2 text-xs font-medium focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none shadow-2xs"
                       />
+                      {addMemberSearch && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddMemberSearch('');
+                            setIsAddSearchFocused(false);
+                          }}
+                          className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
-                    <select
-                      size={5}
-                      value={selectedEmployeeId}
-                      onChange={(e) => {
-                        const found = storeData.employees.find(emp => emp.id === e.target.value);
-                        if (found) handleSelectEmployee(found);
-                      }}
-                      className="w-full rounded-xl border border-slate-200 p-1 text-xs font-medium outline-none focus:border-brand-500 bg-white"
-                    >
-                      {storeData.employees
-                        .filter(e => 
-                          e.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-                          e.employeeId.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-                          e.branch.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-                          (e.systemRole || '').toLowerCase().includes(userSearchQuery.toLowerCase())
-                        )
-                        .map(emp => (
-                          <option key={emp.id} value={emp.id} className="p-2 rounded-lg hover:bg-slate-100 cursor-pointer">
-                            {emp.name} ({emp.employeeId}) — {emp.systemRole || 'Employee'} [{emp.branch}]
-                          </option>
-                        ))}
-                    </select>
+
+                    {/* Autocomplete Dropdown */}
+                    {isAddSearchFocused && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 z-40 max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl animate-fade-in divide-y divide-slate-50">
+                        {candidateEmployeesToAdd.length === 0 ? (
+                          <div className="p-3 text-center text-xs text-slate-400">
+                            No matching available employees found.
+                          </div>
+                        ) : (
+                          candidateEmployeesToAdd.map(emp => (
+                            <button
+                              key={emp.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedNewMember(emp);
+                                setAddMemberSearch(`${emp.name} (${emp.employeeId})`);
+                                setIsAddSearchFocused(false);
+                              }}
+                              className="w-full text-left p-2 rounded-lg hover:bg-brand-50/60 flex items-center justify-between gap-2 transition"
+                            >
+                              <div className="flex items-center gap-2">
+                                <img src={emp.avatar} alt={emp.name} className="w-6 h-6 rounded-full object-cover border border-slate-200" />
+                                <div>
+                                  <div className="font-bold text-slate-900 text-xs">{emp.name}</div>
+                                  <div className="text-[10px] text-slate-400 font-mono">{emp.employeeId} • {emp.branch} • {emp.department}</div>
+                                </div>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                Current: {emp.systemRole || 'Employee'}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Selected Employee Snapshot Card */}
-                  {selectedEmployee && (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={selectedEmployee.avatar}
-                          alt={selectedEmployee.name}
-                          className="w-12 h-12 rounded-xl object-cover border border-slate-300 shadow-2xs"
-                        />
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-sm">{selectedEmployee.name}</h4>
-                          <p className="text-xs text-slate-500 font-mono">{selectedEmployee.employeeId}</p>
-                          <p className="text-[11px] text-slate-600 font-medium">{selectedEmployee.role}</p>
+                  {/* Selected Candidate Config Card */}
+                  {selectedNewMember && (
+                    <div className="rounded-xl border border-brand-200 bg-white p-3.5 space-y-3 shadow-2xs animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <img
+                            src={selectedNewMember.avatar}
+                            alt={selectedNewMember.name}
+                            className="w-8 h-8 rounded-lg object-cover border border-slate-200 shadow-2xs"
+                          />
+                          <div>
+                            <p className="font-bold text-slate-900 text-xs">{selectedNewMember.name}</p>
+                            <p className="text-[10px] text-slate-500 font-mono">
+                              {selectedNewMember.employeeId} • Home: {selectedNewMember.branch}
+                            </p>
+                          </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedNewMember(null);
+                            setAddMemberSearch('');
+                          }}
+                          className="text-slate-400 hover:text-slate-600 p-1"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                      <div className="pt-2 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-[11px]">
+
+                      {/* Branch Scope selector for the new member */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-100">
                         <div>
-                          <span className="text-slate-400 block">Department:</span>
-                          <span className="font-semibold text-slate-800">{selectedEmployee.department}</span>
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                            Assigned Branch Scope:
+                          </label>
+                          <select
+                            value={newMemberScope}
+                            onChange={(e) => setNewMemberScope(e.target.value)}
+                            className="w-full rounded-lg border border-slate-300 p-1.5 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+                          >
+                            <option value="Assigned Hub">Assigned Hub ({selectedNewMember.branch})</option>
+                            <option value="Hyderabad">Hyderabad (PE-HYD)</option>
+                            <option value="Chennai">Chennai (PE-CHE)</option>
+                            <option value="Mumbai">Mumbai (PE-MUM)</option>
+                            <option value="All Hubs">All Hubs (Corporate Multi-Branch)</option>
+                          </select>
                         </div>
-                        <div>
-                          <span className="text-slate-400 block">Home Branch:</span>
-                          <span className="font-semibold text-slate-800">{selectedEmployee.branch}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block">Current Tier:</span>
-                          <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
-                            {selectedEmployee.systemRole || 'Employee'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block">Current Scope:</span>
-                          <span className="font-semibold text-slate-800">{selectedEmployee.branchScope || selectedEmployee.branch}</span>
+
+                        <div className="flex items-end">
+                          <button
+                            type="button"
+                            onClick={handleAddMemberToRole}
+                            className="w-full py-2 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs shadow-xs transition inline-flex items-center justify-center gap-1.5"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            <span>Assign to {selectedRoleTier}</span>
+                          </button>
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Section 2: Assign Role Tier */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  2. Select Role Tier
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {[
-                    { role: 'Employee', title: 'Employee', desc: 'Self-service attendance & leaves' },
-                    { role: 'Manager', title: 'Manager', desc: 'Team leadership & approvals' },
-                    { role: 'Branch HR', title: 'Branch HR', desc: 'Regional branch administration' },
-                    { role: 'Central HR', title: 'Central HR', desc: 'Corporate HR & nationwide records' },
-                    { role: 'Finance', title: 'Finance', desc: 'Payroll processing & statutory tax' },
-                    { role: 'Global Admin', title: 'Global Admin', desc: 'Unrestricted super-admin rights' },
-                  ].map(t => (
-                    <label
-                      key={t.role}
-                      className={`relative flex flex-col p-3 rounded-xl border cursor-pointer transition ${
-                        userFormRole === t.role
-                          ? 'border-brand-500 bg-brand-50/50 ring-1 ring-brand-500'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="roleTier"
-                        value={t.role}
-                        checked={userFormRole === t.role}
-                        onChange={(e) => setUserFormRole(e.target.value)}
-                        className="sr-only"
-                      />
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-xs text-slate-900">{t.title}</span>
-                        {userFormRole === t.role && <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" />}
-                      </div>
-                      <span className="text-[10px] text-slate-500 leading-tight">{t.desc}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Section 3: Branch Scope */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  3. Assign Branch Access Scope
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {['Hyderabad', 'Chennai', 'Mumbai', 'All Hubs'].map(scope => (
-                    <button
-                      key={scope}
-                      type="button"
-                      onClick={() => setUserFormScope(scope)}
-                      className={`py-2 px-3 rounded-xl text-xs font-semibold border transition text-center ${
-                        userFormScope === scope
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {scope === 'All Hubs' ? '🌐 All Hubs (Corporate)' : scope}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Section 4: Granular Module Overrides */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    4. Granular Module Overrides (Optional Explicit Grants)
-                  </label>
-                  <span className="text-[10px] text-slate-400">Overrides default tier permissions</span>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2.5">
-                  {[
-                    { key: 'canProcessPayroll', label: 'Payroll & Statutory Deductions', desc: 'Allows running monthly payroll, adjusting structures, and PF/ESI calculations.' },
-                    { key: 'canManageRecruitment', label: 'Recruitment & Candidate Onboarding', desc: 'Allows creating job posts, advancing candidate stages, and onboarding.' },
-                    { key: 'canManageEmployees', label: 'Workforce 360 Profile Management', desc: 'Allows full modification authority over employee directory and statutory fields.' },
-                    { key: 'canApproveLeaves', label: 'Leave Ledger & Request Approvals', desc: 'Allows approving or rejecting leave requests and adjusting atomic ledgers.' },
-                    { key: 'canViewAuditLogs', label: 'Enterprise Security & Audit Trail', desc: 'Allows viewing compliance logs, biometric alerts, and IP session records.' },
-                  ].map(override => (
-                    <label key={override.key} className="flex items-start gap-3 p-2 rounded-lg bg-white border border-slate-200/80 cursor-pointer hover:bg-slate-50/80 transition">
-                      <input
-                        type="checkbox"
-                        checked={userFormOverrides[override.key]}
-                        onChange={(e) => setUserFormOverrides({ ...userFormOverrides, [override.key]: e.target.checked })}
-                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                      />
-                      <div>
-                        <p className="text-xs font-bold text-slate-900">{override.label}</p>
-                        <p className="text-[10px] text-slate-500">{override.desc}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div>
-                  {selectedEmployee && (selectedEmployee.systemRole !== 'Employee' || Object.values(selectedEmployee.permissionsOverride || {}).some(Boolean)) && (
-                    <button
-                      type="button"
-                      onClick={() => setShowRevokeConfirm(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Revoke Access (Revert to Employee)</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setShowUserAccessModal(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xs transition"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>Save & Apply Access</span>
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Confirmation Modal for Revoking Access */}
-      {showRevokeConfirm && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 animate-scale-in">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-                <AlertTriangle className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm">Confirm Access Revocation</h4>
-                <p className="text-xs text-slate-500">Revert employee to standard tier</p>
-              </div>
+              )}
             </div>
-            <p className="text-xs text-slate-600">
-              Are you sure you want to revoke privileged access for <strong>{selectedEmployee?.name}</strong>? Their role will immediately be reverted to standard <strong>Employee</strong>, and all custom module overrides will be cleared.
-            </p>
-            <div className="flex items-center justify-end gap-2 pt-2">
+
+            {/* Drawer Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3 flex-shrink-0">
+              <span className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Live sync & audit logging enabled.</span>
+              </span>
               <button
                 type="button"
-                onClick={() => setShowRevokeConfirm(false)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+                onClick={() => setShowRoleDrawer(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 transition shadow-2xs"
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleRevokeUserAccess}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 transition"
-              >
-                Yes, Revoke Access
+                Close Drawer
               </button>
             </div>
           </div>
