@@ -1593,6 +1593,44 @@ class HrmDataEngine {
       });
       this.syncListeners.push(unsubCelSettings);
 
+      // 9. Real-time Onboarding Cases Listener
+      const unsubOnboarding = onSnapshot(collection(db, 'onboarding_cases'), (snapshot) => {
+        try {
+          const remoteCases = [];
+          snapshot.forEach(d => remoteCases.push(d.data()));
+          if (remoteCases.length > 0) {
+            const caseMap = new Map((this.data.onboardingCases || []).map(c => [c.id, c]));
+            remoteCases.forEach(c => caseMap.set(c.id, c));
+            this.data.onboardingCases = Array.from(caseMap.values()).sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing onboarding cases:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Onboarding cases listener error:', err);
+      });
+      this.syncListeners.push(unsubOnboarding);
+
+      // 10. Real-time Onboarding Templates Listener
+      const unsubOnbTpl = onSnapshot(collection(db, 'onboarding_templates'), (snapshot) => {
+        try {
+          const remoteTpls = [];
+          snapshot.forEach(d => remoteTpls.push(d.data()));
+          if (remoteTpls.length > 0) {
+            this.data.onboardingTemplates = remoteTpls;
+            this.saveDataLocallyOnly();
+            this.notifySubscribers();
+          }
+        } catch (err) {
+          console.warn('[Firebase Live Sync] Error processing onboarding templates:', err);
+        }
+      }, (err) => {
+        console.warn('[Firebase Live Sync] Onboarding templates listener error:', err);
+      });
+      this.syncListeners.push(unsubOnbTpl);
+
     } catch (error) {
       console.warn('[Firebase Live Sync] Initialization warning:', error);
     }
