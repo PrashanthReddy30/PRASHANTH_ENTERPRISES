@@ -33,6 +33,7 @@ import EmployeeOnboardingPortal from './pages/portal/EmployeeOnboardingPortal';
 
 // Global Admin Module
 import GlobalAdminDashboard from './pages/admin/GlobalAdminDashboard';
+import BranchMonitor from './pages/admin/BranchMonitor';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 export function App() {
@@ -84,6 +85,7 @@ export function App() {
             <Route path="admin">
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<GlobalAdminDashboard />} />
+              <Route path="branch-monitor" element={<BranchMonitor />} />
             </Route>
 
             {/* Fallback */}
