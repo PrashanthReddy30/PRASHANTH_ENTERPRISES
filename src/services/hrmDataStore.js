@@ -1996,6 +1996,11 @@ export class HrmDataEngine {
     if (!req) throw new Error('Leave request not found.');
     if (req.status !== 'Pending') throw new Error(`Request has already been processed with status: ${req.status}`);
 
+    const targetEmp = this.data.employees.find(e => e.id === req.employeeId || e.employeeId === req.employeeId);
+    if (approverId) {
+      this.validateActionAuthorization('APPROVE_LEAVE', approverId, { employee: targetEmp, request: req });
+    }
+
     const ledger = this.data.leaveLedger[req.employeeId] || this.getEmployeeLedger(req.employeeId);
     const balance = ledger ? ledger[req.leaveTypeCode] : null;
 
@@ -2044,6 +2049,11 @@ export class HrmDataEngine {
     const req = this.data.leaveRequests.find(r => r.id === requestId);
     if (!req) throw new Error('Leave request not found.');
     if (req.status !== 'Pending') throw new Error(`Request is not pending: ${req.status}`);
+
+    const targetEmp = this.data.employees.find(e => e.id === req.employeeId || e.employeeId === req.employeeId);
+    if (approverId) {
+      this.validateActionAuthorization('REJECT_LEAVE', approverId, { employee: targetEmp, request: req });
+    }
 
     // Release reservation back to available balance
     const ledger = this.data.leaveLedger[req.employeeId] || this.getEmployeeLedger(req.employeeId);
@@ -2271,6 +2281,10 @@ export class HrmDataEngine {
     const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
     if (!emp) throw new Error('Employee not found.');
 
+    if (hrUserId) {
+      this.validateActionAuthorization('UPDATE_EMPLOYEE', hrUserId, { employee: emp, updates });
+    }
+
     Object.assign(emp, updates);
     this.normalizeEmployee360(emp);
     this.logAudit('EMPLOYEE_UPDATED', 'Employee Master', hrUserName, hrUserId, `Updated profile and assignments for ${emp.name} (${emp.id})`);
@@ -2283,6 +2297,9 @@ export class HrmDataEngine {
   updateEmployeePersonal(id, personalData, hrUserId, hrUserName) {
     const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
     if (!emp) throw new Error('Employee not found.');
+    if (hrUserId) {
+      this.validateActionAuthorization('UPDATE_EMPLOYEE', hrUserId, { employee: emp, updates: personalData });
+    }
     emp.personal = { ...emp.personal, ...personalData };
     if (personalData.fullName) emp.name = personalData.fullName;
     if (personalData.mobile) emp.phone = personalData.mobile;
