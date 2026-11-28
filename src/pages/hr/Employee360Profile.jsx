@@ -740,16 +740,18 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
               <h3 className="text-base font-bold text-slate-900">Employment Details & Tenure</h3>
               <p className="text-xs text-slate-500">Job position, branch location, probation parameters, and transfer history.</p>
             </div>
-            <button
-              onClick={() => {
-                setEmploymentForm({ ...(employee.employment || {}) });
-                setShowEditEmploymentModal(true);
-              }}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              <Edit3 className="h-3.5 w-3.5" />
-              <span>Update Employment</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => {
+                  setEmploymentForm({ ...(employee.employment || {}) });
+                  setShowEditEmploymentModal(true);
+                }}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Update Employment</span>
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
@@ -1014,9 +1016,28 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
       {/* TAB 7: LEAVE BALANCE & ATOMIC LEDGER */}
       {activeTab === 'leaveBalance' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-bold text-slate-900">Leave Balance & Atomic Ledger</h3>
-            <p className="text-xs text-slate-500">Real-time entitlement balances, annual accruals, approved deductions, and pending reservations.</p>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Leave Balance & Atomic Ledger</h3>
+              <p className="text-xs text-slate-500">Real-time entitlement balances, annual accruals, approved deductions, and pending reservations.</p>
+            </div>
+            {canEdit && (
+              <button
+                onClick={() => {
+                  setLeaveBalanceForm({
+                    CL: { ...(employeeLedger.CL || { available: 0, opening: 0 }) },
+                    SL: { ...(employeeLedger.SL || { available: 0, opening: 0 }) },
+                    PL: { ...(employeeLedger.PL || { available: 0, opening: 0 }) },
+                    COMP: { ...(employeeLedger.COMP || { available: 0, opening: 0 }) }
+                  });
+                  setShowEditLeaveBalanceModal(true);
+                }}
+                className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Adjust Leave Balances</span>
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1110,7 +1131,25 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
 
               {/* Bank Details */}
               <div className="rounded-xl border border-slate-200 p-4 space-y-2">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Salary Bank Account</h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Salary Bank Account</h4>
+                  {canEdit && (
+                    <button
+                      onClick={() => {
+                        setBankForm({
+                          bankName: employee.bankDetails?.bankName || '',
+                          accountNumber: employee.bankDetails?.accountNumber || '',
+                          ifscCode: employee.bankDetails?.ifscCode || ''
+                        });
+                        setShowEditBankModal(true);
+                      }}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                      <span>Edit Bank Details</span>
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div>
                     <span className="text-slate-400">Bank Name:</span>
