@@ -23,7 +23,9 @@ import {
   Megaphone,
   ShieldCheck,
   FileText,
-  X
+  X,
+  Eye,
+  Download
 } from 'lucide-react';
 import { 
   currentUser, 
