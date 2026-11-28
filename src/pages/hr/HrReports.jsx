@@ -201,51 +201,133 @@ export function HrReports() {
         {/* 1. Leave Report Content */}
         {selectedReport === 'leave' && (
           <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLeaveReportView('balances')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    leaveReportView === 'balances'
+                      ? 'bg-brand-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Workforce Leave Balances Register
+                </button>
+                <button
+                  onClick={() => setLeaveReportView('requests')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    leaveReportView === 'requests'
+                      ? 'bg-brand-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Leave Application Logs ({storeData.leaveRequests.length})
+                </button>
+              </div>
+              <span className="text-xs text-slate-500 font-medium">
+                Showing data across all 3 Regional Hubs (HYD, CHE, MUM)
+              </span>
+            </div>
+
             <div className="grid grid-cols-4 gap-4 text-center">
               <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
-                <p className="text-xs font-semibold text-slate-500">Total Applications</p>
-                <p className="text-xl font-bold text-slate-900 mt-1">{storeData.leaveRequests.length}</p>
+                <p className="text-xs font-semibold text-slate-500">Employees Tracked</p>
+                <p className="text-xl font-bold text-slate-900 mt-1">{storeData.employees.length}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
-                <p className="text-xs font-semibold text-slate-500">Approved</p>
+                <p className="text-xs font-semibold text-slate-500">Approved Leaves</p>
                 <p className="text-xl font-bold text-emerald-600 mt-1">{storeData.leaveRequests.filter(r => r.status === 'Approved').length}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
-                <p className="text-xs font-semibold text-slate-500">Pending</p>
+                <p className="text-xs font-semibold text-slate-500">Pending Approvals</p>
                 <p className="text-xl font-bold text-amber-600 mt-1">{storeData.leaveRequests.filter(r => r.status === 'Pending').length}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
-                <p className="text-xs font-semibold text-slate-500">Rejected</p>
-                <p className="text-xl font-bold text-rose-600 mt-1">{storeData.leaveRequests.filter(r => r.status === 'Rejected').length}</p>
+                <p className="text-xs font-semibold text-slate-500">Total Applications</p>
+                <p className="text-xl font-bold text-brand-600 mt-1">{storeData.leaveRequests.length}</p>
               </div>
             </div>
 
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
-                  <th className="py-2.5 px-3">Req ID</th>
-                  <th className="py-2.5 px-3">Employee</th>
-                  <th className="py-2.5 px-3">Branch</th>
-                  <th className="py-2.5 px-3">Leave Type</th>
-                  <th className="py-2.5 px-3">Dates</th>
-                  <th className="py-2.5 px-3">Days</th>
-                  <th className="py-2.5 px-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {storeData.leaveRequests.map(r => (
-                  <tr key={r.id}>
-                    <td className="py-2 px-3 font-mono font-bold text-brand-600">{r.id}</td>
-                    <td className="py-2 px-3 font-medium text-slate-900">{r.employeeName}</td>
-                    <td className="py-2 px-3 text-slate-600">{r.branch}</td>
-                    <td className="py-2 px-3">{r.leaveType}</td>
-                    <td className="py-2 px-3 text-slate-500">{r.fromDate} to {r.toDate}</td>
-                    <td className="py-2 px-3 font-bold">{r.totalDays}</td>
-                    <td className="py-2 px-3 font-semibold">{r.status}</td>
+            {leaveReportView === 'balances' ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
+                      <th className="py-2.5 px-3">Employee</th>
+                      <th className="py-2.5 px-3">Branch & Dept</th>
+                      <th className="py-2.5 px-3">Date of Joining</th>
+                      <th className="py-2.5 px-3">Casual (CL)</th>
+                      <th className="py-2.5 px-3">Sick (SL)</th>
+                      <th className="py-2.5 px-3">Privilege (PL)</th>
+                      <th className="py-2.5 px-3">Comp Off</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {storeData.employees.map(emp => {
+                      const ledger = getVerifiedEmployeeLedger(emp.id, storeData) || storeData.leaveLedger?.[emp.id] || {};
+                      return (
+                        <tr key={emp.id} className="hover:bg-slate-50/50">
+                          <td className="py-2 px-3 font-medium text-slate-900">
+                            <div>{emp.name}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">{emp.employeeId}</div>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 mr-1.5">
+                              {emp.branch}
+                            </span>
+                            <span className="text-slate-500">{emp.department}</span>
+                          </td>
+                          <td className="py-2 px-3 text-slate-600 font-mono text-[11px]">{emp.joiningDate || '2024-01-01'}</td>
+                          <td className="py-2 px-3">
+                            <span className="font-bold text-brand-600">{ledger.CL?.available ?? 0}</span>
+                            <span className="text-slate-400 text-[10px]"> / {ledger.CL?.total ?? 0}</span>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="font-bold text-brand-600">{ledger.SL?.available ?? 0}</span>
+                            <span className="text-slate-400 text-[10px]"> / {ledger.SL?.total ?? 0}</span>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="font-bold text-brand-600">{ledger.PL?.available ?? 0}</span>
+                            <span className="text-slate-400 text-[10px]"> / {ledger.PL?.total ?? 0}</span>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="font-bold text-brand-600">{ledger.COMP?.available ?? 0}</span>
+                            <span className="text-slate-400 text-[10px]"> / {ledger.COMP?.total ?? 0}</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase">
+                    <th className="py-2.5 px-3">Req ID</th>
+                    <th className="py-2.5 px-3">Employee</th>
+                    <th className="py-2.5 px-3">Branch</th>
+                    <th className="py-2.5 px-3">Leave Type</th>
+                    <th className="py-2.5 px-3">Dates</th>
+                    <th className="py-2.5 px-3">Days</th>
+                    <th className="py-2.5 px-3">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {storeData.leaveRequests.map(r => (
+                    <tr key={r.id}>
+                      <td className="py-2 px-3 font-mono font-bold text-brand-600">{r.id}</td>
+                      <td className="py-2 px-3 font-medium text-slate-900">{r.employeeName}</td>
+                      <td className="py-2 px-3 text-slate-600">{r.branch}</td>
+                      <td className="py-2 px-3">{r.leaveType}</td>
+                      <td className="py-2 px-3 text-slate-500">{r.fromDate} to {r.toDate}</td>
+                      <td className="py-2 px-3 font-bold">{r.totalDays}</td>
+                      <td className="py-2 px-3 font-semibold">{r.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
 
