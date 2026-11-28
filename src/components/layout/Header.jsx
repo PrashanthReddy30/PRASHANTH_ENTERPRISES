@@ -162,19 +162,25 @@ export function Header({ toggleMobileSidebar }) {
             <div className="hidden xl:flex items-center rounded-xl bg-slate-100 p-0.5 border border-slate-200">
               <button
                 onClick={() => handlePortalSwitch('EMPLOYEE')}
-                className="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition rounded-lg"
+                className={`px-2.5 py-1 text-[11px] font-semibold transition rounded-lg ${
+                  currentPortal === 'EMPLOYEE' ? 'bg-white text-brand-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
                 Employee
               </button>
               <button
                 onClick={() => handlePortalSwitch('HR')}
-                className="px-2.5 py-1 text-[11px] font-bold bg-white text-brand-700 rounded-lg shadow-2xs"
+                className={`px-2.5 py-1 text-[11px] font-semibold transition rounded-lg ${
+                  currentPortal === 'HR' ? 'bg-white text-brand-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
                 HR Admin
               </button>
               <button
                 onClick={() => handlePortalSwitch('GLOBAL_ADMIN')}
-                className="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition rounded-lg"
+                className={`px-2.5 py-1 text-[11px] font-semibold transition rounded-lg ${
+                  currentPortal === 'GLOBAL_ADMIN' ? 'bg-white text-purple-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
                 Admin
               </button>
@@ -267,7 +273,9 @@ export function Header({ toggleMobileSidebar }) {
                 {currentUser.name.split(' ')[0]}
               </p>
               <p className="text-[10px] font-semibold text-brand-600 leading-none mt-0.5">
-                {currentUser.systemRole === 'Central HR' ? 'HR Admin' : currentUser.systemRole}
+                {currentUser.id === 'PE000'
+                  ? 'Global Admin'
+                  : (currentUser.systemRole === 'Central HR' ? 'HR Admin' : (currentUser.systemRole || 'Employee'))}
               </p>
             </div>
             <ChevronDown className="h-3 w-3 text-slate-400 hidden sm:block" />
