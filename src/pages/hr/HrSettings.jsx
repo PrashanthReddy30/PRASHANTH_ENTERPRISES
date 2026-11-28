@@ -450,7 +450,7 @@ service cloud.firestore {
                 {permissions.isGlobalAdmin && (
                   <button
                     type="button"
-                    onClick={() => handleOpenAssignModal()}
+                    onClick={() => handleOpenRoleDrawer('Branch HR')}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-brand-700 transition"
                   >
                     <UserPlus className="h-4 w-4" />
