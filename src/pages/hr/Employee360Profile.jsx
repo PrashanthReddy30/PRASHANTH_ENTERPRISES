@@ -622,7 +622,9 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
                 </div>
                 <div>
                   <span className="text-slate-400">Salary Account:</span>
-                  <p className="font-semibold text-slate-800">{employee.bankDetails?.bankName} (Verified)</p>
+                  <p className="font-semibold text-slate-800">
+                    {isFinanceAuthorized ? `${employee.bankDetails?.bankName || 'HDFC Bank'} (Verified)` : 'Confidential (Branch Scoped)'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1104,11 +1106,21 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
       {/* TAB 7: FINANCE & PAYROLL */}
       {activeTab === 'finance' && (
         <div className="space-y-6">
-          {!permissions.canProcessPayroll && !permissions.isGlobalAdmin ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-8 text-center space-y-2">
-              <Lock className="h-8 w-8 text-rose-600 mx-auto" />
-              <p className="text-xs font-bold text-rose-900">Restricted Financial Confidentiality</p>
-              <p className="text-[11px] text-rose-700">Salary structures and bank details are restricted to Finance and Global Admin.</p>
+          {!isFinanceAuthorized ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-8 text-center space-y-3">
+              <Lock className="h-10 w-10 text-rose-600 mx-auto" />
+              <h3 className="text-base font-bold text-rose-900">
+                Restricted: Finance & Payroll details are only accessible to the employee's assigned branch HR or Global Admin.
+              </h3>
+              <p className="text-xs text-rose-700 max-w-md mx-auto">
+                Employee <strong className="text-rose-950">{employee.name}</strong> is assigned to <strong className="text-rose-950">{employee.branch} Hub</strong> ({employee.branchId ? `PE-${employee.branchId}` : 'Regional'}). Your HR Admin scope is restricted to <strong className="text-rose-950">{currentUser.branch || 'Central'} Hub</strong>. Cross-branch financial data access is prohibited.
+              </p>
+              <div className="pt-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 text-rose-800 px-3 py-1 text-[11px] font-semibold border border-rose-200">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>Branch Isolated (Your Branch: {currentUser.branch || 'Central'} • Employee: {employee.branch})</span>
+                </span>
+              </div>
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
@@ -1118,7 +1130,7 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
                   <p className="text-xs text-slate-500">Monthly compensation components, EPF deductions, and statutory bank details.</p>
                 </div>
                 <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                  Finance Authorized
+                  {permissions.isGlobalAdmin ? 'Global Admin Authorized' : `${currentUser.branch} Branch HR Authorized`}
                 </span>
               </div>
 
