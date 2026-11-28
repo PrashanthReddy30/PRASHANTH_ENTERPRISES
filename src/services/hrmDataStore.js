@@ -1138,12 +1138,61 @@ export class HrmDataEngine {
       error: null
     };
 
+    // Reconcile and ensure verified leave ledgers for all employees across all branches
+    this.reconcileLedgersOnBoot();
+
     if (typeof window !== 'undefined') {
       setTimeout(() => {
         this.initRealtimeFirebaseSync();
         initCelebrationBackgroundScheduler(this);
       }, 300);
     }
+  }
+
+  reconcileLedgersOnBoot() {
+    try {
+      if (this.data && this.data.employees && Array.isArray(this.data.employees)) {
+        const policyMap = this.data.leavePolicies ? Object.fromEntries(this.data.leavePolicies.map(p => [p.code, p])) : DEFAULT_LEAVE_POLICIES;
+        const { reconciledLedgers } = reconcileGlobalLeaveLedger(
+          this.data.employees,
+          this.data.leaveRequests || [],
+          this.data.leaveLedger || {},
+          policyMap
+        );
+        this.data.leaveLedger = { ...this.data.leaveLedger, ...reconciledLedgers };
+        this.saveDataLocallyOnly();
+      }
+    } catch (e) {
+      console.warn('[Global Leave Engine] Boot reconciliation failed:', e);
+    }
+  }
+
+  getEmployeeLedger(employeeId) {
+    return getVerifiedEmployeeLedger(employeeId, this.data);
+  }
+
+  reconcileAllEmployeeLeaves(hrUserId = 'HR', hrUserName = 'HR Admin') {
+    const policyMap = this.data.leavePolicies ? Object.fromEntries(this.data.leavePolicies.map(p => [p.code, p])) : DEFAULT_LEAVE_POLICIES;
+    const { reconciledLedgers, auditReport } = reconcileGlobalLeaveLedger(
+      this.data.employees,
+      this.data.leaveRequests,
+      this.data.leaveLedger,
+      policyMap
+    );
+    this.data.leaveLedger = { ...this.data.leaveLedger, ...reconciledLedgers };
+    this.logAudit(
+      'GLOBAL_LEAVE_AUDIT_RECONCILED',
+      'Leave Management',
+      hrUserName,
+      hrUserId,
+      `Executed global leave reconciliation across ${auditReport.totalEmployees} employees in Hyderabad, Chennai, and Mumbai. Corrected ${auditReport.discrepanciesFound} discrepancies.`
+    );
+    this.saveData();
+    // Dual sync to Firebase
+    for (const [empId, ledger] of Object.entries(this.data.leaveLedger)) {
+      this.syncDocToFirebase('leave_ledger', empId, ledger);
+    }
+    return auditReport;
   }
 
   normalizeEmployee360(emp) {
