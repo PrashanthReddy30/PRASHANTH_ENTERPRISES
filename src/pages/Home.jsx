@@ -613,6 +613,28 @@ export function Home() {
                         </div>
                       </div>
 
+                      {/* Personalized Celebration Poster Card */}
+                      {item.posterUrl && (
+                        <div
+                          onClick={() => setSelectedPosterModal(item)}
+                          className="mt-3 relative rounded-xl overflow-hidden border border-slate-200/90 cursor-pointer group shadow-2xs bg-slate-950"
+                        >
+                          <img
+                            src={item.posterUrl}
+                            alt={`${item.employeeName} Celebration Poster`}
+                            className="w-full max-h-52 object-cover object-center group-hover:scale-[1.01] transition-all duration-200"
+                          />
+                          <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                            <Eye className="h-4 w-4" />
+                            <span>Click to View Full Personalized Celebration Poster</span>
+                          </div>
+                          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-[10px] font-semibold text-white/90 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-amber-300" />
+                            <span>Celebration Poster</span>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Quick Wish Buttons (One-tap wishes) */}
                       <div className="mt-4 pt-3 border-t border-slate-100">
                         <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
