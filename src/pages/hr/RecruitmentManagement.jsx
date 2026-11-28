@@ -138,6 +138,13 @@ export function RecruitmentManagement() {
 
           <div className="flex items-center gap-2">
             <button
+              onClick={() => navigate('/hr/onboarding-tracker')}
+              className="flex items-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 hover:bg-brand-100/80 px-3.5 py-2 text-xs font-bold text-brand-700 shadow-2xs transition active:scale-95"
+            >
+              <UserCheck className="h-4 w-4 text-brand-600" />
+              <span>Onboarding Tracker</span>
+            </button>
+            <button
               onClick={() => setShowAddJobModal(true)}
               className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-purple-700 transition"
             >
@@ -164,6 +171,13 @@ export function RecruitmentManagement() {
             }`}
           >
             Active Job Openings ({storeData.recruitmentJobs.length})
+          </button>
+          <button
+            onClick={() => navigate('/hr/onboarding-tracker')}
+            className="border-b-2 border-transparent px-4 py-2.5 text-xs font-semibold text-brand-700 hover:text-brand-800 hover:border-brand-300 transition flex items-center gap-1.5"
+          >
+            <UserCheck className="h-3.5 w-3.5" />
+            <span>Selected Candidates & Onboarding Tracker</span>
           </button>
         </div>
       </div>
