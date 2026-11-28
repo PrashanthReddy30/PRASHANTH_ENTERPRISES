@@ -276,7 +276,7 @@ export function Home() {
               <span>Prashanth Enterprises HRM • Intranet Edition</span>
             </div>
             <h1 className="mt-2 text-xl sm:text-2xl font-extrabold tracking-tight">
-              Good evening, {currentUser.name}! 👋
+              Good evening, {activeUser?.name || 'Team Member'}! 👋
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-brand-200 max-w-xl">
               Welcome back to your workspace dashboard. All services are connected to the local office Matrix Biometric server (192.168.1.240).
