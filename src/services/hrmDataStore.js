@@ -1368,6 +1368,12 @@ class HrmDataEngine {
           if (!parsed.celebrationProcessingLogs) {
             parsed.celebrationProcessingLogs = JSON.parse(JSON.stringify(initialEnterpriseData.celebrationProcessingLogs));
           }
+          if (!parsed.onboardingCases || parsed.onboardingCases.length === 0) {
+            parsed.onboardingCases = JSON.parse(JSON.stringify(initialEnterpriseData.onboardingCases));
+          }
+          if (!parsed.onboardingTemplates || parsed.onboardingTemplates.length === 0) {
+            parsed.onboardingTemplates = JSON.parse(JSON.stringify(initialEnterpriseData.onboardingTemplates));
+          }
           return parsed;
         }
       }
