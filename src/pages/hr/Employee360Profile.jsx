@@ -663,16 +663,18 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
               <h3 className="text-base font-bold text-slate-900">Personal Information</h3>
               <p className="text-xs text-slate-500">Identity details, addresses, and family emergency contacts.</p>
             </div>
-            <button
-              onClick={() => {
-                setPersonalForm({ ...(employee.personal || {}) });
-                setShowEditPersonalModal(true);
-              }}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              <Edit3 className="h-3.5 w-3.5" />
-              <span>Modify Details</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => {
+                  setPersonalForm({ ...(employee.personal || {}) });
+                  setShowEditPersonalModal(true);
+                }}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Modify Details</span>
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-xs">
