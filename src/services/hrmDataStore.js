@@ -2827,17 +2827,19 @@ export class HrmDataEngine {
       throw new Error(`Document ${docKey} does not exist in onboarding packet.`);
     }
 
-    obCase.documents[docKey].verified = status === 'APPROVED';
-    obCase.documents[docKey].rejected = status === 'REJECTED';
+    const normalizedStatus = (status || '').toUpperCase();
+    obCase.documents[docKey].status = normalizedStatus === 'APPROVED' ? 'Approved' : 'Rejected';
+    obCase.documents[docKey].verified = normalizedStatus === 'APPROVED';
+    obCase.documents[docKey].rejected = normalizedStatus === 'REJECTED';
     obCase.documents[docKey].remarks = remarks;
     obCase.documents[docKey].verifiedBy = hrUserName;
     obCase.documents[docKey].verifiedAt = new Date().toISOString();
 
     obCase.timeline.unshift({
-      action: status === 'APPROVED' ? 'DOC_APPROVED' : 'DOC_REJECTED',
+      action: normalizedStatus === 'APPROVED' ? 'DOC_APPROVED' : 'DOC_REJECTED',
       by: hrUserName,
       timestamp: new Date().toISOString(),
-      note: `${obCase.documents[docKey].name}: ${status}${remarks ? ' - ' + remarks : ''}`
+      note: `${obCase.documents[docKey].name || docKey}: ${obCase.documents[docKey].status}${remarks ? ' - ' + remarks : ''}`
     });
 
     // Check if all mandatory documents are verified
