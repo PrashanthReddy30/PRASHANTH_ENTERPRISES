@@ -2103,6 +2103,104 @@ export class HrmDataEngine {
     return emp;
   }
 
+  // --- NEW: Update Leave Ledger balances (HR edit) ---
+  updateLeaveLedger(employeeId, ledgerUpdates, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === employeeId || e.employeeId === employeeId);
+    if (!emp) throw new Error('Employee not found.');
+    if (!this.data.leaveLedger) this.data.leaveLedger = {};
+    if (!this.data.leaveLedger[emp.id]) this.data.leaveLedger[emp.id] = {};
+    const ledger = this.data.leaveLedger[emp.id];
+    const summaryParts = [];
+    for (const [code, fields] of Object.entries(ledgerUpdates)) {
+      if (!ledger[code]) ledger[code] = { available: 0, opening: 0, approvedDeductions: 0, pendingReservations: 0 };
+      for (const [field, value] of Object.entries(fields)) {
+        const prev = ledger[code][field];
+        ledger[code][field] = Number(value);
+        summaryParts.push(`${code}.${field}: ${prev} → ${value}`);
+      }
+    }
+    this.logAudit('LEAVE_BALANCE_UPDATED', '360 Profile', hrUserName, hrUserId,
+      `Leave balance adjusted for ${emp.name} (${emp.employeeId}): ${summaryParts.join(', ')}`);
+    this.saveData();
+    this.syncDocToFirebase('leave_ledger', emp.id, ledger);
+    return ledger;
+  }
+
+  // --- NEW: Update Biometric ID ---
+  updateBiometricId(id, newBiometricId, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    const prev = emp.biometricId;
+    emp.biometricId = newBiometricId;
+    this.logAudit('BIOMETRIC_UPDATED', '360 Profile', hrUserName, hrUserId,
+      `Biometric ID changed for ${emp.name} (${emp.employeeId}): ${prev} → ${newBiometricId}`);
+    this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
+    return emp;
+  }
+
+  // --- NEW: Update Bank Details ---
+  updateBankDetails(id, bankData, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    const prev = { ...emp.bankDetails };
+    emp.bankDetails = { ...emp.bankDetails, ...bankData };
+    const summaryParts = [];
+    for (const [k, v] of Object.entries(bankData)) {
+      if (prev[k] !== v) summaryParts.push(`${k}: ${prev[k] || '—'} → ${v}`);
+    }
+    this.logAudit('BANK_DETAILS_UPDATED', '360 Profile', hrUserName, hrUserId,
+      `Bank details updated for ${emp.name} (${emp.employeeId}): ${summaryParts.join(', ')}`);
+    this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
+    return emp;
+  }
+
+  // --- NEW: Update Employee Status ---
+  updateEmployeeStatus(id, newStatus, reason, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    const prev = emp.status;
+    emp.status = newStatus;
+    if (reason) emp.statusReason = reason;
+    this.logAudit('EMPLOYEE_STATUS_CHANGED', '360 Profile', hrUserName, hrUserId,
+      `Status changed for ${emp.name} (${emp.employeeId}): ${prev} → ${newStatus}${reason ? '. Reason: ' + reason : ''}`);
+    this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
+    return emp;
+  }
+
+  // --- NEW: Update Overview fields (name/role/dept/branch) ---
+  updateEmployeeOverview(id, overviewData, hrUserId, hrUserName) {
+    const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
+    if (!emp) throw new Error('Employee not found.');
+    const summaryParts = [];
+    if (overviewData.name && overviewData.name !== emp.name) {
+      summaryParts.push(`Name: ${emp.name} → ${overviewData.name}`);
+      emp.name = overviewData.name;
+      if (emp.personal) emp.personal.fullName = overviewData.name;
+    }
+    if (overviewData.role && overviewData.role !== emp.role) {
+      summaryParts.push(`Designation: ${emp.role} → ${overviewData.role}`);
+      emp.role = overviewData.role;
+      if (emp.employment) emp.employment.designation = overviewData.role;
+    }
+    if (overviewData.department && overviewData.department !== emp.department) {
+      summaryParts.push(`Department: ${emp.department} → ${overviewData.department}`);
+      emp.department = overviewData.department;
+      if (emp.employment) emp.employment.department = overviewData.department;
+    }
+    if (overviewData.branch && overviewData.branch !== emp.branch) {
+      summaryParts.push(`Branch: ${emp.branch} → ${overviewData.branch}`);
+      emp.branch = overviewData.branch;
+    }
+    this.logAudit('PROFILE_OVERVIEW_UPDATED', '360 Profile', hrUserName, hrUserId,
+      `Overview updated for ${emp.name} (${emp.employeeId}): ${summaryParts.join(', ')}`);
+    this.saveData();
+    this.syncDocToFirebase('employees', emp.id, emp);
+    return emp;
+  }
+
   updateEmployeeEmployment(id, employmentData, hrUserId, hrUserName) {
     const emp = this.data.employees.find(e => e.id === id || e.employeeId === id);
     if (!emp) throw new Error('Employee not found.');
