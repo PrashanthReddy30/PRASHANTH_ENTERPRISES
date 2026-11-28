@@ -1186,7 +1186,23 @@ class HrmDataEngine {
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed.employees && Array.isArray(parsed.employees)) {
-            parsed.employees = parsed.employees.map(e => this.normalizeEmployee360(e));
+            parsed.employees = parsed.employees.map(e => {
+              const seed = initialEnterpriseData.employees.find(se => se.id === e.id);
+              if (!e.dob && seed?.dob) e.dob = seed.dob;
+              return this.normalizeEmployee360(e);
+            });
+          }
+          if (!parsed.celebrationTemplates || parsed.celebrationTemplates.length === 0) {
+            parsed.celebrationTemplates = JSON.parse(JSON.stringify(initialEnterpriseData.celebrationTemplates));
+          }
+          if (!parsed.employeeEngagementPosts || parsed.employeeEngagementPosts.length === 0) {
+            parsed.employeeEngagementPosts = JSON.parse(JSON.stringify(initialEnterpriseData.employeeEngagementPosts));
+          }
+          if (!parsed.celebrationAutomationSettings) {
+            parsed.celebrationAutomationSettings = JSON.parse(JSON.stringify(initialEnterpriseData.celebrationAutomationSettings));
+          }
+          if (!parsed.celebrationProcessingLogs) {
+            parsed.celebrationProcessingLogs = JSON.parse(JSON.stringify(initialEnterpriseData.celebrationProcessingLogs));
           }
           return parsed;
         }
