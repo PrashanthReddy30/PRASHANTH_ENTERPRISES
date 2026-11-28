@@ -295,6 +295,30 @@ const initialEnterpriseData = {
       uan: '100519284918',
       avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150',
       biometricId: 'MTX-MUM-03'
+    },
+    {
+      id: 'PE016',
+      employeeId: 'EMP-2026-016',
+      name: 'Niharika',
+      email: 'chinnareddy123a@gmail.com',
+      phone: '+91 98480 11225',
+      role: 'HR Admin',
+      systemRole: 'Central HR',
+      department: 'Human Resources',
+      deptCode: 'HR',
+      branch: 'Hyderabad',
+      branchId: 'HYD',
+      managerId: 'PE000',
+      managerName: 'Prashanth Reddy',
+      joiningDate: '2026-11-19',
+      dob: '1995-07-14',
+      status: 'Active',
+      employmentType: 'Full-Time Permanent',
+      panNumber: 'ABCDE1234F',
+      pfNumber: 'MH/BAN/0012938/000/000000',
+      uan: '100984920000',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
+      biometricId: 'MTX-PE016'
     }
   ],
 
