@@ -39,6 +39,9 @@ export function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public / Standalone Candidate Self-Service Onboarding Portal */}
+          <Route path="onboarding/:token" element={<EmployeeOnboardingPortal />} />
+
           {/* Main Application Layout wrapper */}
           <Route path="/" element={<Layout />}>
             {/* Default redirect to Home */}
@@ -67,6 +70,8 @@ export function App() {
               <Route path="leaves" element={<LeaveManagement />} />
               <Route path="payroll" element={<PayrollManagement />} />
               <Route path="recruitment" element={<RecruitmentManagement />} />
+              <Route path="onboarding" element={<NewEmployeeOnboarding />} />
+              <Route path="onboarding-tracker" element={<OnboardingTrackingDashboard />} />
               <Route path="departments" element={<DepartmentsBranches />} />
               <Route path="approvals" element={<HrApprovals />} />
               <Route path="celebrations" element={<CelebrationAutomation />} />
