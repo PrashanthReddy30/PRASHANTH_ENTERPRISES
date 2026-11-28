@@ -1252,13 +1252,15 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
               <h3 className="text-base font-bold text-slate-900">Prior Professional Experience</h3>
               <p className="text-xs text-slate-500">Employment history prior to joining Prashanth Enterprises.</p>
             </div>
-            <button
-              onClick={() => setShowAddExperienceModal(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Prior Job</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => setShowAddExperienceModal(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 shadow-2xs"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Prior Job</span>
+              </button>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -1293,13 +1295,15 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
               <h3 className="text-base font-bold text-slate-900">Reporting Manager & Org Hierarchy</h3>
               <p className="text-xs text-slate-500">Direct supervisor allocation and corporate chain of command.</p>
             </div>
-            <button
-              onClick={() => setShowReassignManagerModal(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 shadow-2xs"
-            >
-              <Network className="h-3.5 w-3.5" />
-              <span>Reassign Supervisor</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => setShowReassignManagerModal(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 shadow-2xs"
+              >
+                <Network className="h-3.5 w-3.5" />
+                <span>Reassign Supervisor</span>
+              </button>
+            )}
           </div>
 
           {/* Visual Reporting Tree */}
