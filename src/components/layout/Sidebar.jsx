@@ -162,13 +162,14 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
         key={item.path + item.name}
         to={item.path}
         onClick={() => setMobileOpen && setMobileOpen(false)}
-        className={({ isActive }) =>
-          `flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
-            isActive
+        className={({ isActive }) => {
+          const isItemActive = isActive || (item.path === '/admin/dashboard' && (location.pathname === '/admin' || location.pathname === '/admin/dashboard'));
+          return `flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
+            isItemActive
               ? 'bg-brand-600 text-white shadow-sm'
               : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-          }`
-        }
+          }`;
+        }}
       >
         <Icon className="h-4 w-4 shrink-0" />
         <div className="flex-1 flex items-center justify-between truncate">
