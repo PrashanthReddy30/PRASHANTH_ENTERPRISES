@@ -17,7 +17,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Active user ID: defaults to Global Admin 'PE000' or HR Admin 'PE016'
-  const [activeUserId, setActiveUserId] = useState('PE000');
+  const [activeUserId, setActiveUserId] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('pe_hrm_active_user_id');
+      if (saved) return saved;
+    }
+    return 'PE000';
+  });
   
   // Current active portal: 'EMPLOYEE' | 'HR' | 'GLOBAL_ADMIN'
   const [currentPortal, setCurrentPortal] = useState('EMPLOYEE');
@@ -26,7 +32,13 @@ export function AuthProvider({ children }) {
   const [selectedBranchFilter, setSelectedBranchFilter] = useState('ALL');
 
   // Resolve active employee record
-  const currentUser = storeData.employees.find(e => e.id === activeUserId) || storeData.employees[0];
+  const rawCurrentUser = storeData.employees.find(e => e.id === activeUserId) || storeData.employees[0];
+  const currentUser = {
+    ...rawCurrentUser,
+    systemRole: rawCurrentUser.id === 'PE000' 
+      ? 'Global Admin' 
+      : (rawCurrentUser.systemRole || (rawCurrentUser.id === 'PE016' ? 'Central HR' : 'Employee'))
+  };
 
   // Derive granular permissions based on role, live rolePermissions matrix, and user-specific overrides
   const role = currentUser.systemRole || 'Employee';
@@ -61,11 +73,23 @@ export function AuthProvider({ children }) {
         return false;
       }
       setActiveUserId('PE000'); // Bind to Global Admin (Prashanth Reddy)
+      if (typeof localStorage !== 'undefined') {
+        try { localStorage.setItem('pe_hrm_active_user_id', 'PE000'); } catch (e) {}
+      }
     } else if (targetPortal === 'HR') {
-      // Find designated HR Admin account (Niharika / PE016 or Central HR)
-      const hrAdmin = storeData.employees.find(e => e.id === 'PE016' || e.email === 'chinnareddy123a@gmail.com' || e.systemRole === 'Central HR' || e.systemRole === 'HR Admin');
-      if (hrAdmin) {
-        setActiveUserId(hrAdmin.id); // Bind to Niharika for HR portal operations
+      // Preserve current user if they already have HR, Finance, or Global Admin access
+      const userRole = currentUser?.id === 'PE000' ? 'Global Admin' : (currentUser?.systemRole || 'Employee');
+      const hasHRAccess = userRole === 'Central HR' || userRole === 'Branch HR' || userRole === 'HR Admin' || userRole === 'Finance' || userRole === 'Global Admin' || permissions.canAccessHR;
+      
+      if (!hasHRAccess) {
+        // Find designated HR Admin account (Niharika / PE016 or Central HR)
+        const hrAdmin = storeData.employees.find(e => e.id === 'PE016' || e.email === 'chinnareddy123a@gmail.com' || e.systemRole === 'Central HR' || e.systemRole === 'HR Admin');
+        if (hrAdmin) {
+          setActiveUserId(hrAdmin.id); // Bind to Niharika for HR portal operations
+          if (typeof localStorage !== 'undefined') {
+            try { localStorage.setItem('pe_hrm_active_user_id', hrAdmin.id); } catch (e) {}
+          }
+        }
       }
     }
     setCurrentPortal(targetPortal);
@@ -73,18 +97,45 @@ export function AuthProvider({ children }) {
   };
 
   // Quick Switcher between employee personas to verify end-to-end workflows
-  const switchUser = (employeeId) => {
+  const switchUser = (employeeId, options = {}) => {
     setActiveUserId(employeeId);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('pe_hrm_active_user_id', employeeId);
+      } catch (e) {}
+    }
     const targetEmp = storeData.employees.find(e => e.id === employeeId);
+    let targetPortal = 'EMPLOYEE';
+    let targetRoute = '/home';
+
     if (targetEmp) {
-      if (targetEmp.systemRole === 'Employee') {
-        setCurrentPortal('EMPLOYEE');
-      } else if (targetEmp.systemRole === 'Central HR' || targetEmp.systemRole === 'Branch HR' || targetEmp.systemRole === 'HR Admin') {
-        setCurrentPortal('HR');
-      } else if (targetEmp.systemRole === 'Global Admin') {
-        setCurrentPortal('GLOBAL_ADMIN');
+      const sRole = targetEmp.id === 'PE000' ? 'Global Admin' : (targetEmp.systemRole || 'Employee');
+      if (sRole === 'Employee') {
+        targetPortal = 'EMPLOYEE';
+        targetRoute = '/home';
+      } else if (sRole === 'Manager') {
+        targetPortal = 'EMPLOYEE';
+        targetRoute = '/home';
+      } else if (sRole === 'Branch HR') {
+        targetPortal = 'HR';
+        targetRoute = '/hr/dashboard';
+      } else if (sRole === 'Central HR' || sRole === 'HR Admin') {
+        targetPortal = 'HR';
+        targetRoute = '/hr/dashboard';
+      } else if (sRole === 'Finance') {
+        targetPortal = 'HR';
+        targetRoute = '/hr/payroll';
+      } else if (sRole === 'Global Admin') {
+        targetPortal = 'GLOBAL_ADMIN';
+        targetRoute = '/admin/dashboard';
       }
     }
+
+    if (options.portal) targetPortal = options.portal;
+    if (options.route) targetRoute = options.route;
+
+    setCurrentPortal(targetPortal);
+    return { targetPortal, targetRoute, targetEmp };
   };
 
   // Firebase Secure Password Reset / Account Invitation Flow (No hardcoded credentials)
