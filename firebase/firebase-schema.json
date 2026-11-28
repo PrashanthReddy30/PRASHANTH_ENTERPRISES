@@ -270,6 +270,94 @@
         "syncStatus": "SYNCED_TO_INTRANET",
         "regularized": false
       }
+    },
+
+    "celebration_templates": {
+      "description": "Templates for automated New Joiner, Birthday, and Work Anniversary posters with customizable canvas coordinates",
+      "document_id_pattern": "TPL-{CATEGORY}-{ID}",
+      "sample_document": {
+        "id": "TPL-WELCOME-01",
+        "name": "Corporate Horizon Blue Welcome",
+        "category": "welcome",
+        "description": "Clean executive gradient with gold highlights and photo badge",
+        "isDefault": true,
+        "width": 800,
+        "height": 500,
+        "backgroundColor": "#0f172a",
+        "customBackgroundUrl": null,
+        "layout": {
+          "photo": { "x": 160, "y": 250, "size": 180, "shape": "circle", "borderWidth": 6, "borderColor": "#38bdf8" },
+          "title": { "x": 490, "y": 140, "fontSize": 32, "fontFamily": "Inter, sans-serif", "color": "#38bdf8", "fontWeight": "800", "align": "center" },
+          "name": { "x": 490, "y": 200, "fontSize": 36, "fontFamily": "Inter, sans-serif", "color": "#ffffff", "fontWeight": "700", "align": "center" },
+          "role": { "x": 490, "y": 245, "fontSize": 20, "fontFamily": "Inter, sans-serif", "color": "#94a3b8", "fontWeight": "500", "align": "center" },
+          "branch": { "x": 490, "y": 285, "fontSize": 17, "fontFamily": "Inter, sans-serif", "color": "#38bdf8", "fontWeight": "600", "align": "center" },
+          "message": { "x": 490, "y": 350, "fontSize": 17, "fontFamily": "Inter, sans-serif", "color": "#cbd5e1", "fontWeight": "400", "align": "center", "maxWidth": 480 },
+          "companyTag": { "x": 490, "y": 440, "fontSize": 13, "fontFamily": "Inter, sans-serif", "color": "#64748b", "fontWeight": "600", "align": "center" }
+        }
+      }
+    },
+
+    "employee_engagement_posts": {
+      "description": "Published celebration posts on the employee home feed generated automatically by the 01:00 AM IST scheduler",
+      "document_id_pattern": "CELEB-{CATEGORY}-{EMPLOYEE_ID}-{YEAR_OR_DATE}",
+      "sample_document": {
+        "id": "CELEB-WELCOME-PE010-20261115",
+        "idempotencyKey": "PE010_welcome_2026-11-15",
+        "type": "welcome",
+        "employeeId": "PE010",
+        "employeeName": "Ananya Deshmukh",
+        "employeeRole": "Senior Frontend Engineer",
+        "department": "Engineering & QA",
+        "branch": "Hyderabad",
+        "branchId": "HYD",
+        "employeeAvatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150",
+        "eventDate": "2026-11-15",
+        "publishedAt": "2026-11-15T01:00:00+05:30",
+        "status": "published",
+        "posterUrl": "data:image/svg+xml;utf8,...",
+        "message": "Heartiest welcome to Ananya Deshmukh as Senior Frontend Engineer in Engineering & QA!",
+        "badgeText": "Joined Yesterday",
+        "likesCount": 14,
+        "likes": ["PE000", "PE001", "PE002"],
+        "wishesCount": 6,
+        "wishes": []
+      }
+    },
+
+    "celebration_settings": {
+      "description": "Global automation settings for celebration triggers, leap year policies, and scheduler parameters",
+      "document_id_pattern": "general",
+      "sample_document": {
+        "autoPublishEnabled": true,
+        "scheduledTimeIST": "01:00",
+        "feb29BirthdayRule": "FEB_28",
+        "welcomeLeadDays": 0,
+        "anniversaryMilestonesOnly": false,
+        "allowedCategories": {
+          "welcome": true,
+          "birthday": true,
+          "anniversary": true
+        },
+        "notificationsEnabled": true,
+        "retryFailedRuns": true
+      }
+    },
+
+    "celebration_logs": {
+      "description": "Audit trail of automated and manual execution runs of the celebration engine",
+      "document_id_pattern": "LOG-{TIMESTAMP}-{AUTO_ID}",
+      "sample_document": {
+        "id": "LOG-1795195000000-a89f",
+        "timestamp": "2026-11-28T01:00:00+05:30",
+        "action": "AUTO_SCHEDULER_EXECUTION",
+        "status": "SUCCESS",
+        "evalDate": "2026-11-28",
+        "eligibleCount": 3,
+        "publishedCount": 3,
+        "failedCount": 0,
+        "skippedCount": 0,
+        "details": "Published 1 welcome, 1 birthday, 1 anniversary post."
+      }
     }
   }
 }
