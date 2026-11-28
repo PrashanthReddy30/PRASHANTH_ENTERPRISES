@@ -47,6 +47,9 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
   const onBack = propOnBack || (() => navigate('/hr/employees'));
   const { storeData, hrmStore, currentUser, permissions } = useAuth();
 
+  // HR permission check — edit controls only visible to HR/Admin in HR portal
+  const canEdit = !!(permissions.canManageEmployees || permissions.isGlobalAdmin);
+
   // Find employee
   const employee = storeData.employees.find(e => e.id === employeeId || e.employeeId === employeeId);
 
@@ -61,6 +64,12 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
   const [showAddEducationModal, setShowAddEducationModal] = useState(false);
   const [showAddExperienceModal, setShowAddExperienceModal] = useState(false);
   const [showUploadDocModal, setShowUploadDocModal] = useState(false);
+  // NEW modals
+  const [showEditOverviewModal, setShowEditOverviewModal] = useState(false);
+  const [showEditLeaveBalanceModal, setShowEditLeaveBalanceModal] = useState(false);
+  const [showEditBiometricModal, setShowEditBiometricModal] = useState(false);
+  const [showEditBankModal, setShowEditBankModal] = useState(false);
+  const [showEditStatusModal, setShowEditStatusModal] = useState(false);
 
   // Form states
   const [personalForm, setPersonalForm] = useState(employee?.personal || {});
@@ -90,6 +99,13 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
     type: 'PDF',
     expiryDate: 'N/A'
   });
+
+  // NEW form states
+  const [overviewForm, setOverviewForm] = useState({});
+  const [leaveBalanceForm, setLeaveBalanceForm] = useState({});
+  const [biometricForm, setBiometricForm] = useState({ biometricId: '' });
+  const [bankForm, setBankForm] = useState({});
+  const [statusForm, setStatusForm] = useState({ status: '', statusReason: '' });
 
   // Attendance Filter
   const [attendancePeriodFilter, setAttendancePeriodFilter] = useState('ALL');
@@ -253,6 +269,52 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  // NEW handlers
+  const handleSaveOverview = (e) => {
+    e.preventDefault();
+    try {
+      hrmStore.updateEmployeeOverview(employee.id, overviewForm, currentUser.id, currentUser.name);
+      showToast('Overview updated and audit log recorded.');
+      setShowEditOverviewModal(false);
+    } catch (err) { alert(err.message); }
+  };
+
+  const handleSaveLeaveBalance = (e) => {
+    e.preventDefault();
+    try {
+      hrmStore.updateLeaveLedger(employee.id, leaveBalanceForm, currentUser.id, currentUser.name);
+      showToast('Leave balances updated and audit log recorded.');
+      setShowEditLeaveBalanceModal(false);
+    } catch (err) { alert(err.message); }
+  };
+
+  const handleSaveBiometric = (e) => {
+    e.preventDefault();
+    try {
+      hrmStore.updateBiometricId(employee.id, biometricForm.biometricId, currentUser.id, currentUser.name);
+      showToast('Biometric ID updated and audit log recorded.');
+      setShowEditBiometricModal(false);
+    } catch (err) { alert(err.message); }
+  };
+
+  const handleSaveBank = (e) => {
+    e.preventDefault();
+    try {
+      hrmStore.updateBankDetails(employee.id, bankForm, currentUser.id, currentUser.name);
+      showToast('Bank details updated and audit log recorded.');
+      setShowEditBankModal(false);
+    } catch (err) { alert(err.message); }
+  };
+
+  const handleSaveStatus = (e) => {
+    e.preventDefault();
+    try {
+      hrmStore.updateEmployeeStatus(employee.id, statusForm.status, statusForm.statusReason, currentUser.id, currentUser.name);
+      showToast('Employee status updated and audit log recorded.');
+      setShowEditStatusModal(false);
+    } catch (err) { alert(err.message); }
   };
 
   return (
