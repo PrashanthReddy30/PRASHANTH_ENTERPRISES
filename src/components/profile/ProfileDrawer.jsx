@@ -22,7 +22,7 @@ import {
   ShieldCheck,
   UserCheck
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, TEST_PERSONAS } from '../../context/AuthContext';
 
 const PERSONA_TIERS = [
   {
@@ -76,7 +76,7 @@ const PERSONA_TIERS = [
 ];
 
 export function ProfileDrawer({ isOpen, onClose }) {
-  const { currentUser, switchUser, sendPasswordReset, storeData } = useAuth();
+  const { currentUser, switchPersona, switchUser, sendPasswordReset, storeData, rawStoreData, hrmStore } = useAuth();
   const drawerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -95,28 +95,20 @@ export function ProfileDrawer({ isOpen, onClose }) {
     };
   }, [isOpen, onClose]);
 
-  // Dynamically resolve representative employee persona for each of the 6 tiers
+  // Unfiltered representation for all 6 tiers: reads from TEST_PERSONAS or rawStoreData
   const personas = useMemo(() => {
-    const list = storeData?.employees || [];
+    const rawList = hrmStore?.data?.employees || rawStoreData?.employees || storeData?.employees || [];
     return PERSONA_TIERS.map(config => {
-      let emp;
-      if (config.tier === 'Global Admin') {
-        emp = list.find(e => e.id === 'PE000') || list.find(e => e.systemRole === 'Global Admin');
-      } else if (config.tier === 'Central HR') {
-        emp = list.find(e => e.id === 'PE016' || e.email === 'chinnareddy123a@gmail.com') ||
-              list.find(e => (e.systemRole === 'Central HR' || e.systemRole === 'HR Admin') && e.id !== 'PE000');
-      } else if (config.tier === 'Branch HR') {
-        emp = list.find(e => e.id === config.defaultId) || list.find(e => e.systemRole === 'Branch HR');
-      } else if (config.tier === 'Finance') {
-        emp = list.find(e => e.id === config.defaultId) || list.find(e => e.systemRole === 'Finance');
-      } else if (config.tier === 'Manager') {
-        emp = list.find(e => e.id === config.defaultId) || list.find(e => e.systemRole === 'Manager');
-      } else {
-        emp = list.find(e => e.id === config.defaultId) || list.find(e => e.systemRole === 'Employee');
-      }
+      // 1. Direct TEST_PERSONA definition as ground truth
+      const staticPersona = TEST_PERSONAS[config.tier];
+      
+      // 2. Or match from raw unfiltered list
+      let emp = rawList.find(e => e.id === config.defaultId) ||
+                rawList.find(e => e.systemRole === config.tier) ||
+                staticPersona;
 
       if (!emp) {
-        emp = list.find(e => e.id === config.defaultId) || list[0];
+        emp = staticPersona;
       }
 
       return {
@@ -124,7 +116,7 @@ export function ProfileDrawer({ isOpen, onClose }) {
         emp
       };
     });
-  }, [storeData?.employees]);
+  }, [rawStoreData, storeData, hrmStore]);
 
   if (!isOpen) return null;
 
@@ -161,11 +153,17 @@ export function ProfileDrawer({ isOpen, onClose }) {
             : (currentUserRole === 'Manager' ? Users : BadgeCheck)));
 
   const handlePersonaClick = (persona) => {
-    const { targetRoute } = switchUser(persona.emp.id, {
+    // 1. Immediately update active persona state and localStorage
+    const switcher = switchPersona || switchUser;
+    const { targetRoute } = switcher(persona.emp || persona.tier, {
       portal: persona.portal,
       route: persona.route
     });
+
+    // 2. Close drawer
     onClose();
+
+    // 3. Immediately navigate to that role's default landing page
     if (targetRoute) {
       navigate(targetRoute);
     }
