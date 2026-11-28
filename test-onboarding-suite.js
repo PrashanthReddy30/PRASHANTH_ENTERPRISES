@@ -45,12 +45,12 @@ console.log('✓ All 11 templates present and valid.');
 // Test 4: Placeholder replacement
 console.log('[Test 4] Testing populateDocumentText...');
 const sampleCase = {
-  employeeInfo: {
+  personal: {
     fullName: 'Rahul Sharma',
     personalEmail: 'rahul.s@example.com',
-    mobileNumber: '+91 98765 43210'
+    mobile: '+91 98765 43210'
   },
-  employmentDetails: {
+  employment: {
     designation: 'Senior Cloud Engineer',
     department: 'Engineering',
     dateOfJoining: '2026-12-01',
@@ -58,16 +58,16 @@ const sampleCase = {
     probationPeriod: '6 Months',
     noticePeriod: '60 Days'
   },
-  salaryCompensation: {
+  salary: {
     annualCtc: 1200000
   }
 };
 const appointmentTmpl = DEFAULT_ONBOARDING_TEMPLATES.find(t => t.id === 'TPL-APPOINTMENT');
 const populated = populateDocumentText(appointmentTmpl.templateText, sampleCase);
-assert(populated.includes('Rahul Sharma'), 'Must replace {{fullName}}');
-assert(populated.includes('Senior Cloud Engineer'), 'Must replace {{designation}}');
-assert(populated.includes('Hyderabad Hub'), 'Must replace {{workLocation}}');
-assert(!populated.includes('{{fullName}}'), 'Must not leave {{fullName}} placeholder');
+assert(populated.includes('Rahul Sharma'), 'Must replace {{EMPLOYEE_NAME}}');
+assert(populated.includes('Senior Cloud Engineer'), 'Must replace {{DESIGNATION}}');
+assert(populated.includes('Hyderabad Hub'), 'Must replace {{WORK_LOCATION}}');
+assert(!populated.includes('{{EMPLOYEE_NAME}}'), 'Must not leave {{EMPLOYEE_NAME}} placeholder');
 console.log('✓ Placeholder substitution verified.');
 
 // Test 5: Email HTML generator
