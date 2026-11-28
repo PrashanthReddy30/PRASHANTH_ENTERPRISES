@@ -56,6 +56,7 @@ export function Sidebar({ collapsed, setCollapsed }) {
     { name: 'Payroll', path: '/hr/payroll', icon: DollarSign, description: 'Runs & CTC Master' },
     { name: 'Recruitment', path: '/hr/recruitment', icon: Briefcase, description: 'Pipeline & Openings' },
     { name: 'Depts & Hubs', path: '/hr/departments', icon: Building2, description: 'Regional Branches' },
+    { name: 'Celebrations', path: '/hr/celebrations', icon: Sparkles, description: 'Automated 01:00 AM Engine' },
     { name: 'Approvals', path: '/hr/approvals', icon: CheckSquare, badge: totalPending, badgeColor: 'bg-rose-500 text-white', description: 'Queue' },
     { name: 'Reports', path: '/hr/reports', icon: FileText, description: 'Audit & CSV Export' },
     { name: 'Settings', path: '/hr/settings', icon: Sliders, description: 'RBAC & Audit Trail' }
@@ -70,6 +71,7 @@ export function Sidebar({ collapsed, setCollapsed }) {
     { name: 'Payroll Audit', path: '/hr/payroll', icon: DollarSign, description: 'Financial Overview' },
     { name: 'Recruitment Pipeline', path: '/hr/recruitment', icon: Briefcase, description: 'Hiring Operations' },
     { name: 'Hub Infrastructure', path: '/hr/departments', icon: MapPin, description: 'HYD / CHE / MUM' },
+    { name: 'Celebration Automation', path: '/hr/celebrations', icon: Sparkles, description: '01:00 AM Scheduler' },
     { name: 'Executive Reports', path: '/hr/reports', icon: FileText, description: '8 Regulatory Reports' },
     { name: 'System Governance', path: '/hr/settings', icon: ShieldCheck, description: 'Compliance & Audit' }
   ];
