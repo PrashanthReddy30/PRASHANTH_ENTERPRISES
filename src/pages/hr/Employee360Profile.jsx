@@ -53,6 +53,18 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
   // Find employee
   const employee = storeData.employees.find(e => e.id === employeeId || e.employeeId === employeeId);
 
+  // Branch matching check for Finance & Payroll:
+  // Global Admin: unrestricted across all 3 branches
+  // HR Admin / Finance: allowed if employee.branch === currentUser.branch (same branch)
+  const isFinanceAuthorized = !!(
+    permissions.isGlobalAdmin || (
+      currentUser?.branch && employee?.branch && (
+        currentUser.branch.trim().toLowerCase() === employee.branch.trim().toLowerCase() ||
+        currentUser.branchId === employee.branchId
+      )
+    )
+  );
+
   // Active Tab (13 tabs)
   const [activeTab, setActiveTab] = useState('overview');
   const [toastMessage, setToastMessage] = useState(null);
