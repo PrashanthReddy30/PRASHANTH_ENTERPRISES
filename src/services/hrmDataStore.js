@@ -312,6 +312,7 @@ const initialEnterpriseData = {
       managerName: 'Prashanth Reddy',
       joiningDate: '2026-11-19',
       dob: '1995-07-14',
+      gender: 'Female',
       status: 'Active',
       employmentType: 'Full-Time Permanent',
       panNumber: 'ABCDE1234F',
