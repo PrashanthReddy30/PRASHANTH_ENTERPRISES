@@ -155,18 +155,18 @@ export function ProfileDrawer({ isOpen, onClose }) {
   const handlePersonaClick = (persona) => {
     // 1. Immediately update active persona state and localStorage
     const switcher = switchPersona || switchUser;
+    const isGlobalAdminPersona = persona.tier === 'Global Admin' || persona.emp?.id === 'PE000' || persona.emp?.systemRole === 'Global Admin';
     const { targetRoute } = switcher(persona.emp || persona.tier, {
-      portal: persona.portal,
-      route: persona.route
+      portal: isGlobalAdminPersona ? 'GLOBAL_ADMIN' : persona.portal,
+      route: isGlobalAdminPersona ? '/admin/dashboard' : persona.route
     });
 
     // 2. Close drawer
     onClose();
 
-    // 3. Immediately navigate to that role's default landing page
-    if (targetRoute) {
-      navigate(targetRoute);
-    }
+    // 3. Immediately navigate to that role's default landing page (Global Admin strictly to /admin/dashboard)
+    const destination = isGlobalAdminPersona ? '/admin/dashboard' : (targetRoute || persona.route || '/home');
+    navigate(destination);
   };
 
   const menuItems = [
