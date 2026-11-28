@@ -189,9 +189,9 @@ export function Home() {
 
     const newWish = {
       id: `w-${Date.now()}`,
-      from: currentUser.name,
-      role: currentUser.role,
-      avatar: currentUser.avatar,
+      from: activeUser.name,
+      role: activeUser.role,
+      avatar: activeUser.avatar,
       message: textToSend.trim(),
       time: "Just now",
       likes: 1
@@ -206,6 +206,21 @@ export function Home() {
       }
       return c;
     }));
+
+    // Dispatch to store if unified post
+    try {
+      if (hrmStore && hrmStore.addCelebrationWish) {
+        hrmStore.addCelebrationWish(celebrationId, {
+          senderId: activeUser.id,
+          senderName: activeUser.name,
+          senderAvatar: activeUser.avatar,
+          senderRole: activeUser.role,
+          text: textToSend.trim()
+        });
+      }
+    } catch (e) {
+      // Local state already updated
+    }
 
     // Clear input
     setActiveWishInput(prev => ({ ...prev, [celebrationId]: '' }));
@@ -232,6 +247,14 @@ export function Home() {
       }
       return c;
     }));
+
+    try {
+      if (hrmStore && hrmStore.likeCelebrationWish) {
+        hrmStore.likeCelebrationWish(celebrationId, activeUser.id, activeUser.name);
+      }
+    } catch (e) {
+      // Local state already updated
+    }
   };
 
   const filteredCelebrations = celebrations.filter(item => {
