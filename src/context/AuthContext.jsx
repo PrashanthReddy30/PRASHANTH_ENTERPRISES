@@ -28,11 +28,14 @@ export function AuthProvider({ children }) {
   // Resolve active employee record
   const currentUser = storeData.employees.find(e => e.id === activeUserId) || storeData.employees[0];
 
-  // Derive granular permissions based on role
+  // Derive granular permissions based on role, live rolePermissions matrix, and user-specific overrides
   const role = currentUser.systemRole || 'Employee';
   const isGlobalAdmin = role === 'Global Admin';
-  const isHR = role === 'Central HR' || role === 'Branch HR' || role === 'HR Admin' || role === 'Global Admin';
-  const isFinance = role === 'Finance' || role === 'Global Admin';
+  const roleRow = (storeData.rolePermissions || []).find(r => r.role === role);
+  const overrides = currentUser.permissionsOverride || {};
+
+  const isHR = role === 'Central HR' || role === 'Branch HR' || role === 'HR Admin' || isGlobalAdmin;
+  const isFinance = role === 'Finance' || isGlobalAdmin;
   const isManager = role === 'Manager' || isHR;
 
   const permissions = {
@@ -40,14 +43,14 @@ export function AuthProvider({ children }) {
     isHR,
     isFinance,
     isManager,
-    canAccessHR: isHR || isFinance || isManager,
+    canAccessHR: isGlobalAdmin ? true : (overrides.canAccessHR !== undefined ? overrides.canAccessHR : (isHR || isFinance || isManager)),
     canAccessGlobalAdmin: isGlobalAdmin,
-    canApproveLeaves: isManager || isHR || isGlobalAdmin,
-    canManageEmployees: isHR || isGlobalAdmin,
-    canProcessPayroll: isFinance || isHR || isGlobalAdmin,
-    canManageRecruitment: isHR || isGlobalAdmin,
+    canApproveLeaves: isGlobalAdmin ? true : (overrides.canApproveLeaves !== undefined ? overrides.canApproveLeaves : (roleRow ? (roleRow.al !== 'None' && roleRow.al !== '❌') : (isManager || isHR))),
+    canManageEmployees: isGlobalAdmin ? true : (overrides.canManageEmployees !== undefined ? overrides.canManageEmployees : (roleRow ? (roleRow.me !== 'None' && roleRow.me !== '❌') : isHR)),
+    canProcessPayroll: isGlobalAdmin ? true : (overrides.canProcessPayroll !== undefined ? overrides.canProcessPayroll : (roleRow ? (roleRow.pay !== 'None' && roleRow.pay !== '❌' && roleRow.pay !== 'Self Slips') : isFinance)),
+    canManageRecruitment: isGlobalAdmin ? true : (overrides.canManageRecruitment !== undefined ? overrides.canManageRecruitment : (roleRow ? (roleRow.rec !== 'None' && roleRow.rec !== '❌' && roleRow.rec !== 'View Jobs') : isHR)),
     canEditSettings: isGlobalAdmin,
-    canViewAuditLogs: isHR || isGlobalAdmin
+    canViewAuditLogs: isGlobalAdmin ? true : (overrides.canViewAuditLogs !== undefined ? overrides.canViewAuditLogs : (roleRow ? (roleRow.aud !== 'None' && roleRow.aud !== '❌') : isHR))
   };
 
   // Safe portal switcher with authorization check & persona auto-binding
