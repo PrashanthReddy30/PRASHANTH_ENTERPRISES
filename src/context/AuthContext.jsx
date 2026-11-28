@@ -3,6 +3,124 @@ import { hrmStore } from '../services/hrmDataStore';
 import { auth, isFirebaseConfigured } from '../services/firebaseConfig';
 import { sendPasswordResetEmail } from 'firebase/auth';
 
+// Static, unfiltered master test personas for all 6 tiers
+export const TEST_PERSONAS = {
+  Employee: {
+    id: 'PE001',
+    employeeId: 'EMP-2024-001',
+    name: 'Ravi Kumar',
+    email: 'ravi.kumar@prashanthenterprises.in',
+    phone: '+91 98480 11221',
+    role: 'Software Development Engineer II',
+    roleTier: 'Employee',
+    systemRole: 'Employee',
+    department: 'Information Technology',
+    deptCode: 'IT',
+    branch: 'Hyderabad',
+    branchId: 'HYD',
+    managerId: 'PE003',
+    managerName: 'Rajesh Kannan',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
+    portal: 'EMPLOYEE',
+    route: '/home'
+  },
+  Manager: {
+    id: 'PE003',
+    employeeId: 'EMP-2022-003',
+    name: 'Rajesh Kannan',
+    email: 'rajesh.k@prashanthenterprises.in',
+    phone: '+91 98480 11225',
+    role: 'Head of IT & Infrastructure',
+    roleTier: 'Manager',
+    systemRole: 'Manager',
+    department: 'Information Technology',
+    deptCode: 'IT',
+    branch: 'Hyderabad',
+    branchId: 'HYD',
+    managerId: 'PE000',
+    managerName: 'Prashanth Reddy',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    portal: 'EMPLOYEE',
+    route: '/home'
+  },
+  'Branch HR': {
+    id: 'PE006',
+    employeeId: 'EMP-2024-006',
+    name: 'Rohan Patel',
+    email: 'rohan.patel@prashanthenterprises.in',
+    phone: '+91 98480 11228',
+    role: 'DevOps & Site Reliability Lead',
+    roleTier: 'Branch HR',
+    systemRole: 'Branch HR',
+    department: 'Information Technology',
+    deptCode: 'IT',
+    branch: 'Chennai',
+    branchId: 'CHE',
+    managerId: 'PE003',
+    managerName: 'Rajesh Kannan',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
+    portal: 'HR',
+    route: '/hr/dashboard'
+  },
+  'Central HR': {
+    id: 'PE016',
+    employeeId: 'EMP-2026-016',
+    name: 'Niharika',
+    email: 'chinnareddy123a@gmail.com',
+    phone: '+91 98480 11225',
+    role: 'HR Admin',
+    roleTier: 'Central HR',
+    systemRole: 'Central HR',
+    department: 'Human Resources',
+    deptCode: 'HR',
+    branch: 'Hyderabad',
+    branchId: 'HYD',
+    managerId: 'PE000',
+    managerName: 'Prashanth Reddy',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
+    portal: 'HR',
+    route: '/hr/dashboard'
+  },
+  Finance: {
+    id: 'PE010',
+    employeeId: 'EMP-2023-010',
+    name: 'Sneha Kulkarni',
+    email: 'sneha.k@prashanthenterprises.in',
+    phone: '+91 98480 11232',
+    role: 'Senior Corporate Finance Analyst',
+    roleTier: 'Finance',
+    systemRole: 'Finance',
+    department: 'Finance & Accounts',
+    deptCode: 'FIN',
+    branch: 'Mumbai',
+    branchId: 'MUM',
+    managerId: 'PE000',
+    managerName: 'Prashanth Reddy',
+    avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150',
+    portal: 'HR',
+    route: '/hr/payroll'
+  },
+  'Global Admin': {
+    id: 'PE000',
+    employeeId: 'EMP-2021-000',
+    name: 'Prashanth Reddy',
+    email: 'prashanth.reddy@prashanthenterprises.in',
+    phone: '+91 98480 11220',
+    role: 'Director of Operations',
+    roleTier: 'Global Admin',
+    systemRole: 'Global Admin',
+    department: 'Executive Management',
+    deptCode: 'ADMIN',
+    branch: 'Hyderabad',
+    branchId: 'HYD',
+    managerId: null,
+    managerName: 'Board of Directors',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    portal: 'GLOBAL_ADMIN',
+    route: '/admin/dashboard'
+  }
+};
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -16,9 +134,27 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  // Active user ID: defaults to Global Admin 'PE000' or HR Admin 'PE016'
+  // Explicit active persona object stored in state & localStorage
+  const [activePersona, setActivePersona] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const savedPersona = localStorage.getItem('activePersona');
+        if (savedPersona) return JSON.parse(savedPersona);
+      } catch (e) {}
+    }
+    return null;
+  });
+
+  // Active user ID: defaults to Global Admin 'PE000' or activePersona ID
   const [activeUserId, setActiveUserId] = useState(() => {
     if (typeof localStorage !== 'undefined') {
+      try {
+        const savedPersona = localStorage.getItem('activePersona');
+        if (savedPersona) {
+          const parsed = JSON.parse(savedPersona);
+          if (parsed && parsed.id) return parsed.id;
+        }
+      } catch (e) {}
       const saved = localStorage.getItem('pe_hrm_active_user_id');
       if (saved) return saved;
     }
@@ -31,8 +167,27 @@ export function AuthProvider({ children }) {
   // Multi-branch filter for Global Admin & HR: 'ALL' | 'HYD' | 'CHE' | 'MUM'
   const [selectedBranchFilter, setSelectedBranchFilter] = useState('ALL');
 
-  // Resolve active employee record
-  const rawCurrentUser = storeData.employees.find(e => e.id === activeUserId) || storeData.employees[0];
+  // Resolve active employee record WITHOUT RBAC circular sanitization trap:
+  // 1. Check activePersona in state/localStorage
+  // 2. Check unfiltered master employees in raw storeData or hrmStore.data
+  // 3. Check static TEST_PERSONAS
+  // 4. Fallback to Global Admin / storeData.employees[0]
+  const rawCurrentUser = useMemo(() => {
+    if (activePersona && (activePersona.id === activeUserId || !activeUserId)) {
+      return activePersona;
+    }
+    // Search in raw unfiltered hrmStore.data.employees
+    const rawStoreEmployees = hrmStore?.data?.employees || storeData?.employees || [];
+    const foundInStore = rawStoreEmployees.find(e => e.id === activeUserId);
+    if (foundInStore) return foundInStore;
+
+    // Search in TEST_PERSONAS
+    const personaMatch = Object.values(TEST_PERSONAS).find(p => p.id === activeUserId);
+    if (personaMatch) return personaMatch;
+
+    return rawStoreEmployees[0] || TEST_PERSONAS['Global Admin'];
+  }, [activeUserId, activePersona, storeData]);
+
   const currentUser = {
     ...rawCurrentUser,
     systemRole: rawCurrentUser.id === 'PE000' 
