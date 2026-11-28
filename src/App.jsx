@@ -26,6 +26,7 @@ import DepartmentsBranches from './pages/hr/DepartmentsBranches';
 import HrApprovals from './pages/hr/HrApprovals';
 import HrReports from './pages/hr/HrReports';
 import HrSettings from './pages/hr/HrSettings';
+import CelebrationAutomation from './pages/hr/CelebrationAutomation';
 
 // Global Admin Module
 import GlobalAdminDashboard from './pages/admin/GlobalAdminDashboard';
@@ -65,6 +66,7 @@ export function App() {
               <Route path="recruitment" element={<RecruitmentManagement />} />
               <Route path="departments" element={<DepartmentsBranches />} />
               <Route path="approvals" element={<HrApprovals />} />
+              <Route path="celebrations" element={<CelebrationAutomation />} />
               <Route path="reports" element={<HrReports />} />
               <Route path="settings" element={<HrSettings />} />
             </Route>
