@@ -908,6 +908,318 @@ service cloud.firestore {
           </div>
         </div>
       )}
+
+      {/* 3. User-Level Access Assignment & Revocation Modal */}
+      {showUserAccessModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in">
+          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-scale-in">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 border border-brand-200 text-brand-600">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">User Role & Access Assignment Center</h3>
+                  <p className="text-xs text-slate-500">Configure role tiers, branch scope boundaries, and granular module overrides.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUserAccessModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveUserAccess} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+              {/* Section 1: Employee Selection */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  1. Select Target Employee
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Searchable dropdown / selector */}
+                  <div>
+                    <div className="relative mb-2">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="Search employee by name, ID, branch..."
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        className="w-full rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs font-medium focus:border-brand-500 outline-none"
+                      />
+                    </div>
+                    <select
+                      size={5}
+                      value={selectedEmployeeId}
+                      onChange={(e) => {
+                        const found = storeData.employees.find(emp => emp.id === e.target.value);
+                        if (found) handleSelectEmployee(found);
+                      }}
+                      className="w-full rounded-xl border border-slate-200 p-1 text-xs font-medium outline-none focus:border-brand-500 bg-white"
+                    >
+                      {storeData.employees
+                        .filter(e => 
+                          e.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                          e.employeeId.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                          e.branch.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                          (e.systemRole || '').toLowerCase().includes(userSearchQuery.toLowerCase())
+                        )
+                        .map(emp => (
+                          <option key={emp.id} value={emp.id} className="p-2 rounded-lg hover:bg-slate-100 cursor-pointer">
+                            {emp.name} ({emp.employeeId}) — {emp.systemRole || 'Employee'} [{emp.branch}]
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  {/* Selected Employee Snapshot Card */}
+                  {selectedEmployee && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={selectedEmployee.avatar}
+                          alt={selectedEmployee.name}
+                          className="w-12 h-12 rounded-xl object-cover border border-slate-300 shadow-2xs"
+                        />
+                        <div>
+                          <h4 className="font-bold text-slate-900 text-sm">{selectedEmployee.name}</h4>
+                          <p className="text-xs text-slate-500 font-mono">{selectedEmployee.employeeId}</p>
+                          <p className="text-[11px] text-slate-600 font-medium">{selectedEmployee.role}</p>
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-[11px]">
+                        <div>
+                          <span className="text-slate-400 block">Department:</span>
+                          <span className="font-semibold text-slate-800">{selectedEmployee.department}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block">Home Branch:</span>
+                          <span className="font-semibold text-slate-800">{selectedEmployee.branch}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block">Current Tier:</span>
+                          <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
+                            {selectedEmployee.systemRole || 'Employee'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block">Current Scope:</span>
+                          <span className="font-semibold text-slate-800">{selectedEmployee.branchScope || selectedEmployee.branch}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Section 2: Assign Role Tier */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  2. Select Role Tier
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {[
+                    { role: 'Employee', title: 'Employee', desc: 'Self-service attendance & leaves' },
+                    { role: 'Manager', title: 'Manager', desc: 'Team leadership & approvals' },
+                    { role: 'Branch HR', title: 'Branch HR', desc: 'Regional branch administration' },
+                    { role: 'Central HR', title: 'Central HR', desc: 'Corporate HR & nationwide records' },
+                    { role: 'Finance', title: 'Finance', desc: 'Payroll processing & statutory tax' },
+                    { role: 'Global Admin', title: 'Global Admin', desc: 'Unrestricted super-admin rights' },
+                  ].map(t => (
+                    <label
+                      key={t.role}
+                      className={`relative flex flex-col p-3 rounded-xl border cursor-pointer transition ${
+                        userFormRole === t.role
+                          ? 'border-brand-500 bg-brand-50/50 ring-1 ring-brand-500'
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="roleTier"
+                        value={t.role}
+                        checked={userFormRole === t.role}
+                        onChange={(e) => setUserFormRole(e.target.value)}
+                        className="sr-only"
+                      />
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-xs text-slate-900">{t.title}</span>
+                        {userFormRole === t.role && <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" />}
+                      </div>
+                      <span className="text-[10px] text-slate-500 leading-tight">{t.desc}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section 3: Branch Scope */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  3. Assign Branch Access Scope
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {['Hyderabad', 'Chennai', 'Mumbai', 'All Hubs'].map(scope => (
+                    <button
+                      key={scope}
+                      type="button"
+                      onClick={() => setUserFormScope(scope)}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border transition text-center ${
+                        userFormScope === scope
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {scope === 'All Hubs' ? '🌐 All Hubs (Corporate)' : scope}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section 4: Granular Module Overrides */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    4. Granular Module Overrides (Optional Explicit Grants)
+                  </label>
+                  <span className="text-[10px] text-slate-400">Overrides default tier permissions</span>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2.5">
+                  {[
+                    { key: 'canProcessPayroll', label: 'Payroll & Statutory Deductions', desc: 'Allows running monthly payroll, adjusting structures, and PF/ESI calculations.' },
+                    { key: 'canManageRecruitment', label: 'Recruitment & Candidate Onboarding', desc: 'Allows creating job posts, advancing candidate stages, and onboarding.' },
+                    { key: 'canManageEmployees', label: 'Workforce 360 Profile Management', desc: 'Allows full modification authority over employee directory and statutory fields.' },
+                    { key: 'canApproveLeaves', label: 'Leave Ledger & Request Approvals', desc: 'Allows approving or rejecting leave requests and adjusting atomic ledgers.' },
+                    { key: 'canViewAuditLogs', label: 'Enterprise Security & Audit Trail', desc: 'Allows viewing compliance logs, biometric alerts, and IP session records.' },
+                  ].map(override => (
+                    <label key={override.key} className="flex items-start gap-3 p-2 rounded-lg bg-white border border-slate-200/80 cursor-pointer hover:bg-slate-50/80 transition">
+                      <input
+                        type="checkbox"
+                        checked={userFormOverrides[override.key]}
+                        onChange={(e) => setUserFormOverrides({ ...userFormOverrides, [override.key]: e.target.checked })}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-slate-900">{override.label}</p>
+                        <p className="text-[10px] text-slate-500">{override.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div>
+                  {selectedEmployee && (selectedEmployee.systemRole !== 'Employee' || Object.values(selectedEmployee.permissionsOverride || {}).some(Boolean)) && (
+                    <button
+                      type="button"
+                      onClick={() => setShowRevokeConfirm(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Revoke Access (Revert to Employee)</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowUserAccessModal(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xs transition"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save & Apply Access</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Revoking Access */}
+      {showRevokeConfirm && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 animate-scale-in">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-sm">Confirm Access Revocation</h4>
+                <p className="text-xs text-slate-500">Revert employee to standard tier</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600">
+              Are you sure you want to revoke privileged access for <strong>{selectedEmployee?.name}</strong>? Their role will immediately be reverted to standard <strong>Employee</strong>, and all custom module overrides will be cleared.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowRevokeConfirm(false)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRevokeUserAccess}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 transition"
+              >
+                Yes, Revoke Access
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Saving Matrix Changes */}
+      {showSaveConfirmModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4 animate-scale-in">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-sm">Confirm Role Matrix Updates</h4>
+                <p className="text-xs text-slate-500">Enforce enterprise access tier rules</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600">
+              You are about to save changes to the 6-tier Enterprise Role-Based Access Matrix. These updated permissions will take effect immediately for all active employee sessions and synchronize to Firestore.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowSaveConfirmModal(false)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveMatrix}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition"
+              >
+                Confirm & Enforce Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
