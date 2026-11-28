@@ -82,5 +82,28 @@ service cloud.firestore {
     match /matrix_biometric_punches/{punchId} {
       allow read, write: if true;
     }
+
+    // 12. Celebration & Wishes Automation System
+    match /celebration_templates/{templateId} {
+      allow read, write: if true;
+    }
+
+    match /employee_engagement_posts/{postId} {
+      allow read, write: if true;
+      match /wishes/{wishId} {
+        allow read, write: if true;
+      }
+      match /likes/{userId} {
+        allow read, write: if true;
+      }
+    }
+
+    match /celebration_settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    match /celebration_logs/{logId} {
+      allow read, write: if true;
+    }
   }
 }
