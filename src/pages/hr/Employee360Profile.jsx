@@ -162,14 +162,19 @@ export function Employee360Profile({ employeeId: propEmployeeId, onBack: propOnB
   const employeeLedger = storeData.leaveLedger[employee.id] || storeData.leaveLedger['PE001'] || {};
   const employeeSalary = storeData.salaryStructures[employee.id] || { basic: 45000, hra: 22500, specialAllowance: 22500, pf: 5400, pt: 200, tds: 4500, gross: 90000, net: 79900 };
   
-  // Specific Audit Logs for this employee
-  const employeeAuditLogs = storeData.auditLogs.filter(log => 
-    log.userId === employee.id || 
-    log.userId === employee.employeeId ||
-    log.details.includes(employee.name) ||
-    log.details.includes(employee.employeeId) ||
-    log.details.includes(employee.id)
-  );
+  // Specific Audit Logs for this employee (sorted newest first)
+  const employeeAuditLogs = useMemo(() => {
+    const list = (storeData.auditLogs || []).filter(log => 
+      log.userId === employee.id || 
+      log.userId === employee.employeeId ||
+      (log.details && (
+        log.details.includes(employee.name) ||
+        log.details.includes(employee.employeeId) ||
+        log.details.includes(employee.id)
+      ))
+    );
+    return list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [storeData.auditLogs, employee]);
 
   // Tabs Definition (Exact 14 Sections)
   const tabs = [
