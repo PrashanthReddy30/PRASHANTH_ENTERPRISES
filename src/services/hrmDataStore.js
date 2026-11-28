@@ -1437,6 +1437,9 @@ export class HrmDataEngine {
         { effectiveDate: emp.joiningDate, gross: 75000, basic: 37500, revisedBy: "Pooja Hegde", reason: "Initial Onboarding Compensation" }
       ];
     }
+    if (emp.id === 'PE000') {
+      emp.systemRole = 'Global Admin';
+    }
     return emp;
   }
 
@@ -1450,6 +1453,7 @@ export class HrmDataEngine {
             parsed.employees = parsed.employees.map(e => {
               const seed = initialEnterpriseData.employees.find(se => se.id === e.id);
               if (!e.dob && seed?.dob) e.dob = seed.dob;
+              if (e.id === 'PE000') e.systemRole = 'Global Admin';
               return this.normalizeEmployee360(e);
             });
           }
