@@ -1124,7 +1124,17 @@ const initialEnterpriseData = {
   ],
 
   // 19. Onboarding Document & Statutory Form Templates
-  onboardingTemplates: DEFAULT_ONBOARDING_TEMPLATES
+  onboardingTemplates: DEFAULT_ONBOARDING_TEMPLATES,
+
+  // 20. Enterprise Role-Based Access Matrix (6 Distinct Tiers)
+  rolePermissions: [
+    { role: 'Employee', ve: 'Self', me: 'None', att: 'Self', al: 'None', pay: 'Self Slips', rec: 'View Jobs', aud: 'None', scope: 'Self' },
+    { role: 'Manager', ve: 'Team', me: 'None', att: 'Team', al: 'Direct Reports', pay: 'None', rec: 'Interviews', aud: 'None', scope: 'Department' },
+    { role: 'Branch HR', ve: 'Branch', me: 'Branch', att: 'Branch', al: 'Branch', pay: 'None', rec: 'Branch', aud: 'Branch', scope: 'Assigned Hub' },
+    { role: 'Central HR', ve: 'Full', me: 'Full', att: 'Full', al: 'Full', pay: 'Verify', rec: 'Full', aud: 'Full', scope: 'All Hubs' },
+    { role: 'Finance', ve: 'Read', me: 'None', att: 'Read', al: 'None', pay: 'Full Process', rec: 'None', aud: 'Financial', scope: 'All Hubs' },
+    { role: 'Global Admin', ve: 'Full', me: 'Full', att: 'Full', al: 'Full', pay: 'Full Audit', rec: 'Full', aud: 'Full', scope: 'Company-Wide' }
+  ]
 };
 
 export class HrmDataEngine {
