@@ -16,12 +16,14 @@ import {
   ChevronRight,
   Building2,
   BadgeCheck,
-  MapPin
+  MapPin,
+  Mail,
+  Key
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export function ProfileDrawer({ isOpen, onClose }) {
-  const { currentUser } = useAuth();
+  const { currentUser, switchUser, sendPasswordReset } = useAuth();
   const drawerRef = useRef(null);
   const navigate = useNavigate();
 
