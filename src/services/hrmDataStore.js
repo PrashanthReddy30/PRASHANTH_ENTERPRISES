@@ -700,7 +700,229 @@ const initialEnterpriseData = {
     providentFundRate: 12,
     professionalTaxMonthly: 200,
     activeFiscalYear: '2026-2027'
-  }
+  },
+
+  // 14. Celebration Templates (HR Uploaded & Dynamic Placeholders)
+  celebrationTemplates: [...DEFAULT_CELEBRATION_TEMPLATES],
+
+  // 15. Employee Engagement & Automated Celebration Posts
+  employeeEngagementPosts: [
+    {
+      id: "CEL-20241115-PE009-welcome",
+      eventKey: "PE009_welcome_2024-11-15",
+      type: "new_joinee",
+      category: "welcome",
+      title: "Welcome to Prashanth Enterprises!",
+      subtitle: "New Joiner",
+      employeeName: "Ananya Deshmukh",
+      employeeId: "PE009",
+      role: "Senior Frontend Engineer",
+      department: "Engineering & QA",
+      branch: "Mumbai",
+      avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150",
+      badge: "Joined 15 Nov 🚀",
+      date: "15 Nov 2026",
+      publishedAt: "2026-11-15T01:00:00+05:30",
+      status: "PUBLISHED",
+      templateId: "tpl-welcome-default",
+      posterUrl: generateFallbackSvgPoster(DEFAULT_CELEBRATION_TEMPLATES[0], {
+        name: "Ananya Deshmukh",
+        role: "Senior Frontend Engineer",
+        department: "Engineering & QA",
+        branch: "Mumbai",
+        avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150"
+      }, {
+        message: "Welcome to the Prashanth Enterprises family, Ananya! Wishing you a wonderful and fulfilling career journey with us.",
+        badgeTitle: "WELCOME ABOARD! 🚀"
+      }),
+      quickWishes: [
+        "🎉 Welcome to Prashanth Enterprises!",
+        "👋 So glad to have you on the team!",
+        "🚀 Wishing you a wonderful journey here!"
+      ],
+      wishes: [
+        {
+          id: "w-1",
+          from: "Prashanth Reddy",
+          role: "Director of Operations",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+          message: "Welcome to the team Ananya! We are excited to build amazing products together. 🙌",
+          time: "1 hour ago",
+          likes: 5
+        },
+        {
+          id: "w-2",
+          from: "Kavitha Sharma",
+          role: "Lead QA Automation",
+          avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+          message: "Warm welcome Ananya! Looking forward to collaborating on the new portal. ✨",
+          time: "3 hours ago",
+          likes: 3
+        }
+      ]
+    },
+    {
+      id: "CEL-20261116-PE004-birthday",
+      eventKey: "PE004_birthday_2026",
+      type: "birthday",
+      category: "birthday",
+      title: "Happy Birthday!",
+      subtitle: "Birthday Today 🎂",
+      employeeName: "Kavitha Sharma",
+      employeeId: "PE004",
+      role: "Lead QA Automation",
+      department: "Engineering & QA",
+      branch: "Hyderabad",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+      badge: "Today 🎂",
+      date: "Today, 16 Nov",
+      publishedAt: "2026-11-16T01:00:00+05:30",
+      status: "PUBLISHED",
+      templateId: "tpl-birthday-default",
+      posterUrl: generateFallbackSvgPoster(DEFAULT_CELEBRATION_TEMPLATES[1], {
+        name: "Kavitha Sharma",
+        role: "Lead QA Automation",
+        department: "Engineering & QA",
+        branch: "Hyderabad",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+      }, {
+        message: "Wishing you a very Happy Birthday, Kavitha! May your year ahead be filled with happiness, health, and stellar success! 🎂🎉",
+        badgeTitle: "HAPPY BIRTHDAY! 🎂"
+      }),
+      quickWishes: [
+        "🎂 Wishing you a very Happy Birthday!",
+        "🎉 Have a fantastic day and year ahead!",
+        "💐 May all your dreams come true!"
+      ],
+      wishes: [
+        {
+          id: "w-3",
+          from: "Pooja Hegde",
+          role: "VP People Operations",
+          avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
+          message: "Happy Birthday Kavitha! Have a wonderful day filled with joy and sweet treats! 🍰🎉",
+          time: "2 hours ago",
+          likes: 8
+        }
+      ]
+    },
+    {
+      id: "CEL-20261116-PE003-anniversary",
+      eventKey: "PE003_anniversary_4yr_2026",
+      type: "anniversary",
+      category: "anniversary",
+      title: "Celebrating Work Anniversary!",
+      subtitle: "4 Years at Prashanth Enterprises 🎖️",
+      employeeName: "Rajesh Kannan",
+      employeeId: "PE003",
+      role: "Head of IT & Infrastructure",
+      department: "Information Technology",
+      branch: "Hyderabad",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+      badge: "4 Years Milestone 🎖️",
+      date: "Today, 16 Nov",
+      publishedAt: "2026-11-16T01:00:00+05:30",
+      status: "PUBLISHED",
+      templateId: "tpl-anniversary-default",
+      posterUrl: generateFallbackSvgPoster(DEFAULT_CELEBRATION_TEMPLATES[2], {
+        name: "Rajesh Kannan",
+        role: "Head of IT & Infrastructure",
+        department: "Information Technology",
+        branch: "Hyderabad",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
+      }, {
+        completedYears: 4,
+        message: "Congratulations on completing 4 Years at Prashanth Enterprises, Rajesh! Thank you for your leadership and remarkable dedication.",
+        badgeTitle: "WORK ANNIVERSARY MILESTONE 🎖️"
+      }),
+      quickWishes: [
+        "🎖️ Congratulations on 4 years at PE!",
+        "🌟 Thank you for your leadership & dedication!",
+        "👏 Here's to many more milestones together!"
+      ],
+      wishes: [
+        {
+          id: "w-4",
+          from: "Prashanth Reddy",
+          role: "Director of Operations",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+          message: "Hearty congratulations Rajesh on completing 4 years! Your contribution to our infrastructure and local intranet stability is immensely valued! 👏",
+          time: "4 hours ago",
+          likes: 12
+        }
+      ]
+    },
+    {
+      id: "CEL-20231110-PE008-welcome",
+      eventKey: "PE008_welcome_2023-11-10",
+      type: "new_joinee",
+      category: "welcome",
+      title: "Welcome to Prashanth Enterprises!",
+      subtitle: "New Joiner",
+      employeeName: "Siddharth Verma",
+      employeeId: "PE008",
+      role: "Plant Operations Supervisor",
+      department: "Plant Operations & Logistics",
+      branch: "Mumbai",
+      avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150",
+      badge: "Joined 10 Nov 🚀",
+      date: "10 Nov 2026",
+      publishedAt: "2026-11-10T01:00:00+05:30",
+      status: "PUBLISHED",
+      templateId: "tpl-welcome-default",
+      posterUrl: generateFallbackSvgPoster(DEFAULT_CELEBRATION_TEMPLATES[0], {
+        name: "Siddharth Verma",
+        role: "Plant Operations Supervisor",
+        department: "Plant Operations & Logistics",
+        branch: "Mumbai",
+        avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150"
+      }, {
+        message: "Welcome to the team Siddharth! Wishing you great success in operations and manufacturing leadership.",
+        badgeTitle: "WELCOME ABOARD! 🚀"
+      }),
+      quickWishes: [
+        "🎉 Welcome aboard Siddharth!",
+        "🏭 Wishing you great success in operations!",
+        "👋 Hello and warm welcome!"
+      ],
+      wishes: []
+    }
+  ],
+
+  // 16. Celebration Automation Settings (01:00 AM IST)
+  celebrationAutomationSettings: {
+    isEnabled: true,
+    publishTimeIST: "01:00",
+    timeZone: "Asia/Kolkata",
+    feb29Policy: "FEB_28",
+    newJoinerAutoWelcome: true,
+    birthdayAutoWishes: true,
+    anniversaryAutoWishes: true,
+    milestoneYears: [1, 2, 3, 5, 10, 15, 20],
+    catchUpMissedPosts: true,
+    lastRunTimestamp: "2026-11-28T01:00:00+05:30",
+    lastRunStatus: "SUCCESS",
+    lastRunSummary: "Evaluated 11 employees. Automated 01:00 AM IST Scheduler active.",
+    nextRunTimestamp: "2026-11-29T01:00:00+05:30"
+  },
+
+  // 17. Celebration Processing & Audit Logs
+  celebrationProcessingLogs: [
+    {
+      id: "LOG-20261128-010000",
+      timestamp: "2026-11-28T01:00:00+05:30",
+      executionType: "SCHEDULED_AUTOMATION",
+      timeZone: "Asia/Kolkata",
+      targetDate: "2026-11-28",
+      status: "SUCCESS",
+      evaluatedCount: 11,
+      publishedCount: 3,
+      skippedDuplicates: 0,
+      failedCount: 0,
+      details: "Published New Joiner welcome for Ananya Deshmukh; Birthday wish for Kavitha Sharma; 4-Year Anniversary for Rajesh Kannan.",
+      triggeredBy: "Server Cloud Scheduler (Asia/Kolkata 01:00 AM)"
+    }
+  ]
 };
 
 class HrmDataEngine {
