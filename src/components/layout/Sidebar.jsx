@@ -53,6 +53,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
     sectionTitle = 'Global Admin Governance';
     navItems = [
       { name: 'Global Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard, description: 'Executive HUD' },
+      { name: 'Branch Monitor', path: '/admin/branch-monitor', icon: Building2, description: 'Live Multi-Branch & Financials' },
       { name: 'Employees', path: '/hr/employees', icon: Users, description: 'All Branches' },
       { name: 'Attendance', path: '/hr/attendance', icon: Clock, description: 'Multi-Hub Biometric' },
       { name: 'Leaves', path: '/hr/leaves', icon: Calendar, badge: pendingLeaves, badgeColor: 'bg-amber-500 text-white', description: 'Approvals & Ledger' },
