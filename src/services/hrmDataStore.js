@@ -2925,7 +2925,7 @@ export class HrmDataEngine {
     this.saveData();
     this.syncDocToFirebase('onboarding_cases', obCase.id, obCase);
 
-    return { case: obCase, employee: createdEmployee };
+    return { case: obCase, onboardingCase: obCase, employee: createdEmployee };
   }
 
   saveOnboardingTemplate(templateData, hrUserName = 'HR Admin', hrUserId = 'HR') {
